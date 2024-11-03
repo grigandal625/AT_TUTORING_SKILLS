@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "at-tutoring-skills"
+version = "0.1.dev0"
+description = ""
+authors = ["grigadnal625 <grigandal625@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+at-queue = {git = "https://github.com/grigandal625/AT_QUEUE.git", rev = "master"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
