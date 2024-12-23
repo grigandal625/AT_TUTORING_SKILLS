@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Task, Skill, Reaction
+from .models import Task, Skill, Reaction, ScenarioPart, Event
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
@@ -16,3 +16,12 @@ class SkillAdmin(admin.ModelAdmin):
 @admin.register(Reaction)
 class ReactionAdmin(admin.ModelAdmin):
     list_display = ('task_id', 'message')
+
+@admin.register(ScenarioPart)
+class ScenarioPartAdmin(admin.ModelAdmin):
+    list_display = ('scenario_id', 'task_id', 'order')
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'description', 'task_id')
+    search_fields = ('event_name', 'task_id')

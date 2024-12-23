@@ -5,8 +5,9 @@ from at_krl.core.kb_type import KBType
 from  at_krl.core.kb_class import KBClass
 from at_krl.core.temporal.kb_event import KBEvent
 from at_krl.core.temporal.kb_interval import KBInterval
-from at_krl.core.kb_operation import KBOperation
+# from at_krl.core.kb_operation import KBOperation
 from at_krl.core.kb_rule import KBRule
+from .api_client import get_skill, get_skills, get_tasks, get_task, get_reaction, get_event
 
 class ATTutoringKBSkills(ATComponent):
 
