@@ -8,7 +8,7 @@ from at_krl.core.temporal.kb_interval import KBInterval
 from at_krl.core.kb_operation import KBOperation
 from at_krl.core.kb_rule import KBRule
 
-class ATTutoringSkills(ATComponent):
+class ATTutoringKBSkills(ATComponent):
 
     skills: dict = None
 

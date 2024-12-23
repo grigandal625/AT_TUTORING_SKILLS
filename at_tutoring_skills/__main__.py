@@ -4,7 +4,7 @@ import os
 from at_queue.core.session import ConnectionParameters
 
 from at_tutoring_skills.core.arguments import get_args
-from at_tutoring_skills.core.skills import ATTutoringSkills
+from at_tutoring_skills.core.KBskills import ATTutoringKBSkills
 
 
 async def main():
@@ -19,7 +19,7 @@ async def main():
     except PermissionError:
         pass
 
-    skills = ATTutoringSkills(connection_parameters=connection_parameters)
+    skills = ATTutoringKBSkills(connection_parameters=connection_parameters)
 
     await skills.initialize()
     await skills.register()

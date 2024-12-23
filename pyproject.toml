@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.12"
 at-queue = {git = "https://github.com/grigandal625/AT_QUEUE.git", rev = "master"}
 at-krl = {git = "https://github.com/grigandal625/AT_KRL.git", rev = "master"}
+django = "^5.1.4"
 
 
 [build-system]
