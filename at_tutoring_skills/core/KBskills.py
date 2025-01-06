@@ -12,32 +12,51 @@ from .api_client import get_skill, get_skills, get_tasks, get_task, get_reaction
 class ATTutoringKBSkills(ATComponent):
 
     skills: dict = None
+    cash: dict = None
 
-    # .__dict__()
-    kash = {
-        'auth_token': None,
-        'mark' : None,
-        'kb_types': [],
-        'kb_objects': [],
-        'kb_events': [],
-        'kb_intervals': [],
-        'kb_rules': [],
-    }
+    # # .__dict__()
+    # cash = {
+    #     "auth_token_value": {
+    #         'kb_types': [],
+    #         'kb_objects': [],
+    #         'kb_events': [],
+    #         'kb_intervals': [],
+    #         'kb_rules': [],
+    #         "mark": 0
+    #     }
+    # }
+
     def __init__(self, connection_parameters: ConnectionParameters, *args, **kwargs):
         super().__init__(connection_parameters, *args, **kwargs)
         
         self.skills = {} # временное хранилище, тут лучше подключить БД или что-то
+        self.cash = {}
 
+    def init_cash(self, auth_token: str):
+        if auth_token not in self.cash:
+            self.cash[auth_token] = {}
+        if 'kb_types' not in self.cash[auth_token]:
+            self.cash[auth_token]['kb_types'] = []
+        if 'kb_objects' not in self.cash[auth_token]:
+            self.cash[auth_token]['kb_objects'] = []
+        if 'kb_events' not in self.cash[auth_token]:
+            self.cash[auth_token]['kb_events'] = []
+        if 'kb_intervals' not in self.cash[auth_token]:
+            self.cash[auth_token]['kb_intervals'] = []
+        if 'kb_rules' not in self.cash[auth_token]:
+            self.cash[auth_token]['kb_rules'] = []
+        return self.cash[auth_token]
+    
 # =================================== det value from element by key ===========================
-    # array_name из kash
+    # array_name из cash
     # search_key поле по которому происходит сравнение, например проверем равенство имен значит 'Name'
     # dest_key поле из которого возвращается результат, например надо получить в результате id значит 'id'
     # key_value: значение с которым сравниваем 
 
-    def get_smth_val_by_key(self, array_name: str, search_key: str, dest_key: str, key_value: str):
+    def get_smth_val_by_key(self, array_name: str, search_key: str, dest_key: str, key_value: str, auth_token: str):
         
-        if array_name in self.kash and isinstance(self.kash[array_name], list):
-            for item in self.kash[array_name]:
+        if array_name in self.cash and array_name in self.cash[auth_token]:
+            for item in self.cash[array_name]:
                 if item.get(search_key) == key_value:
                     return item.get(dest_key)
         else: 
@@ -45,37 +64,37 @@ class ATTutoringKBSkills(ATComponent):
             return None
 
 # name by id  
-    def get_type_name_by_id(self, id: str):
-        return self.get_smth_val_by_key('kb_types', 'typeId', 'id', id)
+    def get_type_name_by_id(self, id: str, auth_token: str):
+        return self.get_smth_val_by_key('kb_types', 'typeId', 'id', id, auth_token)
 
-    def get_obj_name_by_id(self, id: str):
-        return self.get_smth_val_by_key('kb_objects', 'objectId', 'id', id)
+    def get_obj_name_by_id(self, id: str, auth_token: str):
+        return self.get_smth_val_by_key('kb_objects', 'objectId', 'id', id, auth_token)
 
-    def get_event_name_by_id(self, id: str):
-        return self.get_smth_val_by_key('kb_events', 'eventId', 'Name', id)
+    def get_event_name_by_id(self, id: str, auth_token: str):
+        return self.get_smth_val_by_key('kb_events', 'eventId', 'Name', id, auth_token)
     
-    def get_interval_name_by_id(self, id: str):
-        return self.get_smth_val_by_key('kb_intervals', 'intervalId', 'Name', id)
+    def get_interval_name_by_id(self, id: str, auth_token: str):
+        return self.get_smth_val_by_key('kb_intervals', 'intervalId', 'Name', id, auth_token)
     
-    def get_rule_name_by_id(self, id: str):
-        return self.get_smth_val_by_key('kb_rules', 'ruleId', 'id', id)
+    def get_rule_name_by_id(self, id: str, auth_token: str):
+        return self.get_smth_val_by_key('kb_rules', 'ruleId', 'id', id, auth_token)
     
 # id by name
 
-    def get_type_id_by_name(self, name: str):
-        return self.get_smth_val_by_key('kb_types', 'id', 'typeId', name)
+    def get_type_id_by_name(self, name: str, auth_token: str):
+        return self.get_smth_val_by_key('kb_types', 'id', 'typeId', name, auth_token)
 
-    def get_obj_name_by_id(self, id: str):
-        return self.get_smth_val_by_key('kb_objects', 'id', 'objectId', id)
+    def get_obj_name_by_id(self, id: str, auth_token: str):
+        return self.get_smth_val_by_key('kb_objects', 'id', 'objectId', id, auth_token)
 
-    def get_event_name_by_id(self, id: str):
-        return self.get_smth_val_by_key('kb_events', 'Name', 'eventId', id)
+    def get_event_name_by_id(self, id: str, auth_token: str):
+        return self.get_smth_val_by_key('kb_events', 'Name', 'eventId', id, auth_token)
     
-    def get_interval_name_by_id(self, id: str):
-        return self.get_smth_val_by_key('kb_intervals', 'Name', 'intervalId', id)
+    def get_interval_name_by_id(self, id: str, auth_token: str):
+        return self.get_smth_val_by_key('kb_intervals', 'Name', 'intervalId', id, auth_token)
     
-    def get_rule_name_by_id(self, id: str):
-        return self.get_smth_val_by_key('kb_rules', 'id', 'ruleId', id)    
+    def get_rule_name_by_id(self, id: str, auth_token: str):
+        return self.get_smth_val_by_key('kb_rules', 'id', 'ruleId', id, auth_token)    
 
 
 # ============================== get element by name ===================
@@ -83,55 +102,57 @@ class ATTutoringKBSkills(ATComponent):
     # search_key поле по которому происходит сравнение, например проверем равенство имен значит 'Name'
     # key_value: значение с которым сравниваем 
 
-    def get_smth_by_key(self, array_name: str, id_key: str, key_value: str):
-        # Проверяем, что массив существует в self.kash и является списком
-        if array_name in self.kash and isinstance(self.kash[array_name], list):
-            for item in self.kash[array_name]:
+    def get_smth_by_key(self, array_name: str, id_key: str, key_value: str, auth_token: str):
+        # Проверяем, что массив существует в self.cash и является списком
+
+        if auth_token in self.cash and array_name in self.cash[auth_token]:
+            for item in self.cash[array_name]:
                 if item.get(id_key) == key_value:
                     return item
         else:
             return None
     
-    def get_type_by_id(self, value: str):
-        return self.get_smth_by_key('kb_types', 'typeId', value)
+    def get_type_by_id(self, value: str, auth_token: str):
+        return self.get_smth_by_key('kb_types', 'typeId', value, auth_token)
     
-    def get_object_by_id(self, value: str):
-        return self.get_smth_by_key('kb_objects', 'objectId', value) 
+    def get_object_by_id(self, value: str, auth_token: str):
+        return self.get_smth_by_key('kb_objects', 'objectId', value, auth_token) 
     
-    def get_event_by_id(self, value: str):
-        return self.get_smth_by_key('kb_types', 'eventId', value)
+    def get_event_by_id(self, value: str, auth_token: str):
+        return self.get_smth_by_key('kb_types', 'eventId', value, auth_token)
     
-    def get_interval_by_id(self, value: str):
-        return self.get_smth_by_key('kb_intervals', 'intervalId', value)
+    def get_interval_by_id(self, value: str, auth_token: str):
+        return self.get_smth_by_key('kb_intervals', 'intervalId', value, auth_token)
 
-    def get_rule_by_id(self, value: str):
-        return self.get_smth_by_key('kb_rules', 'ruleId', value)
+    def get_rule_by_id(self, value: str, auth_token: str):
+        return self.get_smth_by_key('kb_rules', 'ruleId', value, auth_token)
 
-# ==============================get from dict===================
+# ==============================get from dict=================== проверено 
     @staticmethod
-    def kb_type_from_dict(data: dict, event: str) -> dict:
-        type_dict = data.get('result')
-        if type_dict:
-            type_dict['typeId'] = type_dict['item']['id']
-            type_dict['id'] = type_dict.get('kb_id')
-            type_dict['meta'] = {1: "string", 2: "number", 3: "fuzzy"}[type_dict.get('meta')]
-            type_dict['desc'] = type_dict.get('comment')
+    def kb_type_from_dict(type_dict: dict, event: str) -> dict:
 
-            if data['event'] =="kbObjects/update":
+        new_type_dict ={}
+        if type_dict:
+            new_type_dict['typeId'] = type_dict.get('id') #id
+            new_type_dict['id'] = type_dict.get('kb_id') #name
+            new_type_dict['meta'] = {1: "string", 2: "number", 3: "fuzzy"}[type_dict.get('meta')]
+            new_type_dict['desc'] = type_dict.get('comment')
+
+            if event !='kbTypes/create':
                 if type_dict['meta']  == 1 :
-                    type_dict['values'] = [v['data'] for v in type_dict["kt_values"]]
-                    type_dict['from'], type_dict['to'] = None, None
-                    type_dict['membership_functions'] = None
+                    new_type_dict['values'] = [v['data'] for v in type_dict["kt_values"]]
+                    new_type_dict['from'], new_type_dict['to'] = None, None
+                    new_type_dict['membership_functions'] = None
 
                 elif type_dict['meta'] == 2:
-                    type_dict['values'] = None
-                    type_dict['from'], type_dict['to'] =  [v['data'] for v in type_dict["kt_values"][:2]]
-                    type_dict['membership_functions'] = None
+                    new_type_dict['values'] = None
+                    new_type_dict['from'], new_type_dict['to'] =  [v['data'] for v in type_dict["kt_values"][:2]]
+                    new_type_dict['membership_functions'] = None
 
                 elif type_dict['meta'] == 3 :
-                    type_dict['values'] = None
-                    type_dict['from'], type_dict['to'] = None, None
-                    type_dict['membership_functions'] = [ 
+                    new_type_dict['values'] = None
+                    new_type_dict['from'], new_type_dict['to'] = None, None
+                    new_type_dict['membership_functions'] = [ 
                     {
                         'name': v['data']['name'],
                         'min' : v['data']['max'],
@@ -147,27 +168,29 @@ class ATTutoringKBSkills(ATComponent):
 
                 else:
                     print('ошибка, базовый тип')
-            kb_type = KBType.from_dict(type_dict)
+            kb_type = KBType.from_dict(new_type_dict)
             print(kb_type.krl)
         else: 
             print('ошибка, type_dict пуст')
-        return type_dict
+        return new_type_dict
     
-    @staticmethod
-    def kb_class_from_dict(data: dict, event: str)-> dict:
+    # @staticmethod
+    def kb_object_from_dict(self, data: dict, event: str)-> dict:
         
         object_dict = data.get('result')
-        if object_dict:
-            object_dict['objectId'] = object_dict['item']['id']
-            object_dict['id'] = object_dict.get('kb_id')
-            object_dict['group'] = object_dict.get('group')
-            object_dict['desc'] = object_dict.get('comment')
+        new_object_dict = {}
 
-            if event == "kbObjects/update":
-                object_dict['properties'] = [
+        if object_dict:
+            new_object_dict['objectId'] = object_dict.get('id') # id
+            new_object_dict['id'] = object_dict.get('kb_id') # name
+            new_object_dict['group'] = object_dict.get('group')
+            new_object_dict['desc'] = object_dict.get('comment')
+
+            if event != "kbObjects/create":
+                new_object_dict['properties'] = [
                     {
                         'id' : item['kb_id'],
-                        'type' : item['type'],
+                        'type' : self.get_type_name_by_id(item['type']), # впихнуть функцию имя по id
                         'desc': item['comment'] if item['comment'] is not None else '',
                         'source' : item['kb_id'],
                         "tag": "property",
@@ -175,107 +198,173 @@ class ATTutoringKBSkills(ATComponent):
                     }
                     for item in object_dict['ko_attributes']
                 ]
-            kb_object = KBClass.from_dict(object_dict)
+            kb_object = KBClass.from_dict(new_object_dict)
             print(kb_object.krl)
         else: 
             print('ошибка, type_dict пуст')
 
-        return object_dict 
+        return new_object_dict 
     
     @staticmethod
     def kb_event_from_dict(data: dict, event: str)-> dict:
         event_dict = data.get('result')
+        new_event_dict = {}
         if event_dict:
-            event_dict['eventId'] = event_dict['id']
-            event_dict['tag'] = "Event"
-            # event_dict['id'] = event_dict['item'].get('kb_id')
-            event_dict['Name'] = event_dict['item'].get('kb_id')
+            new_event_dict['eventId'] = event_dict['id']
+            new_event_dict['tag'] = "Event"
+            new_event_dict['Name'] = event_dict.get('kb_id')
             if event == "kbEvents/update":
-                event_dict['Formula'] = event_dict.get('occurance_condition')
+                new_event_dict['Formula'] = event_dict.get('occurance_condition')
         else:
             print('ошибка, type_dict пуст') 
-        return event_dict
+        return new_event_dict
     
     @staticmethod
     def kb_interval_from_dict(data: dict, event: str)-> dict:
 
         interval_dict = data.get('result')
+        new_interval_dict ={}
         if interval_dict:      
-            interval_dict['intervalId'] = interval_dict['id']
-            interval_dict['Name'] = interval_dict.get('kb_id')
+            new_interval_dict['intervalId'] = interval_dict['id']
+            new_interval_dict['Name'] = interval_dict.get('kb_id')
             if event == "kbIntervals/update":
-                interval_dict['Open'] = interval_dict.get('open')
-                interval_dict['Close'] = interval_dict.get('close')
+                new_interval_dict['Open'] = interval_dict.get('open')
+                new_interval_dict['Close'] = interval_dict.get('close')
         else:
             print('ошибка, type_dict пуст') 
-        return interval_dict
+        return new_interval_dict
         
-# ==============================calc elements===========================
+# ==============================calc elements=========================== проверено
     
-    def calc_elements(self, array_name):
-        return len(self.kash[array_name])
+    def calc_elements(self, array_name, auth_token: str):
+        return len(self.cash[auth_token][array_name])
 
-    def calc_kb_type_skills(self ):
-        return self.calc_elements('kb_type')
+    def calc_kb_types(self, auth_token: str):
+        return self.calc_elements ('kb_types', auth_token)
     
-    def calc_kb_object_skills(self ):
-        return self.calc_elements('kb_objects')
     
-    def calc_kb_event_skills(self ):
-        return self.calc_elements('kb_events')
+    def calc_kb_objects(self, auth_token: str ):
+        return self.calc_elements('kb_objects', auth_token)
     
-    def calc_kb_interval_skills(self):
-        return self.calc_elements('kb_intervals')
+    def calc_kb_events(self, auth_token: str ):
+        return self.calc_elements('kb_events', auth_token)
     
-    def calc_kb_rule_skills(self):
-        return self.calc_elements('kb_rules')
+    def calc_kb_intervals(self, auth_token: str):
+        return self.calc_elements('kb_intervals', auth_token)
+    
+    def calc_kb_rules(self, auth_token: str):
+        return self.calc_elements('kb_rules', auth_token)
 # =============================idx by name===================
 
-    def get_index_by_name(self, array_name: str, id_key: str, name: str) -> int:
+    def get_index_by_name(self, array_name: str, id_key: str, name: str, auth_token: str) -> int:
     
-        for index, item in enumerate(self.kash[array_name]):
+        cash = self.init_cash()
+        # a = {}
+        # a.get('my_key')
+        # a.get('my_key', [])
+        # if 'my_key' in a:
+        # if self.cash[array_name] 
+        for index, item in enumerate(self.cash[array_name]):
             if item.get(id_key) == name: #смирение что это имя
                 return index
+            
+        self.cash[auth_token] = cash
         return -1
     
-    def get_type_id_by_name(self, name: str):
-        return self.get_index_by_name('kb_types', 'kb_id', name)
+    def get_type_index_by_name(self, name: str, auth_token: str):
+        return self.get_index_by_name('kb_types', 'kb_id', name, auth_token)
     
-    def get_object_id_by_name(self, name: str):
-        return self.get_index_by_name('kb_objects', 'kb_id', name)
+    def get_object_index_by_name(self, name: str, auth_token: str):
+        return self.get_index_by_name('kb_objects', 'kb_id', name, auth_token)
     
-    def get_event_id_by_name(self, name: str):
-        return self.get_index_by_name('kb_events', 'Name', name)
+    def get_event_index_by_name(self, name: str, auth_token: str):
+        return self.get_index_by_name('kb_events', 'Name', name, auth_token)
     
-    def get_interval_id_by_name(self, name: str):
-        return self.get_index_by_name('kb_intervals', 'Name', name)
+    def get_interval_index_by_name(self, name: str, auth_token: str):
+        return self.get_index_by_name('kb_intervals', 'Name', name, auth_token)
     
-    def get_rule_id_by_name(self, name: str):
-        return self.get_index_by_name('kb_rules', 'kb_id', name)
+    def get_rule_index_by_name(self, name: str, auth_token: str):
+        return self.get_index_by_name('kb_rules', 'kb_id', name, auth_token)
 
-# ============================== add to kash ====================================
+# ============================== add to cash ====================================
 
-    # def add_to_kash(self, data: dict, array_name: str):
-
-
-
+    def add_type_to_cash(self, data: dict, auth_token: str):
+        cash = self.init_cash()
+        name = data.get('id')
+        id = self.get_type_index_by_name(name)
+        if id != -1:
+            cash['kb_types'][id] = data
+        else:
+            cash['kb_types'].append(data)
+        self.cash[auth_token] = cash
         
-            
+    def add_object_to_cash(self, data: dict, auth_token: str):
+        cash = self.init_cash()
+        name = data.get('id')
+        id = self.get_object_index_by_name(name)
+        if id != -1:
+            cash['kb_objects'][id] = data
+        else:
+            cash['kb_objects'].append(data)
+        self.cash[auth_token] = cash
+    
+    def add_event_to_cash(self, data: dict, auth_token: str):
+        cash = self.init_cash()
+        name = data.get('Name')
+        id = self.get_event_index_by_name(name)
+        if id != -1:
+            cash['kb_events'][id] = data
+        else:
+            cash['kb_events'].append(data)
+        self.cash[auth_token] = cash
+    
+    def add_interval_to_cash(self, data: dict, auth_token: str):
+        cash = self.init_cash()
+        name = data.get('Name')
+        id = self.get_interval_index_by_name(name)
+        if id != -1:
+            cash['kb_intervals'][id] = data
+        else:
+            cash['kb_intervals'].append(data)
+        self.cash[auth_token] = cash
+
+    def add_rule_to_cash(self, data: dict, auth_token: str):
+        cash = self.init_cash()
+        name = data.get('id')
+        id = self.get_rule_index_by_name(name)
+        if id!= -1:
+            cash['kb_rules'][id] = data
+        else:
+            cash['kb_rules'].append(data)
+        self.cash[auth_token] = cash
+
 
 # =================================== kb ========================================
    
-   
     @authorized_method
-    async def handle_kb_created(self, event: str, data: dict, auth_token: str):
+    async def handle_knowledge_base_created(self, event: str, data: dict, auth_token: str):
+        print('Обучаемый создал пустой тип (БЗ): ', data)
+        self.init_cash()
+        current_skills = self.skills.get(auth_token, {})
+
+
+    @authorized_method
+    async def handle_knowledge_base_updated(self, event: str, data: dict, auth_token: str):
         print('Обучаемый создал пустой тип (БЗ): ', data)
         
-        current_skills = self.skills.get(auth_token, {})
-        
-        current_skills['kb_types'] = self.calc_kb_type_skills(current_skills, data)
-        self.kash['kb_types'] = [ ]
-        self.kash['kb_objects'] = []
-        self.kash['kb_operations'] = []
-        self.kash['kb_rules'] = []
+        current_skills = self.skills.get(auth_token, {})          
+        self.init_cash()    
+
+    @authorized_method
+    async def handle_kb_types_get(self, event: str, data: dict, auth_token: str):
+        print('извлечение списка типов ', data)
+        types_array = data['result']['items']
+        for item in types_array:
+            type_dict = self.kb_type_from_dict(item, event)
+            self.add_type_to_cash(type_dict, auth_token)
+            type_dict = {}
+
+          
 # ============================= type ===================
     
     @authorized_method
@@ -283,15 +372,16 @@ class ATTutoringKBSkills(ATComponent):
         print('Обучаемый создал пустой тип (БЗ): ', data)
         
         current_skills = self.skills.get(auth_token, {})
-        
+
+        data = data['result']
         type_dict = self.kb_type_from_dict(data, event)
         kb_type = KBType.from_dict(type_dict)
         print(kb_type.krl)
-        self.kash['kb_type'].append(type_dict) # запись в кэш
+        self.cash['kb_types'].append(type_dict) # запись в кэш
         
-        current_skills['kb_types'] = self.calc_kb_type_skills(current_skills, data)
+        # current_skills['kb_types'] = self.calc_kb_type_skills(current_skills, data)
         
-        self.skills[auth_token] = current_skills
+        # self.skills[auth_token] = current_skills
         
         if current_skills['kb_types'] >= 50:
             return {'skills': current_skills, 'stage_done': True}
@@ -308,6 +398,7 @@ class ATTutoringKBSkills(ATComponent):
         type_dict = self.kb_type_from_dict(data, event)
         kb_type = KBType.from_dict(type_dict)
         print(kb_type.krl)
+        self.cash['kb_types'].append(type_dict)
 
         # current_skills['kb_types'] = self.calc_kb_type_skills(current_skills, data)
         
@@ -331,7 +422,7 @@ class ATTutoringKBSkills(ATComponent):
 
         print(data)
 
-        object_dict = self.kb_class_from_dict(data)
+        object_dict = self.kb_object_from_dict(data, event)
         kb_object = KBClass.from_dict(object_dict)
         print(kb_object.krl)
 
@@ -341,7 +432,7 @@ class ATTutoringKBSkills(ATComponent):
 
         current_skills = self.skills.get(auth_token, {})
 
-        object_dict = self.kb_class_from_dict(data)
+        object_dict = self.kb_object_from_dict(data, event)
         kb_object = KBClass.from_dict(object_dict)
         print(kb_object.krl)
 
@@ -354,7 +445,7 @@ class ATTutoringKBSkills(ATComponent):
         current_skills = self.skills.get(auth_token, {})
 
         print(data)
-        event_dict= self.kb_interval_from_dict(data, event)
+        event_dict= self.kb_event_from_dict(data, event)
         kb_event = KBEvent.from_dict(event_dict)   
         print (kb_event.krl)
 
@@ -365,7 +456,7 @@ class ATTutoringKBSkills(ATComponent):
 
         current_skills = self.skills.get(auth_token, {})
 
-        event_dict= self.kb_interval_from_dict(data, event)
+        event_dict= self.kb_event_from_dict(data, event)
         kb_event = KBEvent.from_dict(event_dict)   
         print (kb_event.krl)
 
