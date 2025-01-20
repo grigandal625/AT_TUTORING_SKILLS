@@ -50,6 +50,16 @@ def get_args() -> dict:
         default="/",
     )
 
+    parser.add_argument(
+        "-m",
+        "--mode",
+        dest="mode",
+        help="Skills detection mode",
+        required=False,
+        default="kb",
+        choices=['kb', 'im']
+    )
+
     args = parser.parse_args()
     res = vars(args)
     return res

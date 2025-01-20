@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 YaBrowser/24.12.0.0 Safari/537.36" version="26.0.4">
+  <diagram id="5P7JhbqYEhjWF0snrhG5" name="Страница — 12">
+    <mxGraphModel dx="856" dy="1574" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-9" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="270" y="170" width="350" height="630" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-5" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry width="350" height="630" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-6" value="Теория" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=1;fontSize=20;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="8.75" y="10" width="105" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-7" value="Задания" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="122.5" y="10" width="105" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-8" value="Ошибки" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="236.25" y="10" width="105" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-10" value="Описание ПрО и задач" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="20" y="70" width="310" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-11" value="События" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="20" y="110" width="310" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-12" value="1. Имя события1, смысл события, Описание на ЕЯ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="40" y="140" width="290" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-13" value="2. Имя события2, смысл события, Описание на ЕЯ" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="40" y="160" width="290" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-14" value="Интервалы" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="20" y="190" width="310" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-15" value="Правила" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="20" y="230" width="310" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-16" value="Общая информация о наличии ошибок" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="20" y="270" width="310" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-27" value="Список ошибок" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="20" y="310" width="310" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-28" value="1. Место ош." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="40" y="340" width="290" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-29" value="2. Место ош." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="40" y="360" width="290" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-30" value="3. Место ош." style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="40" y="380" width="290" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="39GpkCzlMYaYDnLdDvJw-31" value="Подробная информация о типе ошибки" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;" vertex="1" parent="39GpkCzlMYaYDnLdDvJw-9">
+          <mxGeometry x="40" y="400" width="290" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

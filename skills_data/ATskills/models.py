@@ -21,7 +21,6 @@ class Task(models.Model):
     on_failure = models.IntegerField()  # Штрафные баллы за неуспешное выполнение
     skills = models.ManyToManyField(Skill, related_name='tasks')  # Связь "многие-ко-многим" с умениями
 
-
     def __str__(self):
         return self.event_name
 
