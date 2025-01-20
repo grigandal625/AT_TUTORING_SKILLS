@@ -1,7 +1,6 @@
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
-from .api_client import get_skill, get_skills, get_tasks, get_task, get_reaction, get_event
 # далее делаешь импорт всех классов, спроси влада что именно нужно
 
 class ATTutoringIMSkills(ATComponent):

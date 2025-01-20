@@ -1,5 +1,5 @@
 from django.db import models
-from skills_data.ATskills.models import Skill, Task
+from ATskills.models import Skill, Task
 # Create your models here.
 
 
@@ -21,7 +21,7 @@ class Mistake(models.Model):
         TEMPLATE_USAGES = 9, 'Операции'
         FUNCS = 10, 'Функция'
 
-    task = models.ForeignKey(Task, blank = True)
+    task = models.ForeignKey(Task, on_delete=models.SET_NULL, null=True, blank = True)
     skills = models.ManyToManyField(Skill, blank = True)
     fine = models.IntegerField(null=True, blank = True)
     codificator1 = models.IntegerField(

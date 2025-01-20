@@ -7,7 +7,8 @@ from at_krl.core.temporal.kb_event import KBEvent
 from at_krl.core.temporal.kb_interval import KBInterval
 # from at_krl.core.kb_operation import KBOperation
 from at_krl.core.kb_rule import KBRule
-from .api_client import get_skill, get_skills, get_tasks, get_task, get_reaction, get_event
+
+from ATskills.models import Skill
 
 class ATTutoringKBSkills(ATComponent):
 
@@ -471,6 +472,9 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_type_updated(self, event: str, data: dict, auth_token: str):
         print('Обучаемый отредактировал тип (БЗ): ', data)
+
+        # skill = await Skill.objects.acreate(name='test', scenario_name='test')
+        # print(skill.name)
         
         current_skills = self.skills.get(auth_token, {})
         type_dict_raw =  data.get('result')

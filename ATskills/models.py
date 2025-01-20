@@ -4,7 +4,6 @@ from django.db import models
 
 
 class Skill(models.Model):
-    id = models.AutoField(primary_key=True)  # Идентификатор
     name = models.CharField(max_length=255)  # Название умения
     # tasks_ids = models.ArrayField(models.IntegerField(), blank=True, default=list)  # Список связанных заданий
     scenario_name = models.CharField(max_length=255, null=True, blank=True)  # Название сценария (может быть пустым)
@@ -13,7 +12,6 @@ class Skill(models.Model):
         return self.name
     
 class Task(models.Model):
-    id = models.AutoField(primary_key=True)  # Идентификатор
     task_name = models.CharField(max_length=255)  # Название события
     description = models.TextField()  # Описание задания
     event_params =  models.JSONField(null=True, blank=True) # Параметры события (JSON или пустые)
@@ -26,7 +24,6 @@ class Task(models.Model):
 
 
 class Reaction(models.Model):
-    id = models.AutoField(primary_key=True)  # Идентификатор
     task = models.ForeignKey(
         'Task',  # Ссылка на модель Task
         on_delete=models.CASCADE,  # Удалять реакции, если удаляется задание
@@ -44,7 +41,6 @@ class ScenarioPart(models.Model):
         ('IN_PROGRESS', 'In Progress'),
     ]
 
-    id = models.AutoField(primary_key=True)  # Идентификатор
     scenario_name = models.CharField(max_length=255)  # Название сценария
     task = models.ForeignKey(
         'Task',  # Ссылка на модель Task

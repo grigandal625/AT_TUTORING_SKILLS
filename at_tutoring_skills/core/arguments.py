@@ -60,6 +60,25 @@ def get_args() -> dict:
         choices=['kb', 'im']
     )
 
+    parser.add_argument(
+        '-sh',
+        '--server-host',
+        dest='server_host',
+        help='Server host',
+        required=False,
+        default='localhost'
+    )
+
+    parser.add_argument(
+        '-sp',
+        '--server-port',
+        dest='server_port',
+        help='Server port',
+        required=False,
+        default=8000,
+        type=int
+    )
+
     args = parser.parse_args()
     res = vars(args)
     return res
