@@ -1,5 +1,5 @@
 from at_tutoring_skills.core import copmarison
-from dataclasses import dataclass, field
+
 from typing import List
 from at_krl.core.kb_type import KBType, KBFuzzyType, KBNumericType, KBSymbolicType
 from at_krl.core.kb_class import KBClass
@@ -7,26 +7,9 @@ from at_krl.core.temporal.kb_event import KBEvent
 from at_krl.core.temporal.kb_interval import KBInterval
 # from at_krl.core.kb_operation import KBOperation
 from at_krl.core.kb_rule import KBRule
-
-
-@dataclass(kw_only=True)
-class Context:
-    parent: "Context" = field(default=None, repr=False)
-    name: str
-
-    def create_child(self, name):
-        return Context(parent=self, name=name)
-    
-    @property
-    def full_path_list(self) -> List[str]:
-        return self.parent.full_path_list + [self.name] if self.parent else [self.name]
-    
-class StudentMistakeException(Exception):
-    context: Context
-
-    def __init__(self, msg, context: Context, *args):
-        super().__init__(msg, *args)
-        self.context = context
+from at_tutoring_skills.core.copmarison import Comparison, ComparisonResult
+from at_tutoring_skills.core.errors import StudentMistakeException, Context, WrongNumberOfAttributes
+from at_tutoring_skills.core.errors import OperandsTypesConflict, OperandsBaseTypesConflict, OperandNOperationConflict, InvalidCharacter, InvalidNumber, ELementNotFound
 
 # def estimate_kb(kb):
 #     kb_context = Context('KB')
@@ -42,31 +25,78 @@ class StudentMistakeException(Exception):
     #             'mistake_path': e.context.full_path_list
     #         }
 
-def estimate_string_type(type_et: dict, type: KBSymbolicType, context: Context):
-    print('Estimate string type')
-    
-def estimate_number_type(type_et: dict, type: KBNumericType, context: Context):
-    print('Estimate number type')
+    # except Exception as e:
+    #     array.append(e)
+    # raise ExceptionGroup('errors', e)
 
-def estimate_fuzzy_type(type_et: dict, type: KBFuzzyType, context: Context):
+def estimate_string_type(type: KBSymbolicType, type_et: KBSymbolicType, context: Context):
+    print('Estimate string type')
+    errors_list =[]
+
+    check =type_et.values
+    check_et = type_et.values
+
+    if len(check) > len(check_et):
+        errors_list.append(WrongNumberOfAttributes('Введено больше значений аттрибутов, чем требуется, в типе {type.id}'))
+        return errors_list
+    if len(check) < len(check_et):
+        errors_list.append(WrongNumberOfAttributes('Введено меньше значений аттрибутов, чем требуется, в типе {type.id}'))
+        return errors_list
+    
+    for j in range(len(check_et)):
+        for i in range (len(check)):
+            if check[i] == check_et[j]:
+                check[j] = None
+                check_et[j] = None
+        if check_et[j]!= None:
+            errors_list.append(InvalidCharacter('Введено неверное значение в типе {type.id}: {check[i]}'))
+    
+    return errors_list
+
+#допустим готово
+def estimate_number_type(type_et: KBNumericType, type: KBNumericType, context: Context):
+    errors_list =[]
+    print('Estimate number type')
+    e = None
+    if type._from.type != float and type._from.type != int:
+        print('Внутренняя ошибка')
+
+    
+    result1 : ComparisonResult = Comparison.compare_numbers(type._from, type_et._from)
+    result2 : ComparisonResult  = Comparison.compare_numbers(type._to, type_et._to)
+    if result1.isEqual == True:
+        print ('Значения ОТ {type.id} совпадают')
+    else:
+        errors_list.append(InvalidNumber('Введено неверное значение ОТ {type.id}'))
+
+    if result2.isEqual == True:
+        print ('Значения ДО {type.id} совпадают')
+    else:
+        errors_list.append(InvalidNumber('Введено неверное значение ДО {type.id}'))
+        
+    return errors_list
+
+    
+def estimate_fuzzy_type(type_et: KBFuzzyType, type: KBFuzzyType, context: Context):
     print('Estimate fuzzy type')
 
-
-def estimate_type(etalon_type: dict, type: KBType, context: Context):
+def estimate_type(etalon_type: KBType, type: KBType, context: Context):
     print('Estimate type')
 
     type_et = KBType.from_dict(etalon_type)
     if type.id == type_et.id:
         if type.meta == "string":
             if isinstance(type, KBSymbolicType):
-                estimate_string_type(type_et, type, context=context.create_child('string type attr'))
+                estimate_string_type( type,type_et, context=context.create_child('string type attr'))
         if type.meta == "number":
             if isinstance(type, KBNumericType):
-                estimate_number_type(type_et, type, context=context.create_child('number type attr'))
+                estimate_number_type(type, type_et, context=context.create_child('number type attr'))
         if type.meta == "fuzzy":
             if isinstance(type, KBFuzzyType):
-                estimate_fuzzy_type(type_et, type, context=context.create_child('fuzzy type attr'))
+                estimate_fuzzy_type(type, type_et, context=context.create_child('fuzzy type attr'))
 
+    # exept ... as s:
+    # handler_error()
 def estimate_property():
     print('Estimate property')
 

@@ -1,6 +1,16 @@
 import re
 import json
-from skills_data.ATskills.models import Task
+# from skills_data.ATskills.models import Task
+
+class ComparisonResult:
+    isEqual : bool = False
+    mistakes_count: int = None
+    info: None
+
+
+    def __init__(self, res: bool, count: int):
+        self.res = res
+        self.count = count
 
 class Comparison:
 
@@ -62,50 +72,72 @@ class Comparison:
     def compare_numbers(num1, num2):
         """Сравнивает два числа на равенство."""
         if num1 == num2:
-            return True
+            return ComparisonResult.__init__(True, 0, None)
         else:
-            return False
-    @staticmethod
-    def compare_dicts_by_values(dict1: dict, dict2: dict):
-        """Сравнивает два словаря по значениям в одинаковых ключах."""
+            return ComparisonResult.__init__(False, 0, info=[num1, num2])
+    # @staticmethod
+    # def compare_dicts_by_values(dict1: dict, dict2: dict):
+    #     """Сравнивает два словаря по значениям в одинаковых ключах."""
+    #     count = 0
+    #     for key in dict1:
+    #         if key in dict2:
+    #             if dict1[key] != dict2[key]:
+    #                 count +=1
+    #                 print("values are not equal")
+    #         else: print("some key is missing in dict")
         
-        for key in dict1:
-            if key in dict2:
-                if dict1[key] != dict2[key]:
-                    print("values are not equal")
-                    return False  # Если значения не совпадают, возвращаем False
-            else: print("some key is missing in dict")
+    #     # Если все ключи и их значения одинаковы
+    #     return count
+    # @staticmethod 
+    # def compare_dicts_by_values_spec_keys(dict1: dict, dict2: dict, array_of_keys: list):
+    #     """Сравнивает два словаря по значениям в одинаковых ключах."""
         
-        # Если все ключи и их значения одинаковы
-        return True
-    @staticmethod 
-    def compare_dicts_by_values_spec_keys(dict1: dict, dict2: dict, array_of_keys: list):
-        """Сравнивает два словаря по значениям в одинаковых ключах."""
-        
-        for key in dict1:
-            if key in dict2:
-                if key in array_of_keys:
-                    if dict1[key] != dict2[key]:
-                        print("values are not equal")
-                        return False  # Если значения не совпадают, возвращаем False
-            else: print("some key is missing in dict2")
+    #     for key in dict1:
+    #         if key in dict2:
+    #             if key in array_of_keys:
+    #                 if dict1[key] != dict2[key]:
+    #                     print("values are not equal")
+    #                     return False  # Если значения не совпадают, возвращаем False
+    #         else: print("some key is missing in dict2")
 
-        # Если все ключи и их значения одинаковы
-        return True
+    #     # Если все ключи и их значения одинаковы
+    #     return True
     
-    @staticmethod
-    def compare_dicts_by_key(dict1, dict2, key, error_code):
+    # @staticmethod
+    # def compare_dicts_by_key(dict1, dict2, key, error_code):
 
-        # Проверяем, существует ли ключ в обоих словарях
-        if key in dict1 and key in dict2:
-            if dict1[key] == dict2[key]:
-                return 0  # Все хорошо, значения совпадают
-            else:
-                # print (message)
-                return error_code  # Значения не совпадают
-        else:
-            return error_code 
+    #     # Проверяем, существует ли ключ в обоих словарях
+    #     if key in dict1 and key in dict2:
+    #         if dict1[key] == dict2[key]:
+    #             return 0  # Все хорошо, значения совпадают
+    #         else:
+    #             # print (message)
+    #             return error_code  # Значения не совпадают
+    #     else:
+    #         return error_code 
     
+    # #готово
+    # @staticmethod
+    # def compare_arrays_objects(array1: dict, array_et: dict):
+    #     """Сравнивает два массива объектов на равенство."""
+        # check =[0]*len(array_et)
+        # count = 0
+        # info = []
+
+        # if len(array1) == len(array_et):
+        #     for j in range (len(array_et)):
+        #         check[j] =  array_et[j]
+        #         for i in range(len(array1)):
+        #             if array1[i] == array_et[j]:
+        #                 check[j] = None
+        #         if check[j]!= None:
+        #             count+=1
+        #             info.append(array_et[j])
+
+        # if count == len(array_et):
+        #     return ComparisonResult.__init__(True, len(array_et) - sum(check), None)
+        # else:
+        #     return ComparisonResult.__init__(False, len(array_et) - sum(check), info)
 
     
 # class KBComparison():

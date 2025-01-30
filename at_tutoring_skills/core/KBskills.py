@@ -8,6 +8,8 @@ from at_krl.core.temporal.kb_interval import KBInterval
 # from at_krl.core.kb_operation import KBOperation
 from at_krl.core.kb_rule import KBRule
 
+    
+
 from ATskills.models import Skill
 
 class ATTutoringKBSkills(ATComponent):
@@ -521,6 +523,7 @@ class ATTutoringKBSkills(ATComponent):
         object_dict = self.kb_object_from_dict(object_dict_raw, event, auth_token)
         kb_object = KBClass.from_dict(object_dict)
         print(kb_object.krl)
+        object_dict['model'] = kb_object
         self.add_object_to_cash(object_dict,auth_token)
 
     @authorized_method
@@ -533,6 +536,7 @@ class ATTutoringKBSkills(ATComponent):
 
         kb_object = KBClass.from_dict(object_dict)
         print(kb_object.krl)
+        object_dict['model'] = kb_object
         self.add_object_to_cash(object_dict, auth_token)
         
         return {'skills': current_skills, 'stage_done': False, 'message': 'Обратите внимание на ошибки'}
@@ -546,6 +550,7 @@ class ATTutoringKBSkills(ATComponent):
         object_dict = self.kb_object_from_dict(object_dict_raw, event, auth_token)
         kb_object = KBClass.from_dict(object_dict)
         print(kb_object.krl)
+        object_dict['model'] = kb_object
         self.add_object_to_cash(object_dict,auth_token)
 
     @authorized_method
@@ -569,6 +574,7 @@ class ATTutoringKBSkills(ATComponent):
         event_dict= self.kb_event_from_dict(event_dict_raw, event)
         kb_event = KBEvent.from_dict(event_dict)
         print (kb_event.krl)
+        event_dict['model'] = kb_event
         self.add_event_to_cash(event_dict,auth_token)
 
 
@@ -582,6 +588,7 @@ class ATTutoringKBSkills(ATComponent):
         event_dict= self.kb_event_from_dict(event_dict_raw, event)
         kb_event = KBEvent.from_dict(event_dict)   
         print (kb_event.krl)
+        event_dict['model'] = kb_event
         self.add_event_to_cash(event_dict,auth_token)
 
     @authorized_method
@@ -593,6 +600,7 @@ class ATTutoringKBSkills(ATComponent):
         event_dict = self.kb_event_from_dict(event_dict_raw, event)
         kb_event = KBEvent.from_dict(event_dict)
         print (kb_event.krl)
+        event_dict['model'] = kb_event
         self.add_event_to_cash(event_dict, auth_token)
         return {'skills': current_skills,'stage_done': False, 'message': 'Обратите внимание на ошибки'}
 
@@ -617,6 +625,8 @@ class ATTutoringKBSkills(ATComponent):
         interval_dict  = self.kb_interval_from_dict(interval_dict_raw, event)
         kb_interval = KBInterval.from_dict(interval_dict)
         print (kb_interval.krl)
+
+        interval_dict['model'] = kb_interval 
         self.add_interval_to_cash(interval_dict,auth_token)
 
 
@@ -630,6 +640,8 @@ class ATTutoringKBSkills(ATComponent):
         interval_dict  = self.kb_interval_from_dict(interval_dict_raw, event)
         kb_interval = KBInterval.from_dict(interval_dict)   
         print (kb_interval.krl)
+
+        interval_dict['model'] = kb_interval 
         self.add_interval_to_cash(interval_dict,auth_token)
         return {'skills': current_skills,'stage_done': False, 'message': 'Обратите внимание на ошибки'}
 
@@ -642,6 +654,7 @@ class ATTutoringKBSkills(ATComponent):
         interval_dict  = self.kb_interval_from_dict(interval_dict_raw, event)
         kb_interval = KBInterval.from_dict(interval_dict)
         print (kb_interval.krl)
+        interval_dict['model'] = kb_interval 
         self.add_interval_to_cash(interval_dict, auth_token)
         return {'skills': current_skills,'stage_done': False, 'message': 'Обратите внимание на ошибки'}
 
@@ -666,6 +679,7 @@ class ATTutoringKBSkills(ATComponent):
         rule_dict  = self.kb_rule_from_dict(rule_dict_raw, event)
         kb_rule = KBRule.from_dict(rule_dict)   
         print (kb_rule.krl)
+        rule_dict['model'] = kb_rule
         self.add_rule_to_cash(rule_dict, auth_token)
 
     @authorized_method
@@ -680,6 +694,7 @@ class ATTutoringKBSkills(ATComponent):
         kb_rule = KBRule.from_dict(rule_dict)   
         print (kb_rule.krl)
         rule_dict['ruleId'] = rule_id
+        rule_dict['model'] = kb_rule
         self.add_rule_to_cash(rule_dict,auth_token)
 
     @authorized_method
@@ -690,6 +705,7 @@ class ATTutoringKBSkills(ATComponent):
         rule_dict_raw = rule_dict_raw.get('item')
         rule_dict  = self.kb_rule_from_dict(rule_dict_raw, event)
         kb_rule = KBRule.from_dict(rule_dict)
+        rule_dict['model'] = kb_rule
         print (kb_rule.krl)
         self.add_rule_to_cash(rule_dict, auth_token)
         return {'skills': current_skills,'stage_done': False, 'message': 'Обратите внимание на ошибки'}
