@@ -32,7 +32,7 @@ class User(models.Model):
 class Task(models.Model):
     id = models.AutoField(primary_key=True)
     task_name = models.CharField(max_length=255)  # Название события
-    task_object = models.IntegerChoices(choises=SUBJECT_CHOICES)
+    task_object = models.IntegerField(choices=SUBJECT_CHOICES)
     object_name = models.CharField(max_length=255) # заполняшка от параметров
     description = models.TextField()  # Описание задания
 
@@ -41,12 +41,12 @@ class Task(models.Model):
     skills = models.ManyToManyField(Skill, related_name='tasks_skills')  # Связь "многие-ко-многим" с умениями
 
 class Task_User(models.Model):
-    task = models.ForeignKey(Task)
-    user = models.ForeignKey(User)
+    task = models.ForeignKey(Task,on_delete=models.CASCADE)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
     attempts = models.IntegerField(default=0)
 
 class User_Skill(models.Model):
-    user = models.ForeignKey(User)
-    skill = models.ForeignKey(Skill)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    skill = models.ForeignKey(Skill,on_delete=models.CASCADE)
     is_completed = models.BooleanField(default=False)
-    
+
