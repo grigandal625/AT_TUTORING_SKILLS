@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 
+
 class Fine:
     SYNTAX_ERROR = 3
     LEXICAL_ERROR = 1
