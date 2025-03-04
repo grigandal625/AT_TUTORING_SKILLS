@@ -70,11 +70,20 @@ class Comparison:
         
     @staticmethod
     def compare_numbers(num1, num2):
-        """Сравнивает два числа на равенство."""
+        
+        if num1.type != int and num1.type != float: 
+            print ("Первое число не число")
+            return -1
+        if num2.type != int and num2.type != float: 
+            print ("Второе число не число")
+            return -1 
+
         if num1 == num2:
-            return ComparisonResult.__init__(True, 0, None)
-        else:
-            return ComparisonResult.__init__(False, 0, info=[num1, num2])
+            return  True
+        elif num1 > num2 or num1 < num2:
+            return  False
+        else: return False
+
     # @staticmethod
     # def compare_dicts_by_values(dict1: dict, dict2: dict):
     #     """Сравнивает два словаря по значениям в одинаковых ключах."""

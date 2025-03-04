@@ -3,8 +3,9 @@ from typing import List
 
 class Fine:
     SYNTAX_ERROR = 3
-    LEXICAL_ERROR = 1
     LOGIC_ERROR = 2
+    LEXICAL_ERROR = 1
+    
 
 class Coefficient:
     TYPE_COEFFICIENT = 0.75
@@ -77,6 +78,13 @@ class OperandNOperationConflict(LogicError):
 class WrongNumberOfAttributes(LogicError):
     def __str__(self):
         return 'not enough attributes'
+    
+class ForeginAttribute(LogicError):
+    def __str__(self):
+        return 'foreign attribute'
+class InvalidNumberOfAttributes(LogicError):
+    def __str__(self):
+        return 'invalid number of attributes'
 ##################################### лексика ####################################
 
 class InvalidCharacter(LexicalError):
@@ -86,9 +94,14 @@ class InvalidCharacter(LexicalError):
 class InvalidNumber(LexicalError):
     def __str__(self):
         return 'invalid number'
+class Typo(LexicalError):
+    def __str__(self):
+        return 'typo'
+    fine = Fine.LEXICAL_ERROR /2
 
 ##################################### cинтаксис ####################################
 # не введен фрагмент
 class ELementNotFound(SyntaxError):
     def __str__(self):
         return 'not found'
+    
