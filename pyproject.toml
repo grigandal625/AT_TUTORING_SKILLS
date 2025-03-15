@@ -11,6 +11,7 @@ at-queue = {git = "https://github.com/grigandal625/AT_QUEUE.git", rev = "master"
 at-krl = {git = "https://github.com/grigandal625/AT_KRL.git", rev = "master"}
 django = "^5.1.4"
 uvicorn = "^0.34.0"
+adrf = {git = "https://github.com/grigandal625/adrf.git", rev = "main"}
 
 
 [build-system]

@@ -1,8 +1,9 @@
 import asyncio
 import os
+
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'skills_data.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "skills_data.settings")
 django.setup()
 
 from uvicorn import Config, Server
@@ -21,6 +22,7 @@ from django.core.asgi import get_asgi_application
 # ASGI-приложение Django
 django_application = get_asgi_application()
 
+
 def get_skills():
     """Инициализация и возврат навыков (KB и IM)."""
     args = get_args()
@@ -28,10 +30,10 @@ def get_skills():
 
     # Создание PID-файла (опционально)
     try:
-        if not os.path.exists('/var/run/at_tutoring_skills/'):
-            os.makedirs('/var/run/at_tutoring_skills/')
+        if not os.path.exists("/var/run/at_tutoring_skills/"):
+            os.makedirs("/var/run/at_tutoring_skills/")
 
-        with open('/var/run/at_tutoring_skills/pidfile.pid', 'w') as f:
+        with open("/var/run/at_tutoring_skills/pidfile.pid", "w") as f:
             f.write(str(os.getpid()))
     except PermissionError:
         pass
@@ -42,11 +44,12 @@ def get_skills():
 
     return kb_skills, im_skills, args
 
+
 async def main_with_django():
     """Основная функция для запуска Django и навыков."""
     kb_skills, im_skills, args = get_skills()
-    server_host = args.pop('server_host', 'localhost')
-    server_port = args.pop('server_port', 8000)
+    server_host = args.pop("server_host", "localhost")
+    server_port = args.pop("server_port", 8000)
 
     async def lifespan(app):
         """Пользовательский lifespan для управления жизненным циклом навыков."""
@@ -94,6 +97,7 @@ async def main_with_django():
     )
     server = Server(config=config)
     await server.serve()
+
 
 if __name__ == "__main__":
     asyncio.run(main_with_django())
