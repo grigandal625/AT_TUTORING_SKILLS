@@ -1,25 +1,23 @@
 import asyncio
+import logging
 import os
 
 import django
+from at_queue.core.session import ConnectionParameters
+from django.core.asgi import get_asgi_application
+from uvicorn import Config
+from uvicorn import Server
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "skills_data.settings")
+from at_tutoring_skills.core.arguments import get_args
+from at_tutoring_skills.core.IMskills import ATTutoringIMSkills
+from at_tutoring_skills.core.KBskills import ATTutoringKBSkills
+from at_tutoring_skills.utils.settings import get_django_settings_module
+
+settings_module = get_django_settings_module()
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 django.setup()
 
-from uvicorn import Config, Server
-import logging
-
-from at_queue.core.session import ConnectionParameters
-from at_tutoring_skills.core.arguments import get_args
-from at_tutoring_skills.core.KBskills import ATTutoringKBSkills
-from at_tutoring_skills.core.IMskills import ATTutoringIMSkills
-
-# Настройка Django
-
-
-from django.core.asgi import get_asgi_application
-
-# ASGI-приложение Django
 django_application = get_asgi_application()
 
 

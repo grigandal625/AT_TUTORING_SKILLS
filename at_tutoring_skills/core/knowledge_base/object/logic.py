@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING
 
 from at_krl.core.kb_class import KBClass
 
-from at_tutoring_skills.core.copmarison import Comparison
 from at_tutoring_skills.core.errors import Context
 from at_tutoring_skills.core.errors import InvalidCharacter
 from at_tutoring_skills.core.errors import Typo
@@ -21,7 +20,8 @@ class KBObjectServiceLogicLexic:
             flag = 0
             min_val = 10
             for property in object.properties:
-                e = Comparison.levenshtein_distance(property.value, property_et.value)
+                e = 0
+                # Comparison.levenshtein_distance(property.value, property_et.value)
                 min_val = min(e, min_val)
                 if e == 0:
                     flag = 1

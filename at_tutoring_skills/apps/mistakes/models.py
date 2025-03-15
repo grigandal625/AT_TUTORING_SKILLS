@@ -1,7 +1,7 @@
 from django.db import models
 
-from ATskills.models import Task
-from ATskills.models import User
+from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import User
 
 # Create your models here.
 

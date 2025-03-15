@@ -76,7 +76,7 @@ class KBTypeServiceLogicLexic:
                     )
 
             if flag == 0:
-                #ЗАГЛУШКА
+                # ЗАГЛУШКА
                 errors_list.append(ValueError(msg="", context=context.create_child(f"Функция {mf.name}")))
 
         return errors_list
@@ -140,7 +140,7 @@ class KBTypeServiceLogicLexic:
         if errors_list:
             raise ExceptionGroup(...)  # из всех эксепшнов в списке
 
-    def handle_logic_lexic_mistakes(self: KBTypeService, user_id: int, type: KBType, type_et: KBType):
+    def handle_logic_lexic_mistakes(self: "KBTypeService", user_id: int, type: KBType, type_et: KBType):
         try:
             self.estimate_type(type, type_et)
         except ExceptionGroup as eg:

@@ -18,8 +18,8 @@ class KBIntervalServiceLogixLexic:
 
         event_et = KBInterval.from_dict(etalon_event)
         # if event_et.id== event.id:
-        #     self.estimate_condition(event_et.occurance_condition, 
-        #                               event.occurance_condition, 
+        #     self.estimate_condition(event_et.occurance_condition,
+        #                               event.occurance_condition,
         #                               context=context.create_child('open condition'))
 
     def handle_logic_lexic_mistakes_for_event(

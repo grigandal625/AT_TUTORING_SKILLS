@@ -12,6 +12,8 @@ at-krl = {git = "https://github.com/grigandal625/AT_KRL.git", rev = "master"}
 django = "^5.1.4"
 uvicorn = "^0.34.0"
 adrf = {git = "https://github.com/grigandal625/adrf.git", rev = "main"}
+psycopg2-binary = "^2.9.10"
+psycopg2 = "^2.9.10"
 
 
 [build-system]
