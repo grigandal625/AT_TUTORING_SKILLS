@@ -25,6 +25,7 @@ class Skill(models.Model):
     name = models.CharField(max_length=255)  # Название умения
     group = models.IntegerField(choices=GROUP_CHOICES)
 
+
 class Task(models.Model):
     task_name = models.CharField(max_length=255)  # Название события
     task_object = models.IntegerField(choices=SUBJECT_CHOICES)
@@ -33,15 +34,20 @@ class Task(models.Model):
 
     object_reference = models.JSONField(null=True, blank=True)  # Параметры события (JSON или пустые)
 
-    skills = models.ManyToManyField(Skill, related_name="tasks_skills", default=None)  # Связь "многие-ко-многим" с умениями
+    skills = models.ManyToManyField(
+        Skill, related_name="tasks_skills", default=None
+    )  # Связь "многие-ко-многим" с умениями
+
 
 class Variant(models.Model):
-    name = models.CharField(max_length=255, default=None) # проблемная область/название
+    name = models.CharField(max_length=255, default=None)  # проблемная область/название
     task = models.ManyToManyField(Task)
+
 
 class User(models.Model):
     user_id = models.IntegerField(primary_key=True)
     variant = models.ForeignKey(Variant, on_delete=models.SET_NULL, null=True, blank=True, default=None)
+
 
 class TaskUser(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)

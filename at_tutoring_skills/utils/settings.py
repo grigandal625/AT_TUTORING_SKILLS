@@ -1,7 +1,7 @@
 import os
+import re
 import subprocess
 import sys
-import re
 
 
 def get_django_settings_module() -> str:
@@ -39,7 +39,7 @@ def get_django_settings_module() -> str:
     while not re.match(r"\w", command_result[index]):
         index -= 1
     if index < -1:
-        result = command_result[:index + 1]
+        result = command_result[: index + 1]
     else:
         result = command_result
 

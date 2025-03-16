@@ -48,9 +48,7 @@ class KBObjectServiceLogicLexic:
     def process_tip(self, exception: str) -> str:
         ...
 
-    def handle_logic_lexic_mistakes_for_rule(
-        self: "KBObjectService", user_id: int, obj: KBClass, obj_et: KBClass
-    ) -> KBClass:
+    def handle_logic_lexic_mistakes(self: "KBObjectService", user_id: int, obj: KBClass, obj_et: KBClass) -> KBClass:
         try:
             self.estimate_object(obj, obj_et)
         except ExceptionGroup as eg:
