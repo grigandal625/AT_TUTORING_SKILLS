@@ -33,9 +33,10 @@ class Task(models.Model):
 
     object_reference = models.JSONField(null=True, blank=True)  # Параметры события (JSON или пустые)
 
-    skills = models.ManyToManyField(Skill, related_name="tasks_skills")  # Связь "многие-ко-многим" с умениями
+    skills = models.ManyToManyField(Skill, related_name="tasks_skills", default=None)  # Связь "многие-ко-многим" с умениями
 
 class Variant(models.Model):
+    name = models.CharField(max_length=255, default=None) # проблемная область/название
     task = models.ManyToManyField(Task)
 
 class User(models.Model):
