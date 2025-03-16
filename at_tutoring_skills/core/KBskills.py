@@ -18,17 +18,6 @@ class ATTutoringKBSkills(ATComponent):
     skills: dict = None
     cash: dict = None
     repository = None
-    # # .__dict__()
-    # cash = {
-    #     "auth_token_value": {
-    #         'kb_types': [],
-    #         'kb_objects': [],
-    #         'kb_events': [],
-    #         'kb_intervals': [],
-    #         'kb_rules': [],
-    #         "mark": 0
-    #     }
-    # }
 
     def __init__(self, connection_parameters: ConnectionParameters, *args, **kwargs):
         super().__init__(connection_parameters, *args, **kwargs)
@@ -52,116 +41,122 @@ class ATTutoringKBSkills(ATComponent):
         return self.cash[auth_token]
 
     # =================================== det value from element by key ===========================
-    # array_name из cash
-    # search_key поле по которому происходит сравнение, например проверем равенство имен значит 'Name'
-    # dest_key поле из которого возвращается результат, например надо получить в результате id значит 'id'
-    # key_value: значение с которым сравниваем
 
-    def get_smth_val_by_key(
-        self,
-        array_name: str,
-        search_key: str,
-        dest_key: str,
-        key_value: str,
-        auth_token: str,
-    ):
+    def get_obj_id_by_kbid(self,
+                               kb_id: str,
+                               array_name: str,
+                               auth_token: str
+                               ):
+        
         cash = self.init_cash(auth_token)
-        res_item = None
 
+        res_item = None
         if array_name in cash:
             for item in cash[array_name]:
-                if item.get(search_key) == key_value:
-                    res_item = item.get(dest_key)
+                if item.kb_id == kb_id:
+                    res_name = item.id
         if res_item is None:
             print(
                 "get_smth_val_by_key",
                 " поиск в ",
                 array_name,
-                " по полю ",
-                search_key,
-                " по значению",
+                " по значению kb_id",
+                kb_id,
+                " ничего не найдено",
+            )
+        return res_name
+
+    def get_obj_kbid_by_id(self,
+                            id: str,
+                            array_name: str,
+                            auth_token: str
+                            ):
+        
+        cash = self.init_cash(auth_token)
+        res_item = None
+        if array_name in cash:
+            for item in cash[array_name]:
+                if item.id == id:
+                    res_name = item.kb_id
+        if res_item is None:
+            print(
+                "get_smth_val_by_key",
+                " поиск в ",
+                array_name,
+                " по значению id",
+                id,
+                " ничего не найдено",
+            )
+        return res_name
+
+    def get_obj_by_id(self,
+                           array_name: str,
+                           key_value: str,
+                           auth_token: str
+                           ):
+        cash = self.init_cash(auth_token)
+        res_item = None
+        if array_name in cash:
+            for item in cash[array_name]:
+                if item.id == key_value:
+                    res_item = item
+        if res_item is None:
+            print(
+                "get_smth_val_by_key",
+                " поиск в ",
+                array_name,
+                " по значению имени",
+                key_value,
+                " ничего не найдено",
+            )
+        return res_item
+    
+    def get_obj_by_kbid(self,
+                        array_name: str,
+                        key_value: int,
+                        auth_token: str
+                        ):
+        cash = self.init_cash(auth_token)
+        res_item = None
+        if array_name in cash:
+            for item in cash[array_name]:
+                if item.kb_id == key_value:
+                    res_item = item
+        if res_item is None:
+            print(
+                "get_smth_val_by_key",
+                " поиск в ",
+                array_name,
+                " по значению имени",
                 key_value,
                 " ничего не найдено",
             )
         return res_item
 
-    # name by id
-    def get_type_name_by_id(self, id: str, auth_token: str):
-        return self.get_smth_val_by_key("kb_types", "typeId", "id", id, auth_token)
-
-    def get_obj_name_by_id(self, id: str, auth_token: str):
-        return self.get_smth_val_by_key("kb_objects", "objectId", "id", id, auth_token)
-
-    def get_event_name_by_id(self, id: str, auth_token: str):
-        return self.get_smth_val_by_key("kb_events", "eventId", "Name", id, auth_token)
-
-    def get_interval_name_by_id(self, id: str, auth_token: str):
-        return self.get_smth_val_by_key("kb_intervals", "intervalId", "Name", id, auth_token)
-
-    def get_rule_name_by_id(self, id: str, auth_token: str):
-        return self.get_smth_val_by_key("kb_rules", "ruleId", "id", id, auth_token)
-
-    # id by name
-
-    def get_type_id_by_name(self, name: str, auth_token: str):
-        return self.get_smth_val_by_key("kb_types", "id", "typeId", name, auth_token)
-
-    def get_obj_id_by_name(self, id: str, auth_token: str):
-        return self.get_smth_val_by_key("kb_objects", "id", "objectId", id, auth_token)
-
-    def get_event_id_by_name(self, id: str, auth_token: str):
-        return self.get_smth_val_by_key("kb_events", "Name", "eventId", id, auth_token)
-
-    def get_interval_id_by_name(self, id: str, auth_token: str):
-        return self.get_smth_val_by_key("kb_intervals", "Name", "intervalId", id, auth_token)
-
-    def get_rule_id_by_name(self, id: str, auth_token: str):
-        return self.get_smth_val_by_key("kb_rules", "id", "ruleId", id, auth_token)
-
-    # ============================== get element by name ===================
-
-    # search_key поле по которому происходит сравнение, например проверем равенство имен значит 'Name'
-    # key_value: значение с которым сравниваем
-
-    def get_smth_by_key(self, array_name: str, id_key: str, key_value: str, auth_token: str):
-        # Проверяем, что массив существует в self.cash и является списком
+    def get_obj_arrayid_by_id(self,
+                               id: str,
+                               array_name: str,
+                               auth_token: str
+                               ):
+        
         cash = self.init_cash(auth_token)
-        res_item = None
 
+        res_item = None
         if array_name in cash:
-            for item in cash[array_name]:
-                if item.get(id_key) == key_value:
-                    res_item = item
+            for i in range(len(cash[array_name])):
+                if cash[array_name][i].id == id:
+                    res = i
         if res_item is None:
             print(
-                "get_smth_by_key",
-                "поиск в ",
+                "get_smth_val_by_key",
+                " поиск в ",
                 array_name,
-                "по полю ",
-                id_key,
-                "по значению",
-                key_value,
-                "никого не найдено",
+                " по значению kb_id",
+                id,
+                " ничего не найдено",
             )
-        return res_item
-
-    def get_type_by_id(self, value: str, auth_token: str):
-        return self.get_smth_by_key("kb_types", "typeId", value, auth_token)
-
-    def get_object_by_id(self, value: str, auth_token: str):
-        return self.get_smth_by_key("kb_objects", "objectId", value, auth_token)
-
-    def get_event_by_id(self, value: str, auth_token: str):
-        return self.get_smth_by_key("kb_types", "eventId", value, auth_token)
-
-    def get_interval_by_id(self, value: str, auth_token: str):
-        return self.get_smth_by_key("kb_intervals", "intervalId", value, auth_token)
-
-    def get_rule_by_id(self, value: str, auth_token: str):
-        return self.get_smth_by_key("kb_rules", "ruleId", value, auth_token)
-
-    # ==============================get from dict=================== проверено
-
+        return res
+    
     def calc_elements(self, array_name, auth_token: str):
         self.init_cash(auth_token)
         return len(self.cash[auth_token][array_name])
@@ -186,43 +181,14 @@ class ATTutoringKBSkills(ATComponent):
         self.init_cash(auth_token)
         return self.calc_elements("kb_rules", auth_token)
 
-    # =============================idx by name===================
-
-    def get_index_by_smth(self, array_name: str, id_key: str, name: str, auth_token: str) -> int:
-        cash = self.init_cash(auth_token)
-        res_index = None
-        for index, item in enumerate(self.cash[auth_token][array_name]):
-            if item.get(id_key) == name:  # смирение что это имя
-                # return index
-                res_index = index
-
-        # self.cash[auth_token] = cash
-        return res_index
-
-    def get_type_index_by_name(self, name: str, auth_token: str):
-        return self.get_index_by_smth("kb_types", "id", name, auth_token)
-
-    def get_object_index_by_name(self, name: str, auth_token: str):
-        return self.get_index_by_smth("kb_objects", "id", name, auth_token)
-
-    def get_event_index_by_name(self, name: str, auth_token: str):
-        return self.get_index_by_smth("kb_events", "Name", name, auth_token)
-
-    def get_interval_index_by_name(self, name: str, auth_token: str):
-        return self.get_index_by_smth("kb_intervals", "Name", name, auth_token)
-
-    def get_rule_index_by_name(self, name: str, auth_token: str):
-        return self.get_index_by_smth("kb_rules", "id", name, auth_token)
-
     # ============================== add to cash ====================================
-    def add_to_cash(self, add_field: str, name_key: str, data: dict, auth_token: str):
+    def add_to_cash(self, array_name: str, data, auth_token: str):
         cash = self.init_cash(auth_token)
-        name = data.get(name_key)
-        id = self.get_index_by_smth(add_field, name_key, name, auth_token)
-        if id is not None:
-            cash[add_field][id] = data
+        arrayid = self.get_obj_arrayid_by_id(id = id, array_name = array_name, auth_token=auth_token) 
+        if arrayid is not None:
+            cash[array_name][arrayid] = data
         else:
-            cash[add_field].append(data)
+            cash[array_name].append(data)
         self.cash[auth_token] = cash
 
     def add_type_to_cash(self, data: dict, auth_token: str):
