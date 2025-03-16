@@ -22,18 +22,10 @@ class GROUP_CHOICES(models.IntegerChoices):
 
 
 class Skill(models.Model):
-    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)  # Название умения
     group = models.IntegerField(choices=GROUP_CHOICES)
 
-
-class User(models.Model):
-    user_id = models.IntegerField(primary_key=True)
-    variant = models.IntegerField()
-
-
 class Task(models.Model):
-    id = models.AutoField(primary_key=True)
     task_name = models.CharField(max_length=255)  # Название события
     task_object = models.IntegerField(choices=SUBJECT_CHOICES)
     object_name = models.CharField(max_length=255)  # заполняшка от параметров
@@ -43,6 +35,12 @@ class Task(models.Model):
 
     skills = models.ManyToManyField(Skill, related_name="tasks_skills")  # Связь "многие-ко-многим" с умениями
 
+class Variant(models.Model):
+    task = models.ManyToManyField(Task)
+
+class User(models.Model):
+    user_id = models.IntegerField(primary_key=True)
+    variant = models.ForeignKey(Variant, on_delete=models.SET_NULL, null=True, blank=True, default=None)
 
 class TaskUser(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)

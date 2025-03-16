@@ -1,11 +1,7 @@
-# project/skills_data/ATskills/serializers.py
-from rest_framework import serializers
+from adrf import serializers
 
-from .models import Event
-from .models import Reaction
-from .models import ScenarioPart
-from .models import Skill
-from .models import Task
+from at_tutoring_skills.apps.skills.models import Skill
+from at_tutoring_skills.apps.skills.models import Task
 
 
 class SkillSerializer(serializers.ModelSerializer):
@@ -20,19 +16,3 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ReactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Reaction
-        fields = "__all__"
-
-
-class ScenarioPartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ScenarioPart
-        fields = "__all__"
-
-
-class EventSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Event
-        fields = "__all__"
