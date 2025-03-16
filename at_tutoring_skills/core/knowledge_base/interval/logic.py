@@ -16,13 +16,13 @@ class KBIntervalServiceLogixLexic:
     def estimate_interval(self, etalon_event: dict, event: KBInterval, context: Context):
         print("Estimate event")
 
-        event_et = KBInterval.from_dict(etalon_event)
+        # event_et = KBInterval.from_dict(etalon_event)
         # if event_et.id== event.id:
         #     self.estimate_condition(event_et.occurance_condition,
         #                               event.occurance_condition,
         #                               context=context.create_child('open condition'))
 
-    def handle_logic_lexic_mistakes_for_event(
+    def handle_logic_lexic_mistakes(
         self: "KBIntervalService", user_id: int, event: KBInterval, event_et: KBInterval
     ) -> KBInterval:
         try:
