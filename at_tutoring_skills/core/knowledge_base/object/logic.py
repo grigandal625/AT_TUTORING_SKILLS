@@ -65,5 +65,3 @@ class KBObjectServiceLogicLexic:
 
                 for syntax_mistake in logic_mistakes:
                     self.repository.create_mistake(syntax_mistake)
-
-                raise exc

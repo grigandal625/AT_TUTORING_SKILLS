@@ -11,8 +11,6 @@ from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
 from at_tutoring_skills.core.task.service import TaskService
 
 from rest_framework import exceptions
-# from at_krl.core.kb_operation import KBOperation
-
 
 class ATTutoringKBSkills(ATComponent):
     skills: dict = None
@@ -370,7 +368,7 @@ class ATTutoringKBSkills(ATComponent):
 
         try:
             self.object_service.handle_logic_lexic_mistakes(user_id, kb_object)
-        except BaseException as e:
+        except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
         try:
@@ -405,7 +403,7 @@ class ATTutoringKBSkills(ATComponent):
 
         try:
             self.event_service.handle_logic_lexic_mistakes(user_id, kb_event)
-        except BaseException as e:
+        except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
         try:
@@ -452,7 +450,7 @@ class ATTutoringKBSkills(ATComponent):
 
         try:
             self.interval_service.handle_logic_lexic_mistakes(user_id, kb_interval)
-        except BaseException as e:
+        except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
         try:
@@ -498,7 +496,7 @@ class ATTutoringKBSkills(ATComponent):
 
         try:
             self.rule_service.handle_logic_lexic_mistakes(user_id, kb_rule)
-        except BaseException as e:
+        except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
         try:
