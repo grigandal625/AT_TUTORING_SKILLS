@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class KBTypeServiceLogicLexic:
-    def estimate_string_type(type: KBSymbolicType, type_et: KBSymbolicType, context: Context):
+    def estimate_string_type(self, type: KBSymbolicType, type_et: KBSymbolicType, context: Context):
         errors_list = []
         check = type.values
         check_et = type_et.values
@@ -56,10 +56,10 @@ class KBTypeServiceLogicLexic:
         errors_list = []
 
         # Перевірка _from
-        if not self.estimate_number(type._from, type_et._from, context=context.create_child("Значение ОТ")):
+        if not self.estimate_number(type.from_, type_et.from_, context=context.create_child("Значение ОТ")):
             errors_list.append(InvalidNumber(msg="Введено неверное значение ОТ в типе {type.id}", context=context))
 
-        if not self.estimate_number(type._to, type_et._to, context=context.create_child("Значение ОТ")):
+        if not self.estimate_number(type.to_, type_et.to_, context=context.create_child("Значение ОТ")):
             errors_list.append(InvalidNumber(msg="Введено неверное значение ДО в типе {type.id}", context=context))
 
         return errors_list
@@ -138,7 +138,7 @@ class KBTypeServiceLogicLexic:
                         type, etalon_type, context=context.create_child("fuzzy type attr")
                     )
         if errors_list:
-            raise ExceptionGroup(...)  # из всех эксепшнов в списке
+            raise ExceptionGroup("Были выявлены ошибки", errors_list)  # из всех эксепшнов в списке
 
     def handle_logic_lexic_mistakes(self: "KBTypeService", user_id: int, type: KBType, type_et: KBType):
         try:

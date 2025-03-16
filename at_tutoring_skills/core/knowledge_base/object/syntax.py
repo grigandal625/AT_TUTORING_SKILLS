@@ -16,7 +16,7 @@ class KBObjectServiceSyntax:
         ...
 
     async def handle_syntax_mistakes(self: "KBObjectService", user_id: int, data: dict) -> KBClass:
-        serializer = KBClassDataSerializer(data=data["args"])
+        serializer = KBClassDataSerializer(data=data["result"])
         try:
             await serializer.ais_valid(raise_exception=True)
             return await serializer.asave()
