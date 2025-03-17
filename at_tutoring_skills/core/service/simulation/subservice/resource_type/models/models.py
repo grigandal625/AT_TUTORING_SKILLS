@@ -29,6 +29,3 @@ class ResourceTypeRequest(BaseModel):
     name: str
     type: ResourceTypeTypesEnum
     attributes: List[ResourceTypeAttributeRequest]
-
-
-obj: ResourceTypeRequest
