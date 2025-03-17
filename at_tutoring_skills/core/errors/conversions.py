@@ -1,5 +1,5 @@
-from at_tutoring_skills.core.knowledge_base.errors.consts import Coefficients
-from at_tutoring_skills.core.models.models import CommonMistake
+from at_tutoring_skills.core.errors.consts import Coefficients
+from at_tutoring_skills.core.errors.models import CommonMistake
 
 
 def to_syntax_mistake(
