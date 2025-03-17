@@ -4,16 +4,14 @@ from at_tutoring_skills.core.errors.models import CommonMistake
 
 def to_syntax_mistake(
     user_id: int,
-    task_id: int,
-    type: str | None,
     tip: str,
     coefficients: Coefficients,
     entity_type: str,
 ) -> CommonMistake:
     return CommonMistake(
         user_id=user_id,
-        type=type,
-        task_id=task_id,
+        type="syntax",
+        task_id=None,
         fine=coefficients.syntax_fine,
         coefficient=coefficients.entity_fines[entity_type],
         tip=tip,
@@ -24,14 +22,13 @@ def to_syntax_mistake(
 def to_logic_mistake(
     user_id: int,
     task_id: int,
-    type: str | None,
     tip: str,
     coefficients: Coefficients,
     entity_type: str,
 ) -> CommonMistake:
     return CommonMistake(
         user_id=user_id,
-        type=type,
+        type="logic",
         task_id=task_id,
         fine=coefficients.syntax_fine,
         coefficient=coefficients.entity_fines[entity_type],
@@ -43,14 +40,13 @@ def to_logic_mistake(
 def to_lexic_mistake(
     user_id: int,
     task_id: int,
-    type: str | None,
     tip: str,
     coefficients: Coefficients,
     entity_type: str,
 ) -> CommonMistake:
     return CommonMistake(
         user_id=user_id,
-        type=type,
+        type="lexic",
         task_id=task_id,
         fine=coefficients.syntax_fine,
         coefficient=coefficients.entity_fines[entity_type],

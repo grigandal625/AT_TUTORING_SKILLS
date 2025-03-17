@@ -1,6 +1,8 @@
-from typing import List, Optional, Union, Dict, Any
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
 from pydantic import BaseModel, ValidationError
+
 
 class BaseTypesEnum(str, Enum):
     INT = "INT"
