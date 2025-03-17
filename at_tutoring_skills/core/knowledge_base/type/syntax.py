@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class KBTypeServiceSyntax:
     async def handle_syntax_mistakes(self: "KBTypeService", user_id: int, data: dict) -> KBType:
-        serializer = KBTypeDataSerializer(data=data["args"])
+        serializer = KBTypeDataSerializer(data=data["result"])
         try:
             await serializer.ais_valid(raise_exception=True)
             return await serializer.asave()

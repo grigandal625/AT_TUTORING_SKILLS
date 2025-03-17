@@ -10,8 +10,7 @@ from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
 from at_tutoring_skills.core.task.service import TaskService
 
-# from at_krl.core.kb_operation import KBOperation
-
+from rest_framework import exceptions
 
 class ATTutoringKBSkills(ATComponent):
     skills: dict = None
@@ -139,12 +138,12 @@ class ATTutoringKBSkills(ATComponent):
     def get_obj_arrayid_by_id(self, id: str, array_name: str, auth_token_or_id: str):
         cash = self.init_cash(auth_token_or_id)
 
-        res_item = None
+        res = None
         if array_name in cash:
             for i in range(len(cash[array_name])):
                 if cash[array_name][i].id == id:
                     res = i
-        if res_item is None:
+        if res is None:
             print(
                 "get_smth_val_by_key",
                 " поиск в ",
@@ -182,7 +181,7 @@ class ATTutoringKBSkills(ATComponent):
     # ============================== add to cash ====================================
     def add_to_cash(self, array_name: str, data, auth_token_or_id: str):
         cash = self.init_cash(auth_token_or_id)
-        arrayid = self.get_obj_arrayid_by_id(id=data.id, array_name=array_name, auth_token_or_id=auth_token_or_id)
+        arrayid = self.get_obj_arrayid_by_id(data.id, array_name, auth_token_or_id)
         if arrayid is not None:
             cash[array_name][arrayid] = data
         else:
@@ -297,17 +296,20 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_type_updated(self, event: str, data: dict, auth_token: str):
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = self.get_user_id_or_token(auth_token)
-        data = data.get("result")
+
+
         try:
-            kb_type = self.type_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
+            kb_type = await self.type_service.handle_syntax_mistakes(user_id, data)
+        except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        self.add_type_to_cash(kb_type, user_id)
+        # заглушка
+        et_type = await self.type_service.handle_syntax_mistakes(user_id, data)
+        et_type.values[0] = "D"
 
         try:
-            self.type_service.handle_logic_lexic_mistakes(user_id, kb_type)
-        except BaseException as e:
+            self.type_service.handle_logic_lexic_mistakes(user_id, kb_type, et_type)
+        except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
         try:
@@ -318,10 +320,9 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        data = data.get("result")
         try:
             kb_type = self.type_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
+        except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         self.add_type_to_cash(kb_type, user_id)
@@ -344,11 +345,11 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_object_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        data = data.get("result")
+        
 
         try:
             kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
+        except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         self.add_object_to_cash(kb_object, user_id)
@@ -356,18 +357,18 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_object_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        data = data.get("result")
+        
 
         try:
             kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
+        except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         self.add_object_to_cash(kb_object, user_id)
 
         try:
             self.object_service.handle_logic_lexic_mistakes(user_id, kb_object)
-        except BaseException as e:
+        except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
         try:
@@ -392,17 +393,17 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_event_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        data = data.get("result")
+        
         try:
             kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
+        except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         self.add_event_to_cash(kb_event, user_id)
 
         try:
             self.event_service.handle_logic_lexic_mistakes(user_id, kb_event)
-        except BaseException as e:
+        except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
         try:
@@ -413,10 +414,10 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        data = data.get("result")
+        
         try:
             kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
+        except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         self.add_event_to_cash(kb_event, user_id)
@@ -439,17 +440,17 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_interval_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        data = data.get("result")
+        
         try:
             kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
+        except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         self.add_interval_to_cash(kb_interval, user_id)
 
         try:
             self.interval_service.handle_logic_lexic_mistakes(user_id, kb_interval)
-        except BaseException as e:
+        except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
         try:
@@ -460,10 +461,10 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        data = data.get("result")
+        
         try:
             kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
+        except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         self.add_interval_to_cash(kb_interval, user_id)
@@ -485,17 +486,17 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_rule_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        data = data.get("result")
+        
         try:
             kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
+        except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         self.add_rule_to_cash(kb_rule, user_id)
 
         try:
             self.rule_service.handle_logic_lexic_mistakes(user_id, kb_rule)
-        except BaseException as e:
+        except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
         try:
@@ -506,10 +507,10 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        data = data.get("result")
+        
         try:
             kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
+        except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         self.add_rule_to_cash(kb_rule, user_id)

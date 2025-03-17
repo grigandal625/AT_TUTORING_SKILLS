@@ -1,37 +1,52 @@
-from typing import TYPE_CHECKING
+from typing import List, Optional, Union, Dict, Any
+from enum import Enum
+from pydantic import BaseModel, ValidationError
 
-from at_krl.core.temporal.allen_event import KBEvent
-from rest_framework import exceptions
+class BaseTypesEnum(str, Enum):
+    INT = "INT"
+    FLOAT = "FLOAT"
+    BOOL = "BOOL"
+    ENUM = "ENUM"
 
-from at_tutoring_skills.core.data_serializers import KBEventDataSerializer
-from at_tutoring_skills.core.knowledge_base.errors import to_syntax_mistake
-from at_tutoring_skills.core.models.models import CommonMistake
+class ResourceTypeAttributeRequest(BaseModel):
+    id: Optional[int] = None
+    name: str
+    type: BaseTypesEnum
+    enum_values_set: Optional[List[str]] = None
+    default_value: Optional[Union[int, float, bool, str]] = None
 
-if TYPE_CHECKING:
-    from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
+class ResourceTypeTypesEnum(str, Enum):
+    CONSTANT = "CONSTANT"
+    TEMPORAL = "TEMPORAL"
+
+class ResourceTypeRequest(BaseModel):
+    id: Optional[int] = None
+    name: str
+    type: ResourceTypeTypesEnum
+    attributes: List[ResourceTypeAttributeRequest]
 
 
-class KBObjectServiceSyntax:
-    async def handle_syntax_mistakes(self: "KBEventService", user_id: int, data: dict) -> KBEvent:
-        serializer = KBEventDataSerializer(data=data["args"])
+class IMResourceTypesServiceSyntax :
+    @staticmethod
+    async def handle_syntax_mistakes(user_id: int, data: Dict[str, Any]):
         try:
-            await serializer.ais_valid(raise_exception=True)
-            return await serializer.asave()
-        except exceptions.ValidationError as e:
-            syntax_mistakes: list[CommonMistake] = []
-            for exception in e.detail:
-                syntax_mistakes.append(
-                    to_syntax_mistake(
-                        user_id,
-                        None,
-                        self.process_tip(exception),
-                    )
-                )
+            # если ошибок нет, возвращаем проверенные данные
+            validated_data = ResourceTypeRequest(**data)
+            return validated_data
+        
+        except ValidationError as e:
+            syntax_mistakes = []
 
-            for syntax_mistake in syntax_mistakes:
-                self.repository.create_mistake(syntax_mistake)
+            for error in e.errors():
+                field = " -> ".join(map(str, error.get("loc", ["unknown"])))
+                message = error.get("msg", "Ошибка валидации")
+                syntax_mistakes.append(f"Ошибка в поле '{field}': {message}")
 
-            raise e
+            for mistake in syntax_mistakes:
+                print(mistake) # ??
 
-    def process_tip(self, exception: str) -> str:
+            raise e 
+        
+
+    def process_tip(exception: str) -> str:
         ...

@@ -15,22 +15,23 @@ class KBRuleServiceLogicLexic:
         ...
 
     def handle_logic_lexic_mistakes(self: "KBRuleService", user_id: int, data: dict) -> KBRule:
-        serializer = KBClassDataSerializer(data=data["args"])
-        try:
-            serializer.IsValid(raise_exception=True)
-            return serializer.Save()
-        except BaseException as e:
-            syntax_mistakes: list[CommonMistake] = []
-            for exception in e.detail:
-                syntax_mistakes.append(
-                    to_logic_mistake(
-                        user_id,
-                        None,
-                        self.process_tip(exception),
-                    )
-                )
+        ...
+        # serializer = KBClassDataSerializer(data=data["args"])
+        # try:
+        #     serializer.IsValid(raise_exception=True)
+        #     return serializer.Save()
+        # except BaseException as e:
+        #     syntax_mistakes: list[CommonMistake] = []
+        #     for exception in e.detail:
+        #         syntax_mistakes.append(
+        #             to_logic_mistake(
+        #                 user_id,
+        #                 None,
+        #                 self.process_tip(exception),
+        #             )
+        #         )
 
-            for syntax_mistake in syntax_mistakes:
-                self.repository.create_mistake(syntax_mistake)
+        #     for syntax_mistake in syntax_mistakes:
+        #         self.repository.create_mistake(syntax_mistake)
 
-            raise e
+        #     raise e

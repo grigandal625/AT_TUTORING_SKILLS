@@ -16,7 +16,7 @@ class KBIntervalServiceSyntax:
         ...
 
     async def handle_syntax_mistakes(self: "KBIntervalService", user_id: int, data: dict) -> KBInterval:
-        serializer = KBIntervalDataSerializer(data=data["args"])
+        serializer = KBIntervalDataSerializer(data=data["result"])
         try:
             await serializer.ais_valid(raise_exception=True)
             return await serializer.asave()

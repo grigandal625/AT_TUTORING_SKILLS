@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class KBObjectServiceSyntax:
     async def handle_syntax_mistakes(self: "KBEventService", user_id: int, data: dict) -> KBEvent:
-        serializer = KBEventDataSerializer(data=data["args"])
+        serializer = KBEventDataSerializer(data=data["result"])
         try:
             await serializer.ais_valid(raise_exception=True)
             return await serializer.asave()
