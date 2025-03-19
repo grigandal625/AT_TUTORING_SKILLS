@@ -15,12 +15,3 @@ class FunctionRequest(BaseModel):
     ret_type: str
     body: str
     params: Sequence[FunctionParameterRequest]
-
-
-class FunctionParameterResponse(FunctionParameterRequest):
-    id: int
-
-
-class FunctionResponse(FunctionRequest):
-    id: int
-    params: Sequence[FunctionParameterResponse]
