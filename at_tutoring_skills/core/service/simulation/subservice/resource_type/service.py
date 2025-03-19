@@ -105,10 +105,87 @@ class ResourceTypeService:
         self,
         attrs: List[ResourceTypeAttributeRequest],
         attrs_reference: List[ResourceTypeAttributeRequest],
-    ) -> List[CommonMistake]: ...
+    ) -> List[CommonMistake]:   
+        mistakes: List[CommonMistake] = []
+        match_attrs_count = 0
+
+        if len(attrs) != len(attrs_reference):
+            mistake = CommonMistake(
+                message=f"Wrong number of attributes provided.",
+            )
+            mistakes.append(mistake)
+
+        for attr in attrs:
+            find_flag = False
+            for attr_reference in attrs_reference:
+                if attr.name == attr_reference.name:
+                    find_flag = True
+                    match_attrs_count += 1
+                    if attr.type != attr_reference.type:
+                        mistake = CommonMistake(
+                            message=f"Invalid attribute type'{attr.name}'.",
+                        )
+                        mistakes.append(mistake)
+                        continue
+
+                    if attr.default_value != attr_reference.default_value:
+                        mistake = CommonMistake(
+                            message=f"Invalid attribute default value'{attr.name}'.",
+                        )
+                    mistakes.append(mistake)
+                    break
+
+            if not find_flag:
+                mistake = CommonMistake(
+                    message=f"Unknown attribute'{attr.name}'.",
+                )
+                mistakes.append(mistake)
+        
+        if match_attrs_count < len(attrs_reference):
+            mistake = CommonMistake(
+                message=f"Missing required attributes.",
+            )
+            mistakes.append(mistake)
+
+        return mistakes
+    
 
     def _attributes_lexic_mistakes(
         self,
         attrs: List[ResourceTypeAttributeRequest],
         attrs_reference: List[ResourceTypeAttributeRequest],
-    ) -> List[CommonMistake]: ...
+    ) -> List[CommonMistake]:   
+        
+        mistakes: List[CommonMistake] = []
+        match_attrs_count = 0
+
+        for attr in attrs:
+            find_flag = False
+            for attr_reference in attrs_reference:
+                if attr.name == attr_reference.name:
+                    break
+                else: ...
+
+        return mistakes
+    
+
+    @staticmethod
+    def _levenshtein_distance(s1: str, s2: str) -> int:
+        """Calculate the minimum edit distance between two strings"""
+        if len(s1) < len(s2):
+            return ResourceTypeService._levenshtein_distance(s2, s1)
+
+        if len(s2) == 0:
+            return len(s1)
+
+        previous_row = range(len(s2) + 1)
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+
+        return previous_row[-1]
