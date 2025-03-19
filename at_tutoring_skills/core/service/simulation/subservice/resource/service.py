@@ -8,6 +8,7 @@ from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import (
     IMistakeService,
+    IResourceTypeComponent,
     ITaskService,
 )
 from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import (
@@ -22,9 +23,11 @@ class ResourceService:
         self,
         mistake_service: IMistakeService,
         task_service: ITaskService,
+        resource_type_component: IResourceTypeComponent,
     ):
         self._mistake_service = mistake_service
         self._task_service = task_service
+        self._resource_type_component = resource_type_component
 
     def handle_syntax_mistakes(
         self,
@@ -105,13 +108,14 @@ class ResourceService:
 
     def _attributes_logic_mistakes(
         self,
-        type_id: ResourceRequest,
-        type_id_attrs_reference: ResourceRequest,
-        attrs: List[ResourceAttributeRequest],
-        attrs_reference: List[ResourceAttributeRequest],
-    ) -> List[CommonMistake]:   
+        object: ResourceRequest,
+        object_reference: ResourceRequest,
+    ) -> List[CommonMistake]:
         mistakes: List[CommonMistake] = []
         match_attrs_count = 0
+        
+        # ПРИМЕР
+        resource_type = self._resource_type_component.get_resource_type(object.id)
 
         if type_id.resource_type_id != type_id_attrs_reference:
             mistake = CommonMistake(
@@ -131,11 +135,9 @@ class ResourceService:
                     break
 
         return mistakes
-    
 
     def _attributes_lexic_mistakes(
         self,
         attrs: List[ResourceAttributeRequest],
         attrs_reference: List[ResourceAttributeRequest],
-    ) -> List[CommonMistake]:   ...
-        
+    ) -> List[CommonMistake]: ...

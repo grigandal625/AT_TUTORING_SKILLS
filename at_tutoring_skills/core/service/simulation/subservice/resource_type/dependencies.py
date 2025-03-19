@@ -11,3 +11,4 @@ class IMistakeService(Protocol):
 
 class ITaskService(Protocol):
     def get_object_reference(self, object_name: str, object_class) -> BaseModel: ...
+

@@ -11,3 +11,7 @@ class IMistakeService(Protocol):
 
 class ITaskService(Protocol):
     def get_object_reference(self, object_name: str, object_class) -> BaseModel: ...
+
+
+class IResourceTypeComponent(Protocol):
+    def get_resource_type(self, id: int) -> ResourceTypeResponse: ...
