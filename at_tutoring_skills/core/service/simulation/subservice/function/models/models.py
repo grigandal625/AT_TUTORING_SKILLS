@@ -1,4 +1,4 @@
-from typing import List, Optional, Sequence
+from typing import Optional, Sequence
 
 from pydantic import BaseModel
 
@@ -24,8 +24,3 @@ class FunctionParameterResponse(FunctionParameterRequest):
 class FunctionResponse(FunctionRequest):
     id: int
     params: Sequence[FunctionParameterResponse]
-
-
-class FunctionsResponse(BaseModel):
-    functions: List[FunctionResponse]
-    total: int
