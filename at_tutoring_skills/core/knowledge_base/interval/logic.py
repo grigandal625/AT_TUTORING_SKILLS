@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from at_krl.core.temporal.allen_interval import KBInterval
 
 from at_tutoring_skills.core.errors import Context
-from at_tutoring_skills.core.models.models import CommonMistake
+from at_tutoring_skills.core.errors.models import CommonMistake
 
 if TYPE_CHECKING:
     from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService

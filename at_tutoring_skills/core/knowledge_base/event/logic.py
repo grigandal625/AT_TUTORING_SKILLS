@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 from at_krl.core.temporal.allen_event import KBEvent
 
 from at_tutoring_skills.core.data_serializers import KBEventDataSerializer
-from at_tutoring_skills.core.errors import Context
+from at_tutoring_skills.core.errors import Context 
 from at_tutoring_skills.core.knowledge_base.errors import to_logic_mistake
-from at_tutoring_skills.core.models.models import CommonMistake
+from at_tutoring_skills.core.errors.models import CommonMistake
 
 if TYPE_CHECKING:
     from at_tutoring_skills.core.knowledge_base.event.service import KBEventService

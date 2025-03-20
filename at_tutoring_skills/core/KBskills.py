@@ -2,7 +2,7 @@ from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 
-from at_tutoring_skills.core.knowledge_base.errors import Repository
+from at_tutoring_skills.core.task.service import Repository
 from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService
 from at_tutoring_skills.core.knowledge_base.object.service import KBObjectService
