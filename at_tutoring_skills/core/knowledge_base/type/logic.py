@@ -6,11 +6,11 @@ from at_krl.core.kb_type import KBNumericType
 from at_krl.core.kb_type import KBSymbolicType
 from at_krl.core.kb_type import KBType
 
-from at_tutoring_skills.core.errors import Context
+from at_tutoring_skills.core.errors.context import Context 
 from at_tutoring_skills.core.errors import InvalidCharacter
 from at_tutoring_skills.core.errors import InvalidNumber
 from at_tutoring_skills.core.errors import WrongNumberOfAttributes
-from at_tutoring_skills.core.knowledge_base.errors import to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 
 if TYPE_CHECKING:
