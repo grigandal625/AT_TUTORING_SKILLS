@@ -7,9 +7,7 @@ from at_krl.core.kb_type import KBSymbolicType
 from at_krl.core.kb_type import KBType
 
 from at_tutoring_skills.core.errors.context import Context 
-from at_tutoring_skills.core.errors import InvalidCharacter
-from at_tutoring_skills.core.errors import InvalidNumber
-from at_tutoring_skills.core.errors import WrongNumberOfAttributes
+from at_tutoring_skills.core.errors.context import StudentMistakeException
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 
@@ -25,7 +23,7 @@ class KBTypeServiceLogicLexic:
 
         if len(check) < len(check_et):
             errors_list.append(
-                WrongNumberOfAttributes(
+                StudentMistakeException(
                     msg="Введено меньше значений аттрибутов, чем требуется, в типе {type.id}", context=context
                 )
             )
@@ -38,7 +36,7 @@ class KBTypeServiceLogicLexic:
             if check_et[j] is not None:
                 context = context.create_child("Атрибут {check_et[j]}")
                 errors_list.append(
-                    InvalidCharacter(
+                    StudentMistakeException(
                         msg="Введено неверное значение в атрибуте типа {type.id}: {check[i]}", context=context
                     )
                 )
@@ -57,10 +55,10 @@ class KBTypeServiceLogicLexic:
 
         # Перевірка _from
         if not self.estimate_number(type.from_, type_et.from_, context=context.create_child("Значение ОТ")):
-            errors_list.append(InvalidNumber(msg="Введено неверное значение ОТ в типе {type.id}", context=context))
+            errors_list.append(StudentMistakeException(msg="Введено неверное значение ОТ в типе {type.id}", context=context))
 
         if not self.estimate_number(type.to_, type_et.to_, context=context.create_child("Значение ОТ")):
-            errors_list.append(InvalidNumber(msg="Введено неверное значение ДО в типе {type.id}", context=context))
+            errors_list.append(StudentMistakeException(msg="Введено неверное значение ДО в типе {type.id}", context=context))
 
         return errors_list
 
@@ -85,14 +83,14 @@ class KBTypeServiceLogicLexic:
         errors_list = []
         if mf_et.min != mf.min:
             errors_list.append(
-                InvalidNumber(
+                StudentMistakeException(
                     msg="Несовпадение минимальных значений для функции {mem_func_et.name}: {mem_func_et.min}",
                     context=context.create_child("Значение МИН : {mem_func_et.min}"),
                 )
             )
         if mf_et.max != mf.max:
             errors_list.append(
-                InvalidNumber(
+                StudentMistakeException(
                     msg="Несовпадение максимальных значений для функции {mem_func_et.name}: {mem_func_et.max}",
                     context=context.create_child("Значение МАКС : {mem_func_et.min}"),
                 )
@@ -110,7 +108,7 @@ class KBTypeServiceLogicLexic:
             if flag == 0:
                 # тут лучше поменять местами
                 errors_list.append(
-                    InvalidNumber(
+                    StudentMistakeException(
                         msg="Отсутствует точка ({point_et.x}, {point_et.y})",
                         context=context.create_child("Точка ({point_et.x}, {point_et.y})"),
                     )

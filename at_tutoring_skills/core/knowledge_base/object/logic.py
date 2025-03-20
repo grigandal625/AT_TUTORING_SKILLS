@@ -3,8 +3,7 @@ from typing import TYPE_CHECKING
 from at_krl.core.kb_class import KBClass
 
 from at_tutoring_skills.core.errors.context import Context 
-from at_tutoring_skills.core.errors import InvalidCharacter
-from at_tutoring_skills.core.errors import Typo
+from at_tutoring_skills.core.errors.context import StudentMistakeException
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 
@@ -30,14 +29,14 @@ class KBObjectServiceLogicLexic:
             if flag == 0:
                 if min_val == 1:
                     errors_list.append(
-                        Typo(
+                        StudentMistakeException(
                             msg="Свойство {property_et.source} является лишним",
                             context=context.create_child("атрибут {property_et}"),
                         )
                     )
                 else:
                     errors_list.append(
-                        InvalidCharacter(
+                        StudentMistakeException(
                             msg="Свойство {property_et.source} является несовпадающим",
                             context=context.create_child("Атрибут {property_et.value}"),
                         )
