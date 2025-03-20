@@ -3,12 +3,12 @@ from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 
-from at_tutoring_skills.core.simulation_model.errors import Repository
-from at_tutoring_skills.core.simulation_model.resource_types.service import IMResourceTypesService
-from at_tutoring_skills.core.simulation_model.resources.service import IMResourcesService
-from at_tutoring_skills.core.simulation_model.templates.service import IMTemplatesService
-from at_tutoring_skills.core.simulation_model.template_usages.service import IMTemplateUsagesService
-from at_tutoring_skills.core.simulation_model.funcs.service import IMFuncsService
+from at_tutoring_skills.core.errors import Repository
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.service import IMResourceTypesService
+from at_tutoring_skills.core.service.simulation.subservice.resource.service import IMResourcesService
+from at_tutoring_skills.core.service.simulation.subservice.template.service import IMTemplatesService
+from at_tutoring_skills.core.service.simulation.subservice.template_usage.service import IMTemplateUsagesService
+from at_tutoring_skills.core.service.simulation.subservice.function.service import IMFuncsService
 
 # from at_tutoring_skills.core.task.service import TaskService
 
