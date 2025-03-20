@@ -8,8 +8,12 @@ from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import (
     IMistakeService,
-    IResourceTypeComponent,
     ITaskService,
+    IResourceTypeComponent,
+)
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
+    ResourceTypeAttributeRequest,
+    ResourceTypeRequest,
 )
 from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import (
     ResourceAttributeRequest,
@@ -23,11 +27,11 @@ class ResourceService:
         self,
         mistake_service: IMistakeService,
         task_service: ITaskService,
-        resource_type_component: IResourceTypeComponent,
+        object_resource_type_service: IResourceTypeComponent,
     ):
         self._mistake_service = mistake_service
         self._task_service = task_service
-        self._resource_type_component = resource_type_component
+        self._object_resource_type_service = object_resource_type_service
 
     def handle_syntax_mistakes(
         self,
@@ -65,12 +69,16 @@ class ResourceService:
                 ResourceRequest,
             )
 
+            object_resource_type_reference = self._object_resource_type_service.get_object_reference(
+                resource.rta_id,
+                ResourceTypeRequest,
+            )
+
         except ValueError:  # NotFoundError
             return
 
         mistakes = self._attributes_logic_mistakes(
-            resource.resource_type_id,
-            object_reference.resource_type_id,
+            object_resource_type_reference.name,
             resource.attributes,
             object_reference.attributes,
         )
@@ -106,18 +114,19 @@ class ResourceService:
 
             raise ValueError("Handle resource: lexic mistakes")
 
+
+# надо дописать, чтобы из базы данныхт по id доставалось имя тип ресурса и проверялось оно или не оно
+
     def _attributes_logic_mistakes(
         self,
-        object: ResourceRequest,
-        object_reference: ResourceRequest,
-    ) -> List[CommonMistake]:
+        type_id: ResourceTypeRequest,
+        attrs: List[ResourceAttributeRequest],
+        attrs_reference: List[ResourceAttributeRequest],
+    ) -> List[CommonMistake]:   
         mistakes: List[CommonMistake] = []
         match_attrs_count = 0
-        
-        # ПРИМЕР
-        resource_type = self._resource_type_component.get_resource_type(object.id)
 
-        if type_id.resource_type_id != type_id_attrs_reference:
+        if type_id.resource_type_id != 1: #type_id_attrs_reference:
             mistake = CommonMistake(
                 message=f"Wrong type of resource provided.",
             )
@@ -135,9 +144,11 @@ class ResourceService:
                     break
 
         return mistakes
+    
 
     def _attributes_lexic_mistakes(
         self,
         attrs: List[ResourceAttributeRequest],
         attrs_reference: List[ResourceAttributeRequest],
-    ) -> List[CommonMistake]: ...
+    ) -> List[CommonMistake]:   ...
+        
