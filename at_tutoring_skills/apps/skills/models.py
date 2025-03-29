@@ -53,6 +53,7 @@ class TaskUser(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     attempts = models.IntegerField(default=0)
+    is_completed = models.BooleanField(default=False)
 
 
 class UserSkill(models.Model):

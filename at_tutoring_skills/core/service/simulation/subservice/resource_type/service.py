@@ -1,19 +1,13 @@
 from typing import List
 
-from pydantic import ValidationError
-from pydantic_core import ErrorDetails
 
-from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
-from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import (
-    IMistakeService,
-    ITaskService,
-)
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import IMistakeService
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import ITaskService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
     ResourceTypeAttributeRequest,
-    ResourceTypeRequest,
 )
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
 from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 
 
@@ -41,9 +35,7 @@ class ResourceTypeService:
         if isinstance(result, ResourceTypeRequest):
             return result
 
-        elif isinstance(result, list) and all(
-            isinstance(err, CommonMistake) for err in result
-        ):
+        elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
                 self._mistake_service.create_mistake(mistake, user_id)
 
@@ -76,7 +68,6 @@ class ResourceTypeService:
 
             raise ValueError("Handle resource type: logic mistakes")
 
-
     def handle_lexic_mistakes(
         self,
         user_id: int,
@@ -102,12 +93,11 @@ class ResourceTypeService:
 
             raise ValueError("Handle resource type: lexic mistakes")
 
-
     def _attributes_logic_mistakes(
         self,
         attrs: List[ResourceTypeAttributeRequest],
         attrs_reference: List[ResourceTypeAttributeRequest],
-    ) -> List[CommonMistake]:   
+    ) -> List[CommonMistake]:
         mistakes: List[CommonMistake] = []
         match_attrs_count = 0
 
@@ -142,7 +132,7 @@ class ResourceTypeService:
                     message=f"Unknown attribute'{attr.name}'.",
                 )
                 mistakes.append(mistake)
-        
+
         if match_attrs_count < len(attrs_reference):
             mistake = CommonMistake(
                 message=f"Missing required attributes.",
@@ -150,14 +140,12 @@ class ResourceTypeService:
             mistakes.append(mistake)
 
         return mistakes
-    
 
     def _attributes_lexic_mistakes(
         self,
         attrs: List[ResourceTypeAttributeRequest],
         attrs_reference: List[ResourceTypeAttributeRequest],
-    ) -> List[CommonMistake]:   
-        
+    ) -> List[CommonMistake]:
         mistakes: List[CommonMistake] = []
         match_attrs_count = 0
 
@@ -177,9 +165,8 @@ class ResourceTypeService:
                         )
                         mistakes.append(mistake)
                         break
-                    
+
         return mistakes
-    
 
     @staticmethod
     def _levenshtein_distance(s1: str, s2: str) -> int:

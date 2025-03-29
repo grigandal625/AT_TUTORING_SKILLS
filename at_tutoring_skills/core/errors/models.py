@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class CommonMistake(BaseModel):
     user_id: int
-    type: str
+    entity_type: str
     task_id: Optional[int]
     fine: float
     coefficient: float

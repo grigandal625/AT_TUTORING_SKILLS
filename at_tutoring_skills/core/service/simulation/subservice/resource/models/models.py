@@ -1,4 +1,6 @@
-from typing import List, Optional, Union
+from typing import List
+from typing import Optional
+from typing import Union
 
 from pydantic import BaseModel
 
@@ -8,8 +10,10 @@ class ResourceAttributeRequest(BaseModel):
     rta_id: int
     value: Optional[Union[int, float, bool, str]] = None
 
+
 class ResourceAttributeResponse(ResourceAttributeRequest):
     id: int
+
 
 class ResourceRequest(BaseModel):
     id: Optional[int] = None

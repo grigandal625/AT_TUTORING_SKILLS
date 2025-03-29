@@ -1,4 +1,5 @@
-from typing import List, Optional, Sequence
+from typing import Optional
+from typing import Sequence
 
 from pydantic import BaseModel
 

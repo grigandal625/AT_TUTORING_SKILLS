@@ -1,10 +1,8 @@
 from at_queue.core.at_component import ATComponent
 from at_queue.utils.decorators import authorized_method
 
-from at_tutoring_skills.core.components.simulation_model.dependencies import (
-    IAuthClient,
-    ISimulationService,
-)
+from at_tutoring_skills.core.components.simulation_model.dependencies import IAuthClient
+from at_tutoring_skills.core.components.simulation_model.dependencies import ISimulationService
 
 
 class ATTutoringSimulation(ATComponent):
@@ -39,9 +37,7 @@ class ATTutoringSimulation(ATComponent):
         self._service.handle_template(data, user_id)
 
     @authorized_method
-    async def handle_template_usage(
-        self, event: str, data: dict, auth_token: str
-    ) -> None:
+    async def handle_template_usage(self, event: str, data: dict, auth_token: str) -> None:
         user_id = self._auth_client.verify_token(auth_token)
         self._service.handle_template_usage(data, user_id)
 

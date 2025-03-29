@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from at_krl.core.kb_class import KBClass
 
-from at_tutoring_skills.core.errors.context import Context 
+from at_tutoring_skills.core.errors.context import Context
 from at_tutoring_skills.core.errors.context import StudentMistakeException
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake

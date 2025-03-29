@@ -1,9 +1,6 @@
-
-
-from dataclasses import dataclass, field
-
+from dataclasses import dataclass
+from dataclasses import field
 from typing import List
-
 
 
 @dataclass(kw_only=True)
@@ -19,12 +16,10 @@ class Context:
         return self.parent.full_path_list + [self.name] if self.parent else [self.name]
 
 
-
 class StudentMistakeException(Exception):
     msg: str
     context: Context
     tip: str
-
 
     # fine: None
     def __init__(self, msg, context: Context, *args):

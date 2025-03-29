@@ -1,24 +1,13 @@
 from typing import List
 
-from pydantic import ValidationError
-from pydantic_core import ErrorDetails
 
-from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
-from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import (
-    IMistakeService,
-    ITaskService,
-    IResourceTypeComponent,
-)
-from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
-    ResourceTypeAttributeRequest,
-    ResourceTypeRequest,
-)
-from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import (
-    ResourceAttributeRequest,
-    ResourceRequest,
-)
+from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import IMistakeService
+from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import IResourceTypeComponent
+from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import ITaskService
+from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceAttributeRequest
+from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceRequest
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
 from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 
 
@@ -48,9 +37,7 @@ class ResourceService:
         if isinstance(result, ResourceRequest):
             return result
 
-        elif isinstance(result, list) and all(
-            isinstance(err, CommonMistake) for err in result
-        ):
+        elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
                 self._mistake_service.create_mistake(mistake, user_id)
 
@@ -114,19 +101,18 @@ class ResourceService:
 
             raise ValueError("Handle resource: lexic mistakes")
 
-
-# надо дописать, чтобы из базы данныхт по id доставалось имя тип ресурса и проверялось оно или не оно
+    # надо дописать, чтобы из базы данныхт по id доставалось имя тип ресурса и проверялось оно или не оно
 
     def _attributes_logic_mistakes(
         self,
         resource_type: ResourceTypeRequest,
         attrs: List[ResourceAttributeRequest],
         attrs_reference: List[ResourceAttributeRequest],
-    ) -> List[CommonMistake]:   
+    ) -> List[CommonMistake]:
         mistakes: List[CommonMistake] = []
         match_attrs_count = 0
 
-        if resource_type.name != attrs_reference.name: #type_id_attrs_reference:
+        if resource_type.name != attrs_reference.name:  # type_id_attrs_reference:
             mistake = CommonMistake(
                 message=f"Wrong type of resource provided.",
             )
@@ -144,11 +130,10 @@ class ResourceService:
                     break
 
         return mistakes
-    
 
     def _attributes_lexic_mistakes(
         self,
         attrs: List[ResourceAttributeRequest],
         attrs_reference: List[ResourceAttributeRequest],
-    ) -> List[CommonMistake]:   ...
-        
+    ) -> List[CommonMistake]:
+        ...

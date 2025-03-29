@@ -1,19 +1,12 @@
-from typing import List, Optional, Sequence
+from typing import List
+from typing import Sequence
 
-from pydantic import ValidationError
-from pydantic_core import ErrorDetails
 
-from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
-from at_tutoring_skills.core.service.simulation.subservice.function.dependencies import (
-    IMistakeService,
-    ITaskService,
-)
-from at_tutoring_skills.core.service.simulation.subservice.function.models.models import (
-    FunctionParameterRequest,
-    FunctionRequest,
-)
+from at_tutoring_skills.core.service.simulation.subservice.function.dependencies import IMistakeService
+from at_tutoring_skills.core.service.simulation.subservice.function.dependencies import ITaskService
+from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest
+from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionRequest
 from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 
 
@@ -41,9 +34,7 @@ class FunctionService:
         if isinstance(result, FunctionRequest):
             return result
 
-        elif isinstance(result, list) and all(
-            isinstance(err, CommonMistake) for err in result
-        ):
+        elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
                 self._mistake_service.create_mistake(mistake, user_id)
 
@@ -76,7 +67,6 @@ class FunctionService:
 
             raise ValueError("Handle function: logic mistakes")
 
-
     def handle_lexic_mistakes(
         self,
         user_id: int,
@@ -102,12 +92,11 @@ class FunctionService:
 
             raise ValueError("Handle function: lexic mistakes")
 
-
     def _params_logic_mistakes(
         self,
         params: List[FunctionParameterRequest],
         params_reference: List[FunctionParameterRequest],
-    ) -> List[CommonMistake]:   
+    ) -> List[CommonMistake]:
         mistakes: List[CommonMistake] = []
         match_params_count = 0
 
@@ -142,7 +131,7 @@ class FunctionService:
                     message=f"Unknown parameters'{attr.name}'.",
                 )
                 mistakes.append(mistake)
-        
+
         if match_params_count < len(params_reference):
             mistake = CommonMistake(
                 message=f"Missing required parameters.",
@@ -150,14 +139,12 @@ class FunctionService:
             mistakes.append(mistake)
 
         return mistakes
-    
 
     def _params_lexic_mistakes(
         self,
         params: Sequence[FunctionParameterRequest],
         params_reference: Sequence[FunctionParameterRequest],
-    ) -> List[CommonMistake]:   
-        
+    ) -> List[CommonMistake]:
         mistakes: List[CommonMistake] = []
         match_attrs_count = 0
 
@@ -177,9 +164,8 @@ class FunctionService:
                         )
                         mistakes.append(mistake)
                         break
-                    
+
         return mistakes
-    
 
     @staticmethod
     def _levenshtein_distance(s1: str, s2: str) -> int:

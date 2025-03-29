@@ -1,16 +1,16 @@
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
+from rest_framework import exceptions
 
-from at_tutoring_skills.core.task.service import Repository
 from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService
 from at_tutoring_skills.core.knowledge_base.object.service import KBObjectService
 from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
+from at_tutoring_skills.core.task.service import Repository
 from at_tutoring_skills.core.task.service import TaskService
 
-from rest_framework import exceptions
 
 class ATTutoringKBSkills(ATComponent):
     skills: dict = None
@@ -21,8 +21,6 @@ class ATTutoringKBSkills(ATComponent):
     event_service = None
     interval_service = None
     rule_service = None
-    
-
 
     def __init__(self, connection_parameters: ConnectionParameters, *args, **kwargs):
         super().__init__(connection_parameters, *args, **kwargs)
@@ -297,7 +295,6 @@ class ATTutoringKBSkills(ATComponent):
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = self.get_user_id_or_token(auth_token)
 
-
         try:
             kb_type = await self.type_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
@@ -345,7 +342,6 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_object_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        
 
         try:
             kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
@@ -357,7 +353,6 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_object_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        
 
         try:
             kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
@@ -393,7 +388,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_event_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        
+
         try:
             kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
@@ -414,7 +409,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        
+
         try:
             kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
@@ -440,7 +435,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_interval_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        
+
         try:
             kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
@@ -461,7 +456,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        
+
         try:
             kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
@@ -486,7 +481,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_rule_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        
+
         try:
             kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
@@ -507,7 +502,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        
+
         try:
             kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:

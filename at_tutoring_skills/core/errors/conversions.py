@@ -2,6 +2,16 @@ from at_tutoring_skills.core.errors.consts import Coefficients
 from at_tutoring_skills.core.errors.models import CommonMistake
 
 
+# class CommonMistake(BaseModel):
+# user_id: int
+# type: str
+# task_id: Optional[int]
+# fine: float
+# coefficient: float
+# tip: str
+# is_tip_shown: bool
+
+
 def to_syntax_mistake(
     user_id: int,
     tip: str,

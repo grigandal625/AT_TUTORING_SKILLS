@@ -1,8 +1,6 @@
 # from typing import List
-
 # from pydantic import ValidationError
 # from pydantic_core import ErrorDetails
-
 # from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
 # from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 # from at_tutoring_skills.core.errors.models import CommonMistake
@@ -17,7 +15,10 @@
 # from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 
 
-class TemplateUsageService: ...
+class TemplateUsageService:
+    ...
+
+
 #     def __init__(
 #         self,
 #         mistake_service: IMistakeService,
@@ -110,7 +111,7 @@ class TemplateUsageService: ...
 #         id_template_reference: TemplateUsageRequest,
 #         attrs: List[TemplateUsageArgumentRequest],
 #         attrs_reference: List[TemplateUsageArgumentRequest],
-#     ) -> List[CommonMistake]:   
+#     ) -> List[CommonMistake]:
 #         mistakes: List[CommonMistake] = []
 #         match_attrs_count = 0
 
@@ -120,7 +121,7 @@ class TemplateUsageService: ...
 #             )
 #             mistakes.append(mistake)
 #             return mistakes
-        
+
 #         for attr in attrs:
 #             find_flag = False
 #             for attr_reference in attrs_reference:
@@ -146,7 +147,7 @@ class TemplateUsageService: ...
 #                     message=f"Unknown attribute'{attr.name}'.",
 #                 )
 #                 mistakes.append(mistake)
-        
+
 #         if match_attrs_count < len(attrs_reference):
 #             mistake = CommonMistake(
 #                 message=f"Missing required attributes.",
@@ -154,22 +155,18 @@ class TemplateUsageService: ...
 #             mistakes.append(mistake)
 
 #         return mistakes
-    
+
 
 #     def _attributes_lexic_mistakes(
 #         self,
 #         attrs: List[TemplateUsageRequest],
 #         attrs_reference: List[TemplateUsageRequest],
 #     ) -> List[CommonMistake]:  ...
-    
+
 from typing import List, Type
 
 from pydantic import BaseModel
-from pydantic import ValidationError
-from pydantic_core import ErrorDetails
 
-from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 
 from at_tutoring_skills.core.service.simulation.subservice.template.dependencies import (
@@ -187,7 +184,6 @@ from at_tutoring_skills.core.service.simulation.subservice.template.models.model
 )
 
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
-    ResourceTypeAttributeRequest,
     ResourceTypeRequest,
 )
 
@@ -230,9 +226,7 @@ class TemplateService:
         if isinstance(result, TemplateMetaRequest):
             return result
 
-        elif isinstance(result, list) and all(
-            isinstance(err, CommonMistake) for err in result
-        ):
+        elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
                 self._mistake_service.create_mistake(mistake, user_id)
 
@@ -261,7 +255,7 @@ class TemplateService:
             return
 
         mistakes = self._resource_name_lexic_mistakes(
-            template, 
+            template,
             object_reference,
         )
 
@@ -286,10 +280,9 @@ class TemplateService:
             return
 
         mistakes = self._rel_resources_logic_mistakes(
-            template.rel_resources, 
-            object_reference.rel_resources, 
+            template.rel_resources,
+            object_reference.rel_resources,
         )
-
 
         if template.type == "IRREGULAR_EVENT":
             mistakes += self._irregular_event_logic_mistakes(template)
@@ -297,20 +290,17 @@ class TemplateService:
         elif template.type == "OPERATION":
             mistakes += self._operation_logic_mistakes(template)
 
-
         if len(mistakes) != 0:
             for mistake in mistakes:
                 self._mistake_service.create_mistake(mistake, user_id)
 
             raise ValueError("Handle template: logic mistakes")
 
-
     def _rel_resources_logic_mistakes(
         self,
         rel_resources: List[RelevantResourceRequest],
         rel_resources_reference: List[RelevantResourceRequest],
-    ) -> List[CommonMistake]:   
-        
+    ) -> List[CommonMistake]:
         mistakes: List[CommonMistake] = []
         match_attrs_count = 0
 
@@ -320,7 +310,7 @@ class TemplateService:
             )
             mistakes.append(mistake)
             return mistakes
-        
+
         for attr in attrs:
             find_flag = False
             for attr_reference in attrs_reference:
@@ -346,7 +336,7 @@ class TemplateService:
                     message=f"Unknown attribute'{attr.name}'.",
                 )
                 mistakes.append(mistake)
-        
+
         if match_attrs_count < len(attrs_reference):
             mistake = CommonMistake(
                 message=f"Missing required attributes.",
@@ -354,20 +344,19 @@ class TemplateService:
             mistakes.append(mistake)
 
         return mistakes
-    
 
     def _attributes_lexic_mistakes(
         self,
         attrs: List[TemplateMetaRequest],
         attrs_reference: List[TemplateMetaRequest],
-    ) -> List[CommonMistake]:  ...
-    
+    ) -> List[CommonMistake]:
+        ...
+
     def _resource_name_lexic_mistakes(
         self,
         rel_resources: List[RelevantResourceRequest],
         reference: ResourceTypeRequest,
     ) -> List[CommonMistake]:
-        
         mistakes = []
         for attr in attrs:
             find_flag = False
@@ -385,7 +374,7 @@ class TemplateService:
                         )
                         mistakes.append(mistake)
                         break
-                    
+
         return mistakes
 
     @staticmethod

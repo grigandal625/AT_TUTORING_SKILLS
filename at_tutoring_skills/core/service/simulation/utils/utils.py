@@ -1,4 +1,5 @@
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
+from pydantic import ValidationError
 from pydantic_core import ErrorDetails
 
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
