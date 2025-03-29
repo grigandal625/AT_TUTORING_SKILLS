@@ -10,6 +10,10 @@ class RelevantResourceRequest(BaseModel):
     resource_type_id: int
 
 
+class RelevantResourceResponse(RelevantResourceRequest):
+    id: int
+
+
 class TemplateTypeEnum(str, Enum):
     IRREGULAR_EVENT = "IRREGULAR_EVENT"
     OPERATION = "OPERATION"
@@ -21,6 +25,11 @@ class TemplateMetaRequest(BaseModel):
     name: str
     type: TemplateTypeEnum
     rel_resources: List[RelevantResourceRequest]
+
+
+class TemplateMetaResponse(TemplateMetaRequest):
+    id: int
+    rel_resources: List[RelevantResourceResponse]
 
 
 class OperationBody(BaseModel):
@@ -35,6 +44,10 @@ class OperationRequest(BaseModel):
     body: OperationBody
 
 
+class OperationResponse(OperationRequest):
+    meta: TemplateMetaResponse
+
+
 class RuleBody(BaseModel):
     condition: str
     body: str
@@ -43,6 +56,10 @@ class RuleBody(BaseModel):
 class RuleRequest(BaseModel):
     meta: TemplateMetaRequest
     body: RuleBody
+
+
+class RuleResponse(RuleRequest):
+    meta: TemplateMetaResponse
 
 
 class IrregularEventBody(BaseModel):
@@ -68,3 +85,9 @@ class IrregularEventRequest(BaseModel):
     meta: TemplateMetaRequest
     generator: IrregularEventGenerator
     body: IrregularEventBody
+
+
+class IrregularEventResponse(IrregularEventRequest):
+    meta: TemplateMetaResponse
+
+
