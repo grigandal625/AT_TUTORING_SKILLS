@@ -119,14 +119,14 @@ class ResourceService:
 
     def _attributes_logic_mistakes(
         self,
-        type_id: ResourceTypeRequest,
+        resource_type: ResourceTypeRequest,
         attrs: List[ResourceAttributeRequest],
         attrs_reference: List[ResourceAttributeRequest],
     ) -> List[CommonMistake]:   
         mistakes: List[CommonMistake] = []
         match_attrs_count = 0
 
-        if type_id.resource_type_id != 1: #type_id_attrs_reference:
+        if resource_type.name != attrs_reference.name: #type_id_attrs_reference:
             mistake = CommonMistake(
                 message=f"Wrong type of resource provided.",
             )

@@ -8,6 +8,8 @@ class ResourceAttributeRequest(BaseModel):
     rta_id: int
     value: Optional[Union[int, float, bool, str]] = None
 
+class ResourceAttributeResponse(ResourceAttributeRequest):
+    id: int
 
 class ResourceRequest(BaseModel):
     id: Optional[int] = None
@@ -15,3 +17,13 @@ class ResourceRequest(BaseModel):
     to_be_traced: bool
     attributes: List[ResourceAttributeRequest]
     resource_type_id: int
+
+
+class ResourceResponse(ResourceRequest):
+    id: int
+    attributes: List[ResourceAttributeResponse]
+
+
+class ResourcesResponse(BaseModel):
+    resources: List[ResourceResponse]
+    total: int
