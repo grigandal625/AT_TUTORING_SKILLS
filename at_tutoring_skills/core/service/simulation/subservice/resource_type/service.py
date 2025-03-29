@@ -76,6 +76,7 @@ class ResourceTypeService:
 
             raise ValueError("Handle resource type: logic mistakes")
 
+
     def handle_lexic_mistakes(
         self,
         user_id: int,
@@ -100,6 +101,7 @@ class ResourceTypeService:
                 self._mistake_service.create_mistake(mistake, user_id)
 
             raise ValueError("Handle resource type: lexic mistakes")
+
 
     def _attributes_logic_mistakes(
         self,
@@ -161,17 +163,26 @@ class ResourceTypeService:
 
         for attr in attrs:
             find_flag = False
+            closest_match = None
             for attr_reference in attrs_reference:
                 if attr.name == attr_reference.name:
+                    find_flag = True
                     break
-                else: ...
-
+                else:
+                    distance = self._levenshtein_distance(attr.name, attr_reference.name)
+                    if distance == 1:
+                        closest_match = attr_reference.name
+                        mistake = CommonMistake(
+                            message=f"Attribute naming error.",
+                        )
+                        mistakes.append(mistake)
+                        break
+                    
         return mistakes
     
 
     @staticmethod
     def _levenshtein_distance(s1: str, s2: str) -> int:
-        """Calculate the minimum edit distance between two strings"""
         if len(s1) < len(s2):
             return ResourceTypeService._levenshtein_distance(s2, s1)
 

@@ -19,6 +19,10 @@ class ResourceTypeAttributeRequest(BaseModel):
     default_value: Optional[Union[int, float, bool, str]] = None
 
 
+class ResourceTypeAttributeResponse(ResourceTypeAttributeRequest):
+    id: int
+
+
 class ResourceTypeTypesEnum(Enum):
     CONSTANT = "CONSTANT"
     TEMPORAL = "TEMPORAL"
@@ -29,3 +33,13 @@ class ResourceTypeRequest(BaseModel):
     name: str
     type: ResourceTypeTypesEnum
     attributes: List[ResourceTypeAttributeRequest]
+
+
+class ResourceTypeResponse(ResourceTypeRequest):
+    id: int
+    attributes: List[ResourceTypeAttributeResponse]
+
+
+class ResourceTypesResponse(BaseModel):
+    resource_types: List[ResourceTypeResponse]
+    total: int
