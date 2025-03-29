@@ -1,8 +1,10 @@
+import random
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 from rest_framework import exceptions
 
+from at_tutoring_skills.apps.skills.models import User, Variant
 from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService
 from at_tutoring_skills.core.knowledge_base.object.service import KBObjectService
@@ -55,6 +57,7 @@ class ATTutoringKBSkills(ATComponent):
                 methode_name="verify_token",
                 method_args={"token": auth_token},
             )
+            # await User.objects.aget_or_create(user_id=user_id, variant=Variant.objects.filter(name="1"))
             return user_id
         return auth_token
 
