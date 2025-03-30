@@ -18,6 +18,7 @@ class ATTutoringKBSkills(ATComponent):
     skills: dict = None
     cash: dict = None
     repository = None
+    task_service = None
     type_service = None
     object_service = None
     event_service = None
@@ -29,6 +30,7 @@ class ATTutoringKBSkills(ATComponent):
         self.repository = Repository
         self.skills = {}  # временное хранилище, тут лучше подключить БД или что-то
         self.cash = {}
+        self.task_service = TaskService()
         self.type_service = KBTypeService(self.repository)
         self.object_service = KBObjectService(self.repository)
         self.event_service = KBEventService(self.repository)
@@ -296,19 +298,20 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_type_updated(self, event: str, data: dict, auth_token: str):
         print("Обучаемый отредактировал тип (БЗ): ", data)
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         try:
             kb_type = await self.type_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
-
-        # заглушка
-        et_type = await self.type_service.handle_syntax_mistakes(user_id, data)
-        et_type.values[0] = "D"
+        
+        task = self.task_service.get_task_by_name(kb_type.id)
+        et_type = self.task_service.get_type_reference(task)
 
         try:
-            self.type_service.handle_logic_lexic_mistakes(user_id, kb_type, et_type)
+            self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
         except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
@@ -484,6 +487,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_rule_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        
 
         try:
             kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)

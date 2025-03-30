@@ -45,13 +45,13 @@ class Variant(models.Model):
 
 
 class User(models.Model):
-    user_id = models.IntegerField(primary_key=True)
+    user_id = models.CharField(primary_key=True, max_length=255)
     variant = models.ForeignKey(Variant, on_delete=models.SET_NULL, null=True, blank=True, default=None)
 
 
 class TaskUser(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, to_field="user_id", on_delete=models.CASCADE)
     attempts = models.IntegerField(default=0)
     is_completed = models.BooleanField(default=False)
 

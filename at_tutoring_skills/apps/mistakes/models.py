@@ -18,3 +18,4 @@ class Mistake(models.Model):
     fine = models.IntegerField(null=True, blank=True)
     tip = models.TextField(null=True, blank=True)
     is_tip_shown = models.BooleanField(default=False)
+
