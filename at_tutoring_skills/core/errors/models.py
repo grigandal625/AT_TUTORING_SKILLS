@@ -1,11 +1,11 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
 
 class CommonMistake(BaseModel):
     user_id: int
-    entity_type: str
+    type : Literal["syntax", "logic", "lexic"]
     task_id: Optional[int]
     fine: float
     coefficient: float

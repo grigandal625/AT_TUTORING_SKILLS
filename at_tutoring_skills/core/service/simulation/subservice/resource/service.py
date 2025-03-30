@@ -11,7 +11,7 @@ from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.
 from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 
 
-class ResourceService:
+class ResourceService: 
     def __init__(
         self,
         mistake_service: IMistakeService,

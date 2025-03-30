@@ -17,27 +17,38 @@ class ResourceTypeService:
         mistake_service: IMistakeService,
         task_service: ITaskService,
     ):
+        
         self._mistake_service = mistake_service
         self._task_service = task_service
 
-    def handle_syntax_mistakes(
+    async def handle_syntax_mistakes(
         self,
         user_id: int,
-        raw_request: dict,
+        data: dict
     ) -> ResourceTypeRequest:
+        if "resourceType" in data and isinstance(data["resourceType"], dict):
+            if "type" in data["resourceType"]:
+                data["resourceType"]["type"] = data["resourceType"]["type"].upper()
+            
+            if "attributes" in data["resourceType"]:
+                for attr in data["resourceType"]["attributes"]:
+                    if "type" in attr:
+                        attr["type"] = attr["type"].upper()
+
         result = pydantic_mistakes(
             user_id=123,
-            raw_request=raw_request,
+            raw_request=data,
             pydantic_class=ResourceTypeRequest,
             pydantic_class_name="resource_type",
         )
 
+        print("Данные, полученные pydentic моделью: ", result)
+
         if isinstance(result, ResourceTypeRequest):
             return result
-
         elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
-                self._mistake_service.create_mistake(mistake, user_id)
+                self._mistake_service.create_mistake(mistake, user_id, "syntax")
 
             raise ValueError("Handle resource type: syntax mistakes")
 
@@ -64,7 +75,7 @@ class ResourceTypeService:
 
         if len(mistakes) != 0:
             for mistake in mistakes:
-                self._mistake_service.create_mistake(mistake, user_id)
+                self._mistake_service.create_mistake(mistake, user_id, "logic")
 
             raise ValueError("Handle resource type: logic mistakes")
 
@@ -89,7 +100,7 @@ class ResourceTypeService:
 
         if len(mistakes) != 0:
             for mistake in mistakes:
-                self._mistake_service.create_mistake(mistake, user_id)
+                self._mistake_service.create_mistake(mistake, user_id, "lexic")
 
             raise ValueError("Handle resource type: lexic mistakes")
 
