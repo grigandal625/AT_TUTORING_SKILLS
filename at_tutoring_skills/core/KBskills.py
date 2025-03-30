@@ -307,7 +307,7 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
         
-        task = self.task_service.get_task_by_name(kb_type.id)
+        task = self.task_service.get_task_by_name(kb_type.id, 1)
         et_type = self.task_service.get_type_reference(task)
 
         try:
@@ -323,6 +323,9 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
+
         try:
             kb_type = self.type_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
@@ -333,6 +336,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_type_deleted(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         type_dict_raw = data.get("result")
         type_id = type_dict_raw.get("itemId")
@@ -348,6 +353,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_object_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         try:
             kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
@@ -359,6 +366,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_object_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         try:
             kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
@@ -380,6 +389,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_object_deleted(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         object_dict_raw = data.get("result")
         object_id = object_dict_raw.get("itemId")
@@ -394,6 +405,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_event_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         try:
             kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
@@ -415,6 +428,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         try:
             kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
@@ -426,6 +441,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_event_deleted(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         event_dict_raw = data.get("result")
         event_id = event_dict_raw.get("itemId")
@@ -441,6 +458,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_interval_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         try:
             kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
@@ -462,6 +481,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         try:
             kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
@@ -473,6 +494,9 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_interval_deleted(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         interval_raw = data.get("result")
         interval_id = interval_raw.get("itemId")
@@ -487,7 +511,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_rule_updated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
-        
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         try:
             kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
@@ -509,6 +534,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         try:
             kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
@@ -520,6 +547,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_rule_deleted(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.createUserSkillConnectionAsync(user)
 
         rule_dict_raw = data.get("result")
         rule_id = rule_dict_raw.get("itemId")

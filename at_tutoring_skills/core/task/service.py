@@ -196,27 +196,37 @@ class TaskService(KBTaskService):
             logger.error(f"Error creating user {auth_token}: {str(e)}")
             raise  # Можно заменить на возврат None или обработку ошибки
 
-    async def get_task_by_name(self, name):
+    async def get_task_by_name(self, name: str, task_object: int = None) -> Task | None:
         """
-        Получает задание по имени
+        Получает задание по имени и типу объекта
         
         Args:
-            name: Имя задания
-            
+            name: Имя задания (object_name)
+            task_object: Тип задания из SUBJECT_CHOICES (опционально)
+                
         Returns:
-            Task: Объект задания, если найдено, None в противном случае
+            Task: Объект задания или None если не найдено
         """
         try:
-            return await Task.objects.aget(object_name=name)
+            query = Task.objects.filter(object_name=name)
+            if task_object is not None:
+                query = query.filter(task_object=task_object)
+                
+            return await query.aget()
+            
         except Task.DoesNotExist:
-            logger.warning(f"Task not found: {name}")
+            logger.warning(f"Task not found: name='{name}'" + 
+                        (f", type={task_object}" if task_object else ""))
             return None
+            
         except Task.MultipleObjectsReturned:
-            logger.error(f"Multiple tasks found: {name}")
-            return None
-        
-
-
+            tasks = await Task.objects.filter(object_name=name).alist()
+            logger.error(
+                f"Multiple tasks found: name='{name}'" +
+                (f", type={task_object}" if task_object else "") +
+                f". Returning first of {len(tasks)}"
+            )
+            return tasks[0]
 
     async def createUserSkillConnectionAsync(self, user: User) -> tuple[int, int]:
         """
