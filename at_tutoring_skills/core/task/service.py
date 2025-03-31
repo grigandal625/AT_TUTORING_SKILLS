@@ -21,13 +21,14 @@ from at_tutoring_skills.core.errors.models import CommonMistake
 
 logger = logging.getLogger(__name__)
 
-class KBTypeRootModel(RootModel[KBNumericTypeModel | KBNumericTypeModel | KBFuzzyTypeModel]):
+class KBTypeRootModel(RootModel[KBSymbolicTypeModel | KBNumericTypeModel | KBFuzzyTypeModel]):
     def to_internal(self, context):
         return self.root.to_internal(context=context)
     
         
 class KBTaskService:
     async def get_type_reference(self, task: Task):
+        
         context = ATKRLContext(name  ="1")
         d = task.object_reference #jsom
         kb_type = KBTypeRootModel(**d)
@@ -267,3 +268,48 @@ class TaskService(KBTaskService):
         except Exception as e:
             logger.error(f"Error creating skills for user {user.pk}: {str(e)}")
             return (0, 0)
+        
+
+
+    def populate_task_skills(self, tasks: list[Task], skills: list[Skill]) -> dict:
+        """
+        Создает связи ManyToMany между задачами и навыками (синхронная версия)
+        с использованием pk вместо id
+        
+        Args:
+            tasks: Список объектов Task
+            skills: Список объектов Skill
+            
+        Returns:
+            dict: Статистика выполнения
+        """
+        stats = {
+            'total_pairs': len(tasks) * len(skills),
+            'created': 0,
+            'existing': 0,
+            'errors': 0
+        }
+
+        try:
+            with transaction.atomic():
+                for task in tasks:
+                    for skill in skills:
+                        try:
+                            # Используем pk вместо id
+                            _, created = task.skills.through.objects.get_or_create(
+                                task_id=task.pk,
+                                skill_id=skill.pk
+                            )
+                            if created:
+                                stats['created'] += 1
+                            else:
+                                stats['existing'] += 1
+                        except Exception as e:
+                            stats['errors'] += 1
+                            logger.error(f"Error linking task {task.pk} with skill {skill.pk}: {str(e)}")
+            return stats
+        except Exception as e:
+            logger.error(f"Critical error: {str(e)}")
+            stats['errors'] = stats['total_pairs']
+            return stats
+

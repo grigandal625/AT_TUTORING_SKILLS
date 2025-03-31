@@ -4,7 +4,7 @@ from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 from rest_framework import exceptions
 
-from at_tutoring_skills.apps.skills.models import User, Variant
+from at_tutoring_skills.apps.skills.models import Task, User, Variant
 from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService
 from at_tutoring_skills.core.knowledge_base.object.service import KBObjectService
@@ -307,8 +307,10 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
         
-        task = self.task_service.get_task_by_name(kb_type.id, 1)
-        et_type = self.task_service.get_type_reference(task)
+        task :Task = await self.task_service.get_task_by_name(kb_type.id, 1)
+        print(task.object_name, task.object_reference)
+        et_type = await self.task_service.get_type_reference(task)
+        print(et_type)
 
         try:
             self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
@@ -319,6 +321,8 @@ class ATTutoringKBSkills(ATComponent):
             TaskService.complete_task(user_id, event, kb_type.id)
         except BaseException as e:
             raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
+        
+        
 
     @authorized_method
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):

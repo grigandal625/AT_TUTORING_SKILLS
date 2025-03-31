@@ -59,7 +59,7 @@ class KBTypeServiceLogicLexic:
         else:
             return True
 
-    def estimate_number_type(self,user_id: int,task_id: int, type_et: KBNumericType, type: KBNumericType, context: Context):
+    def estimate_number_type(self,user_id: int,task_id: int,type: KBNumericType, type_et: KBNumericType,  context: Context):
         errors_list = []
 
         # Перевірка _from
@@ -87,7 +87,7 @@ class KBTypeServiceLogicLexic:
 
         return errors_list
 
-    def estimate_fuzzy_type(self,user_id: int,task_id: int, type_et: KBFuzzyType, type: KBFuzzyType, context: Context):
+    def estimate_fuzzy_type(self,user_id: int,task_id: int, type: KBFuzzyType, type_et: KBFuzzyType, context: Context):
         errors_list = []
         for mf_et in type_et.membership_functions():
             flag = 0
@@ -162,17 +162,17 @@ class KBTypeServiceLogicLexic:
             if type.meta == "string":
                 if isinstance(type, KBSymbolicType):
                     errors_list = self.estimate_string_type(
-                        type,user_id,task_id, etalon_type, context=context.create_child("string type attr")
+                        user_id,task_id, type, etalon_type, context=context.create_child("string type attr")
                     )
             if type.meta == "number":
                 if isinstance(type, KBNumericType):
                     errors_list = self.estimate_number_type(
-                        type,user_id,task_id, etalon_type, context=context.create_child("number type attr")
+                        user_id,task_id, type, etalon_type, context=context.create_child("number type attr")
                     )
             if type.meta == "fuzzy":
                 if isinstance(type, KBFuzzyType):
                     errors_list = self.estimate_fuzzy_type(
-                        type, user_id,task_id, etalon_type, context=context.create_child("fuzzy type attr")
+                        user_id,task_id, type, etalon_type, context=context.create_child("fuzzy type attr")
                     )
         if errors_list:
             raise ExceptionGroup("Были выявлены ошибки", errors_list)
