@@ -5,8 +5,10 @@ from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import IResourceTypeComponent
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import ITaskService
-from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceAttributeRequest
-from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceRequest
+from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import (
+    ResourceAttributeRequest,
+    ResourceRequest
+)
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
 from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 
@@ -25,14 +27,16 @@ class ResourceService:
     def handle_syntax_mistakes(
         self,
         user_id: int,
-        raw_request: dict,
+        data: dict,
     ) -> ResourceRequest:
         result = pydantic_mistakes(
             user_id=123,
-            raw_request=raw_request,
+            raw_request=data['args']['resource'],
             pydantic_class=ResourceRequest,
             pydantic_class_name="resource",
         )
+
+        print("Данные, полученные pydentic моделью: ", result)
 
         if isinstance(result, ResourceRequest):
             return result

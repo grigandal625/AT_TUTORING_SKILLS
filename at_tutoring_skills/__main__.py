@@ -35,15 +35,15 @@ def get_skills():
     mistake_service = MistakeService()
     task_service = TaskService(mistake_service)
     
-    resource_service = ResourceTypeService(mistake_service, task_service)
-    resource = ResourceTypeService(mistake_service, task_service) # ResourceService(mistake_service, task_service)
-    template = ResourceTypeService(mistake_service, task_service) # TemplateService(mistake_service, task_service)
-    template_usage = ResourceTypeService(mistake_service, task_service) # TemplateUsageService(mistake_service, task_service)
-    function = ResourceTypeService(mistake_service, task_service) # FunctionService(mistake_service, task_service)
+    resource_type_service = ResourceTypeService(mistake_service, task_service)
+    resource_service = ResourceService(mistake_service, task_service, resource_type_service)
+    template_service = ResourceTypeService(mistake_service, task_service) # TemplateService(mistake_service, task_service)
+    template_usage_service = ResourceTypeService(mistake_service, task_service) # TemplateUsageService(mistake_service, task_service)
+    function_service = FunctionService(mistake_service, task_service)
 
     # Инициализация навыков
     kb_skills = ATTutoringKBSkills(connection_parameters=connection_parameters)
-    im_skills = SimulationService(connection_parameters=connection_parameters, resource_service=resource_service, resource=resource, template=template, template_usage=template_usage, function=function)
+    im_skills = SimulationService(connection_parameters=connection_parameters, resource_type_service=resource_type_service, resource_service=resource_service, template_service=template_service, template_usage_service=template_usage_service, function_service=function_service)
 
     return kb_skills, im_skills, args
 
