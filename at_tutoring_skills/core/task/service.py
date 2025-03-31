@@ -66,6 +66,7 @@ class Repository(Protocol): ...
 #     # Логика добавления ошибка в БД из Django
 #     ...
 
+
 class TaskService(KBTaskService):
 
     kb_service : KBTaskService 
@@ -229,7 +230,7 @@ class TaskService(KBTaskService):
             )
             return tasks[0]
 
-    async def createUserSkillConnectionAsync(self, user: User) -> tuple[int, int]:
+    async def create_user_skill_connection(self, user: User) -> tuple[int, int]:
         """
         Асинхронно создает связи UserSkill для всех навыков (совместимость с Django <5.0)
         
