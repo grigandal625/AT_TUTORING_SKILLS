@@ -31,11 +31,11 @@ class ATTutoringKBSkills(ATComponent):
         self.skills = {}  # временное хранилище, тут лучше подключить БД или что-то
         self.cash = {}
         self.task_service = TaskService()
-        self.type_service = KBTypeService(self.repository)
-        self.object_service = KBObjectService(self.repository)
+        self.type_service = KBTypeService()
+        self.object_service = KBObjectService()
         self.event_service = KBEventService()
         self.interval_service = KBIntervalService()
-        self.rule_service = KBRuleService(self.repository)
+        self.rule_service = KBRuleService()
 
     def init_cash(self, auth_token_or_id: str):
         if auth_token_or_id not in self.cash:
@@ -300,7 +300,8 @@ class ATTutoringKBSkills(ATComponent):
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
+        user_id = user.pk
 
         try:
             kb_type = await self.type_service.handle_syntax_mistakes(user_id, data)
@@ -329,7 +330,7 @@ class ATTutoringKBSkills(ATComponent):
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         try:
             kb_type = self.type_service.handle_syntax_mistakes(user_id, data)
@@ -347,7 +348,7 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_type_deleted(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         type_dict_raw = data.get("result")
         type_id = type_dict_raw.get("itemId")
@@ -365,7 +366,7 @@ class ATTutoringKBSkills(ATComponent):
         
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         try:
             kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
@@ -385,7 +386,7 @@ class ATTutoringKBSkills(ATComponent):
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         try:
             kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
@@ -412,7 +413,7 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_object_deleted(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         object_dict_raw = data.get("result")
         object_id = object_dict_raw.get("itemId")
@@ -430,7 +431,7 @@ class ATTutoringKBSkills(ATComponent):
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         try:
             kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
@@ -458,7 +459,7 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         try:
             kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
@@ -471,7 +472,7 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_event_deleted(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         event_dict_raw = data.get("result")
         event_id = event_dict_raw.get("itemId")
@@ -490,7 +491,7 @@ class ATTutoringKBSkills(ATComponent):
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         try:
             kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
@@ -518,7 +519,7 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         try:
             kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
@@ -532,7 +533,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = self.get_user_id_or_token(self, auth_token)
 
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         interval_raw = data.get("result")
         interval_id = interval_raw.get("itemId")
@@ -550,7 +551,7 @@ class ATTutoringKBSkills(ATComponent):
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         try:
             kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
@@ -578,7 +579,7 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         try:
             kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
@@ -591,7 +592,7 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_rule_deleted(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
         user, created = await self.task_service.create_user(user_id)
-        await self.task_service.createUserSkillConnectionAsync(user)
+        await self.task_service.create_user_skill_connection(user)
 
         rule_dict_raw = data.get("result")
         rule_id = rule_dict_raw.get("itemId")

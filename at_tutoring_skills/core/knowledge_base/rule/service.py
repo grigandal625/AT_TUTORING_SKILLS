@@ -4,5 +4,4 @@ from at_tutoring_skills.core.task.service import Repository
 
 
 class KBRuleService(KBTypeServiceSyntax, KBRuleServiceLogicLexic):
-    def __init__(self, repository: Repository):
-        self.repository = repository
+    pass
