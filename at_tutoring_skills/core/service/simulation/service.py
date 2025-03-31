@@ -1,18 +1,37 @@
+from asyncio.log import logger
+from at_queue.core.at_component import ATComponent
+from at_queue.core.session import ConnectionParameters
+from at_queue.utils.decorators import authorized_method
+
+from at_tutoring_skills.apps.skills.models import User
+from at_tutoring_skills.core.task.service import Repository
 from at_tutoring_skills.core.service.simulation.dependencies import ITaskService
+from at_tutoring_skills.core.service.simulation.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.function.service import FunctionService
 from at_tutoring_skills.core.service.simulation.subservice.resource.service import ResourceService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.service import ResourceTypeService
 from at_tutoring_skills.core.service.simulation.subservice.template.service import TemplateService
 from at_tutoring_skills.core.service.simulation.subservice.template_usage.service import TemplateUsageService
 
-# from at_tutoring_skills.core.task.service import ITaskService
 
+class SimulationService(ATComponent):
 
-class SimulationService:
     def __init__(
         self,
+        connection_parameters, 
+        resource_type_service: ResourceTypeService,
+        resource_service: ResourceService,
+        template_service: TemplateService,
+        template_usage_service: TemplateUsageService,
+        function_service: FunctionService,
     ):
-        pass
+        super().__init__(connection_parameters=connection_parameters)
+        self.resource_type_service = resource_type_service
+        self.resource_service = resource_service
+        self.template_service = template_service
+        self.template_usage_service = template_usage_service
+        self.function_service = function_service
+
 
     async def get_user_id_or_token(self, auth_token: str) -> int | str:
         if await self.check_external_registered("AuthWorker"):
@@ -23,59 +42,96 @@ class SimulationService:
             )
             return user_id
         return auth_token
+    
 
-    def handle_resource_type(self, event: str, resource_type_raw: dict, user_id: int) -> None:
-        # pass
-        print("Обучаемый отредактировал тип ресурса (ИМ): ", resource_type_raw)
-        user_id = self.get_user_id_or_token(self, user_id)
+    async def create_user(self, auth_token: str) -> tuple[User, bool]:
         try:
-            resource_type = ResourceTypeService.handle_syntax_mistakes(user_id, resource_type_raw)
+            user, created = await User.objects.aget_or_create(
+                user_id=auth_token,
+                # defaults={
+                #     'variant': default_variant
+                # }
+            )
+
+            if created:
+                logger.info(f"Created new user: {auth_token}")
+            else:
+                logger.debug(f"User already exists: {auth_token}")
+                
+            return user, created
+            
+        except Exception as e:
+            logger.error(f"Error creating user {auth_token}: {str(e)}")
+            raise
+        
+
+#   ============================= Resource Types ================================
+    @authorized_method
+    async def handle_resource_type(self, event: str, data: dict, auth_token: int):
+        print("Обучаемый отредактировал тип ресурса (ИМ): ", data)
+        user_id = await self.get_user_id_or_token(auth_token)
+        user, created = await self.create_user(user_id)
+        # await self.task_service.createUserSkillConnectionAsync(user)
+
+        # kb_type, errors = await self.type_service.handle_syntax_mistakes(user_id, data)
+        # if errors:
+        # return errors
+
+        try:
+            resource_type = await self.resource_type_service.handle_syntax_mistakes(user_id, data)
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Type Created: Syntax Mistakes: {e}") from e
-
+        
         try:
-            ResourceTypeService.handle_logic_mistakes(user_id, resource_type)
+            self.resource_type_service.handle_logic_mistakes(user_id, resource_type) 
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Type Created: Logic Mistakes: {e}") from e
 
         try:
-            ResourceTypeService.handle_lexic_mistakes(user_id, resource_type)
+            self.resource_type_service.handle_lexic_mistakes(user_id, resource_type)
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Type Created: Lexic Mistakes: {e}") from e
 
         try:
             ITaskService.complete_task(user_id, event, resource_type.id)
         except BaseException as e:
-            raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
+            raise ValueError(f"Handle IM Resource Type Created: Complete Task: {e}") from e
+        
 
-    def handle_resource(self, event: str, resource_raw: dict, user_id: int) -> None:
-        print("Обучаемый отредактировал тип ресурса (ИМ): ", resource_raw)
-        user_id = self.get_user_id_or_token(self, user_id)
+#   =============================    Resource   =================================
+    @authorized_method
+    async def handle_resource(self, event: str, data: dict, auth_token: int):
+        print("Обучаемый отредактировал ресурс (ИМ): ", data)
+        user_id = await self.get_user_id_or_token(auth_token)
+        user, created = await self.create_user(user_id)
+
         try:
-            resource = ResourceService.handle_syntax_mistakes(user_id, resource_raw)
+            resource = self.resource_service.handle_syntax_mistakes(user_id, data)
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Created: Syntax Mistakes: {e}") from e
-
+        
         try:
-            ResourceService.handle_logic_mistakes(user_id, resource)
+            await self.resource_service.handle_logic_mistakes(user_id, resource)
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Created: Logic Mistakes: {e}") from e
 
         try:
-            ResourceService.handle_lexic_mistakes(user_id, resource)
+             await self.resource_service.handle_lexic_mistakes(user_id, resource)
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Created: Lexic Mistakes: {e}") from e
 
         try:
             ITaskService.complete_task(user_id, event, resource.id)
         except BaseException as e:
-            raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
+            raise ValueError(f"Handle IM Resource Created: Complete Task: {e}") from e
 
-    def handle_template(self, event: str, template_raw: dict, user_id: int) -> None:
-        print("Обучаемый отредактировал тип ресурса (ИМ): ", template_raw)
-        user_id = self.get_user_id_or_token(self, user_id)
+
+#   =============================    Template   ================================
+    def handle_template(self, event: str, data: dict, auth_token: int):
+        print("Обучаемый отредактировал образец операции (ИМ): ", data)
+        user_id = self.get_user_id_or_token(self, auth_token)
         try:
-            template = TemplateService.handle_syntax_mistakes(user_id, template_raw)
+            template = TemplateService.handle_syntax_mistakes(user_id, data)
         except BaseException as e:
             raise ValueError(f"Handle IM Template Created: Syntax Mistakes: {e}") from e
 
@@ -92,13 +148,15 @@ class SimulationService:
         try:
             ITaskService.complete_task(user_id, event, template.id)
         except BaseException as e:
-            raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
+            raise ValueError(f"Handle IM Template Created: Complete Task: {e}") from e
 
-    def handle_template_usage(self, event: str, template_usage_raw: dict, user_id: int) -> None:
-        print("Обучаемый отредактировал тип ресурса (ИМ): ", template_usage_raw)
+
+#   ============================= Template Usage ================================
+    def handle_template_usage(self, event: str, data: dict, auth_token: int):
+        print("Обучаемый отредактировал тип ресурса (ИМ): ", data)
         user_id = self.get_user_id_or_token(self, user_id)
         try:
-            template_usage = TemplateUsageService.handle_syntax_mistakes(user_id, template_usage_raw)
+            template_usage = TemplateUsageService.handle_syntax_mistakes(user_id, data)
         except BaseException as e:
             raise ValueError(f"Handle IM Template Usage Created: Syntax Mistakes: {e}") from e
 
@@ -115,27 +173,33 @@ class SimulationService:
         try:
             ITaskService.complete_task(user_id, event, template_usage.id)
         except BaseException as e:
-            raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
+            raise ValueError(f"Handle IM Template Usage Created: Complete Task: {e}") from e
 
-    def handle_function(self, event: str, function_raw: dict, user_id: int) -> None:
-        print("Обучаемый отредактировал тип ресурса (ИМ): ", function_raw)
-        user_id = self.get_user_id_or_token(self, user_id)
+
+#   ============================= Function =====================================
+    @authorized_method
+    async def handle_function(self, event: str, data: dict, auth_token: int):
+        print("Обучаемый отредактировал функцию (ИМ): ", data)
+        user_id = await self.get_user_id_or_token(auth_token)
+        user, created = await self.create_user(user_id)
+
+
         try:
-            function = FunctionService.handle_syntax_mistakes(user_id, function_raw)
+            function = await self.function_service.handle_syntax_mistakes(user_id, data)
         except BaseException as e:
             raise ValueError(f"Handle IM Function Created: Syntax Mistakes: {e}") from e
 
         try:
-            FunctionService.handle_logic_mistakes(user_id, function)
+            await self.function_service.handle_logic_mistakes(user_id, function)
         except BaseException as e:
             raise ValueError(f"Handle IM Function Created: Logic Mistakes: {e}") from e
 
         try:
-            FunctionService.handle_lexic_mistakes(user_id, function)
+            await self.function_service.handle_lexic_mistakes(user_id, function)
         except BaseException as e:
             raise ValueError(f"Handle IM Function Created: Lexic Mistakes: {e}") from e
 
         try:
             ITaskService.complete_task(user_id, event, function.id)
         except BaseException as e:
-            raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
+            raise ValueError(f"Handle IM Function Created: Complete Task: {e}") from e

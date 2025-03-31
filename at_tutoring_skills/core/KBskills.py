@@ -33,8 +33,8 @@ class ATTutoringKBSkills(ATComponent):
         self.task_service = TaskService()
         self.type_service = KBTypeService(self.repository)
         self.object_service = KBObjectService(self.repository)
-        self.event_service = KBEventService(self.repository)
-        self.interval_service = KBIntervalService(self.repository)
+        self.event_service = KBEventService()
+        self.interval_service = KBIntervalService()
         self.rule_service = KBRuleService(self.repository)
 
     def init_cash(self, auth_token_or_id: str):
