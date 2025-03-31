@@ -1,7 +1,5 @@
-
 from at_krl.core.kb_instruction import KBInstruction
 from at_krl.core.kb_value import Evaluatable
-
 
 
 class KBConditionServiceLogicLexic:
@@ -10,4 +8,3 @@ class KBConditionServiceLogicLexic:
 
     def estimate_instruction(self, instruction_et: KBInstruction, instruction: KBInstruction):
         errors_list = []
-

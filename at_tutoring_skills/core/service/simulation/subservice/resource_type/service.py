@@ -1,6 +1,5 @@
 from typing import List
 
-
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import ITaskService
@@ -20,14 +19,10 @@ class ResourceTypeService:
         self._mistake_service = mistake_service
         self._task_service = task_service
 
-    async def handle_syntax_mistakes(
-        self,
-        user_id: int,
-        data: dict
-    ) -> ResourceTypeRequest:
+    async def handle_syntax_mistakes(self, user_id: int, data: dict) -> ResourceTypeRequest:
         result = pydantic_mistakes(
             user_id=123,
-            raw_request=data['args']['resourceType'],
+            raw_request=data["args"]["resourceType"],
             pydantic_class=ResourceTypeRequest,
             pydantic_class_name="resource_type",
         )
@@ -41,7 +36,7 @@ class ResourceTypeService:
                 self._mistake_service.create_mistake(mistake, user_id, "syntax")
 
             raise ValueError("Handle resource type: syntax mistakes")
-        
+
         raise TypeError("Handle resource type: unexpected result")
 
     def handle_logic_mistakes(
@@ -49,7 +44,7 @@ class ResourceTypeService:
         user_id: int,
         resource_type: ResourceTypeRequest,
     ) -> None:
-        try:                   
+        try:
             # task = self.task_service.get_task_by_name(kb_type.id)
             # et_type = self.task_service.get_type_reference(task)
             # object_reference = self._task_service.get_object_reference(
@@ -63,38 +58,19 @@ class ResourceTypeService:
                 name="type1",
                 type="constant",
                 attributes=[
+                    ResourceTypeAttributeRequest(id=1, name="attr0", type="INT", enum_values_set=None, default_value=5),
                     ResourceTypeAttributeRequest(
-                        id=1,
-                        name="attr0",
-                        type="INT",
-                        enum_values_set=None,
-                        default_value=5
+                        id=2, name="attr2", type="INT", enum_values_set=None, default_value=5.0
                     ),
                     ResourceTypeAttributeRequest(
-                        id=2,
-                        name="attr2",
-                        type="INT",
-                        enum_values_set=None,
-                        default_value=5.0
+                        id=3, name="attr3", type="BOOL", enum_values_set=None, default_value=True
                     ),
                     ResourceTypeAttributeRequest(
-                        id=3,
-                        name="attr3",
-                        type="BOOL",
-                        enum_values_set=None,
-                        default_value=True
+                        id=4, name="attr4", type="ENUM", enum_values_set=["hello", "world"], default_value="hello"
                     ),
-                    ResourceTypeAttributeRequest(
-                        id=4,
-                        name="attr4",
-                        type="ENUM",
-                        enum_values_set=["hello", "world"],
-                        default_value="hello"
-                    )
-                ]
+                ],
             )
             print("Данные object reference, полученные для сравнения: ", object_reference)
-            
 
         except ValueError:  # NotFoundError
             return
@@ -104,13 +80,13 @@ class ResourceTypeService:
             object_reference.attributes,
             # user_id,
         )
-        print("Найденные ошибки: ", mistakes)  
+        print("Найденные ошибки: ", mistakes)
 
         if len(mistakes) != 0:
             for mistake in mistakes:
                 self._mistake_service.create_mistake(mistake, user_id, "logic")
 
-            return mistakes # raise ValueError("Handle resource type: logic mistakes")
+            return mistakes  # raise ValueError("Handle resource type: logic mistakes")
 
     def handle_lexic_mistakes(
         self,
@@ -128,38 +104,19 @@ class ResourceTypeService:
                 name="type1",
                 type="constant",
                 attributes=[
+                    ResourceTypeAttributeRequest(id=1, name="attr0", type="INT", enum_values_set=None, default_value=5),
                     ResourceTypeAttributeRequest(
-                        id=1,
-                        name="attr0",
-                        type="INT",
-                        enum_values_set=None,
-                        default_value=5
+                        id=2, name="attr2", type="INT", enum_values_set=None, default_value=5.0
                     ),
                     ResourceTypeAttributeRequest(
-                        id=2,
-                        name="attr2",
-                        type="INT",
-                        enum_values_set=None,
-                        default_value=5.0
+                        id=3, name="attr3", type="BOOL", enum_values_set=None, default_value=True
                     ),
                     ResourceTypeAttributeRequest(
-                        id=3,
-                        name="attr3",
-                        type="BOOL",
-                        enum_values_set=None,
-                        default_value=True
+                        id=4, name="attr4", type="ENUM", enum_values_set=["hello", "world"], default_value="hello"
                     ),
-                    ResourceTypeAttributeRequest(
-                        id=4,
-                        name="attr4",
-                        type="ENUM",
-                        enum_values_set=["hello", "world"],
-                        default_value="hello"
-                    )
-                ]
+                ],
             )
             print("Данные object reference, полученные для сравнения: ", object_reference)
-            
 
         except ValueError:  # NotFoundError
             return
@@ -173,7 +130,7 @@ class ResourceTypeService:
             for mistake in mistakes:
                 self._mistake_service.create_mistake(mistake, user_id, "lexic")
 
-            return mistakes # raise ValueError("Handle resource type: lexic mistakes")
+            return mistakes  # raise ValueError("Handle resource type: lexic mistakes")
 
     def _attributes_logic_mistakes(
         self,
@@ -191,14 +148,14 @@ class ResourceTypeService:
             mistake = CommonMistake(
                 user_id=user_id,
                 type="logic",
-                task_id=None, 
+                task_id=None,
                 fine=0.0,
-                coefficient=1.0, 
+                coefficient=1.0,
                 tip="Check the number of attributes.",
                 is_tip_shown=False,
                 message="Wrong number of attributes provided.",
             )
-            
+
             mistakes.append(mistake)
 
         # Преобразование эталонных атрибутов в словарь для быстрого поиска
@@ -213,9 +170,9 @@ class ResourceTypeService:
                 # mistake = CommonMistake(
                 #     user_id=user_id,
                 #     type="logic",
-                #     task_id=None, 
+                #     task_id=None,
                 #     fine=0.0,
-                #     coefficient=1.0, 
+                #     coefficient=1.0,
                 #     tip=f"Unknown attribute '{attr.name}'.",
                 #     is_tip_shown=False,
                 #     message=f"Unknown attribute.",
@@ -224,17 +181,21 @@ class ResourceTypeService:
                 continue
 
             attr_reference = attrs_reference_dict[attr.name]
-            print(f"Found reference attribute: name={attr_reference.name}, type={attr_reference.type}, default_value={attr_reference.default_value}")
+            print(
+                f"Found reference attribute: name={attr_reference.name}, type={attr_reference.type}, default_value={attr_reference.default_value}"
+            )
 
             # Проверка типа атрибута
             if attr.type != attr_reference.type:
-                print(f"Type mismatch for attribute '{attr.name}': provided={attr.type}, reference={attr_reference.type}")
+                print(
+                    f"Type mismatch for attribute '{attr.name}': provided={attr.type}, reference={attr_reference.type}"
+                )
                 mistake = CommonMistake(
                     user_id=user_id,
                     type="logic",
-                    task_id=None, 
+                    task_id=None,
                     fine=0.0,
-                    coefficient=1.0, 
+                    coefficient=1.0,
                     tip=f"Invalid attribute type '{attr.name}'.",
                     is_tip_shown=False,
                     message=f"Invalid attribute type.",
@@ -244,13 +205,15 @@ class ResourceTypeService:
 
             # Проверка значения по умолчанию
             if attr.default_value != attr_reference.default_value:
-                print(f"Default value mismatch for attribute '{attr.name}': provided={attr.default_value}, reference={attr_reference.default_value}")
+                print(
+                    f"Default value mismatch for attribute '{attr.name}': provided={attr.default_value}, reference={attr_reference.default_value}"
+                )
                 mistake = CommonMistake(
                     user_id=user_id,
                     type="logic",
-                    task_id=None, 
+                    task_id=None,
                     fine=0.0,
-                    coefficient=1.0, 
+                    coefficient=1.0,
                     tip=f"Invalid attribute default value '{attr.name}'.",
                     is_tip_shown=False,
                     message=f"Invalid attribute default value.",
@@ -273,9 +236,9 @@ class ResourceTypeService:
             mistake = CommonMistake(
                 user_id=user_id,
                 type="logic",
-                task_id=None, 
+                task_id=None,
                 fine=0.0,
-                coefficient=1.0, 
+                coefficient=1.0,
                 tip=f"Missing required attribute '{attr_name}'.",
                 is_tip_shown=False,
                 message=f"Missing required attribute.",
@@ -298,7 +261,7 @@ class ResourceTypeService:
                 continue
 
             closest_match = None
-            min_distance = float('inf')
+            min_distance = float("inf")
             for attr_reference in attrs_reference:
                 distance = self._levenshtein_distance(attr.name, attr_reference.name)
                 if distance < min_distance:

@@ -1,16 +1,14 @@
-import random
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 from rest_framework import exceptions
 
-from at_tutoring_skills.apps.skills.models import Task, User, Variant
+from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService
 from at_tutoring_skills.core.knowledge_base.object.service import KBObjectService
 from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
-
 from at_tutoring_skills.core.task.service import TaskService
 
 
@@ -300,28 +298,29 @@ class ATTutoringKBSkills(ATComponent):
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
         user_id = user.pk
+        self.task_service.create_task_user_safe(task, user)
 
         try:
             kb_type = await self.type_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
-        
-        task :Task = await self.task_service.get_task_by_name(kb_type.id, 1)
+
+        task: Task = await self.task_service.get_task_by_name(kb_type.id, 1)
         print(task.object_name, task.object_reference)
         et_type = await self.task_service.get_type_reference(task)
         print(et_type)
+        if task:
+            try:
+                self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
+            except ExceptionGroup as e:
+                raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
-        try:
-            self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
-        except ExceptionGroup as e:
-            raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
-
-        try:
-            TaskService.complete_task(user_id, event, kb_type.id)
-        except BaseException as e:
-            raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
-        
-        
+            try:
+                await self.task_service.complete_task(task, user)
+            except BaseException as e:
+                raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
+        else:
+            return "Задание не найдено"
 
     @authorized_method
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):
@@ -335,7 +334,7 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        task :Task = await self.task_service.get_task_by_name(kb_type.id, 1)
+        task: Task = await self.task_service.get_task_by_name(kb_type.id, 1)
         print(task.object_name, task.object_reference)
         type_et = await self.task_service.get_type_reference(task)
         print(type_et)
@@ -361,7 +360,6 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_object_duplicated(self, event: str, data: dict, auth_token: str):
-        
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -371,11 +369,10 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        task :Task = await self.task_service.get_task_by_name(kb_object.id, 2)
+        task: Task = await self.task_service.get_task_by_name(kb_object.id, 2)
         print(task.object_name, task.object_reference)
         obj_type = await self.task_service.get_object_reference(task)
         print(obj_type)
-        
 
         self.add_object_to_cash(kb_object, user_id)
 
@@ -391,19 +388,18 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        task :Task = await self.task_service.get_task_by_name(kb_object.id, 2)
+        task: Task = await self.task_service.get_task_by_name(kb_object.id, 2)
         print(task.object_name, task.object_reference)
         obj_et = await self.task_service.get_object_reference(task)
         print(obj_et)
-        
 
         try:
-            self.object_service.handle_logic_lexic_mistakes(user_id, kb_object)
+            self.object_service.handle_logic_lexic_mistakes(user, task, kb_object, obj_et)
         except ExceptionGroup as e:
             raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
         try:
-            TaskService.complete_task(user_id, event, kb_object.id)
+            TaskService.complete_task(task, user)
         except BaseException as e:
             raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
 
@@ -425,7 +421,6 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_event_updated(self, event: str, data: dict, auth_token: str):
-
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
@@ -436,7 +431,7 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        task :Task = await self.task_service.get_task_by_name(kb_event.id, 2)
+        task: Task = await self.task_service.get_task_by_name(kb_event.id, 2)
         print(task.object_name, task.object_reference)
         event_et = await self.task_service.get_event_reference(task)
         print(event_et)
@@ -485,7 +480,6 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_interval_updated(self, event: str, data: dict, auth_token: str):
-        
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
@@ -496,12 +490,10 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        task :Task = await self.task_service.get_task_by_name(kb_interval.id, 2)
+        task: Task = await self.task_service.get_task_by_name(kb_interval.id, 2)
         print(task.object_name, task.object_reference)
         interval_et = await self.task_service.get_interval_reference(task)
         print(event)
-
-        
 
         try:
             self.interval_service.handle_logic_lexic_mistakes(user_id, kb_interval)
@@ -545,7 +537,6 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_rule_updated(self, event: str, data: dict, auth_token: str):
-        
         print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
@@ -556,11 +547,11 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        task :Task = await self.task_service.get_task_by_name(kb_rule.id, 2)
+        task: Task = await self.task_service.get_task_by_name(kb_rule.id, 2)
         print(task.object_name, task.object_reference)
         rule_et = await self.task_service.get_rule_reference(task)
         print(rule_et)
-        
+
         self.add_rule_to_cash(kb_rule, user_id)
 
         try:
