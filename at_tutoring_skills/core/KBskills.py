@@ -326,7 +326,8 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        print("Обучаемый отредактировал тип (БЗ): ", data)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.createUserSkillConnectionAsync(user)
 
@@ -335,7 +336,12 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        self.add_type_to_cash(kb_type, user_id)
+        task :Task = await self.task_service.get_task_by_name(kb_type.id, 1)
+        print(task.object_name, task.object_reference)
+        type_et = await self.task_service.get_type_reference(task)
+        print(type_et)
+
+        # self.add_type_to_cash(kb_type, user_id)
 
     @authorized_method
     async def handle_kb_type_deleted(self, event: str, data: dict, auth_token: str):
@@ -356,7 +362,8 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_object_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.createUserSkillConnectionAsync(user)
 
@@ -364,12 +371,19 @@ class ATTutoringKBSkills(ATComponent):
             kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
+
+        task :Task = await self.task_service.get_task_by_name(kb_object.id, 2)
+        print(task.object_name, task.object_reference)
+        obj_type = await self.task_service.get_object_reference(task)
+        print(obj_type)
+        
 
         self.add_object_to_cash(kb_object, user_id)
 
     @authorized_method
     async def handle_kb_object_updated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        print("Обучаемый отредактировал тип (БЗ): ", data)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.createUserSkillConnectionAsync(user)
 
@@ -378,7 +392,11 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        self.add_object_to_cash(kb_object, user_id)
+        task :Task = await self.task_service.get_task_by_name(kb_object.id, 2)
+        print(task.object_name, task.object_reference)
+        obj_et = await self.task_service.get_object_reference(task)
+        print(obj_et)
+        
 
         try:
             self.object_service.handle_logic_lexic_mistakes(user_id, kb_object)
@@ -408,7 +426,9 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_event_updated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+
+        print("Обучаемый отредактировал тип (БЗ): ", data)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.createUserSkillConnectionAsync(user)
 
@@ -416,6 +436,11 @@ class ATTutoringKBSkills(ATComponent):
             kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
+
+        task :Task = await self.task_service.get_task_by_name(kb_event.id, 2)
+        print(task.object_name, task.object_reference)
+        event_et = await self.task_service.get_event_reference(task)
+        print(event_et)
 
         self.add_event_to_cash(kb_event, user_id)
 
@@ -461,7 +486,9 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_interval_updated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        
+        print("Обучаемый отредактировал тип (БЗ): ", data)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.createUserSkillConnectionAsync(user)
 
@@ -470,7 +497,12 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        self.add_interval_to_cash(kb_interval, user_id)
+        task :Task = await self.task_service.get_task_by_name(kb_interval.id, 2)
+        print(task.object_name, task.object_reference)
+        interval_et = await self.task_service.get_interval_reference(task)
+        print(event)
+
+        
 
         try:
             self.interval_service.handle_logic_lexic_mistakes(user_id, kb_interval)
@@ -514,7 +546,9 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_rule_updated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        
+        print("Обучаемый отредактировал тип (БЗ): ", data)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.createUserSkillConnectionAsync(user)
 
@@ -523,6 +557,11 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
+        task :Task = await self.task_service.get_task_by_name(kb_rule.id, 2)
+        print(task.object_name, task.object_reference)
+        rule_et = await self.task_service.get_rule_reference(task)
+        print(rule_et)
+        
         self.add_rule_to_cash(kb_rule, user_id)
 
         try:
