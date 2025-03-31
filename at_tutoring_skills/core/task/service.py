@@ -62,10 +62,6 @@ class KBTaskService:
 class KBIMServise():
     pass
 
-class Repository(Protocol): ...
-#     # Логика добавления ошибка в БД из Django
-#     ...
-
 
 class TaskService(KBTaskService):
 

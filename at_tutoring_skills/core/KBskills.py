@@ -10,14 +10,13 @@ from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalSe
 from at_tutoring_skills.core.knowledge_base.object.service import KBObjectService
 from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
-from at_tutoring_skills.core.task.service import Repository
+
 from at_tutoring_skills.core.task.service import TaskService
 
 
 class ATTutoringKBSkills(ATComponent):
     skills: dict = None
     cash: dict = None
-    repository = None
     task_service = None
     type_service = None
     object_service = None
@@ -27,7 +26,6 @@ class ATTutoringKBSkills(ATComponent):
 
     def __init__(self, connection_parameters: ConnectionParameters, *args, **kwargs):
         super().__init__(connection_parameters, *args, **kwargs)
-        self.repository = Repository
         self.skills = {}  # временное хранилище, тут лучше подключить БД или что-то
         self.cash = {}
         self.task_service = TaskService()

@@ -4,7 +4,6 @@ from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 
 from at_tutoring_skills.apps.skills.models import User
-from at_tutoring_skills.core.task.service import Repository
 from at_tutoring_skills.core.service.simulation.dependencies import ITaskService
 from at_tutoring_skills.core.service.simulation.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.function.service import FunctionService
