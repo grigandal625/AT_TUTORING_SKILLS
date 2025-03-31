@@ -5,8 +5,10 @@ from typing import Sequence
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.function.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.function.dependencies import ITaskService
-from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest
-from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionRequest
+from at_tutoring_skills.core.service.simulation.subservice.function.models.models import ( 
+    FunctionParameterRequest,
+    FunctionRequest
+)
 from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 
 

@@ -25,21 +25,22 @@ class KBIntervalServiceLogixLexic:
     def handle_logic_lexic_mistakes(
         self: "KBIntervalService", user_id: int, event: KBInterval, event_et: KBInterval
     ) -> KBInterval:
-        try:
-            self.estimate_interval(event, event_et)
-        except ExceptionGroup as eg:
-            for exc in eg.exceptions:
-                logic_mistakes: list[CommonMistake] = []
-                for exception in eg.detail:
-                    logic_mistakes.append(
-                        self.to_syntax_mistake(
-                            user_id,
-                            None,
-                            self.process_tip(exception),
-                        )
-                    )
+        # try:
+        #     self.estimate_interval(event, event_et)
+        # except ExceptionGroup as eg:
+        #     for exc in eg.exceptions:
+        #         logic_mistakes: list[CommonMistake] = []
+        #         for exception in eg.detail:
+        #             logic_mistakes.append(
+        #                 self.to_syntax_mistake(
+        #                     user_id,
+        #                     None,
+        #                     self.process_tip(exception),
+        #                 )
+        #             )
 
-                for syntax_mistake in logic_mistakes:
-                    self.repository.create_mistake(syntax_mistake)
+        #         for syntax_mistake in logic_mistakes:
+        #             self.repository.create_mistake(syntax_mistake)
 
-                raise exc
+        #         raise exc
+        pass

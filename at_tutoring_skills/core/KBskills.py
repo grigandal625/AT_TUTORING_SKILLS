@@ -27,15 +27,15 @@ class ATTutoringKBSkills(ATComponent):
 
     def __init__(self, connection_parameters: ConnectionParameters, *args, **kwargs):
         super().__init__(connection_parameters, *args, **kwargs)
-        self.repository = Repository
+        # self.repository = Repository
         self.skills = {}  # временное хранилище, тут лучше подключить БД или что-то
         self.cash = {}
         self.task_service = TaskService()
-        self.type_service = KBTypeService(self.repository)
-        self.object_service = KBObjectService(self.repository)
-        self.event_service = KBEventService(self.repository)
-        self.interval_service = KBIntervalService(self.repository)
-        self.rule_service = KBRuleService(self.repository)
+        self.type_service = KBTypeService()
+        self.object_service = KBObjectService()
+        self.event_service = KBEventService()
+        self.interval_service = KBIntervalService()
+        self.rule_service = KBRuleService()
 
     def init_cash(self, auth_token_or_id: str):
         if auth_token_or_id not in self.cash:

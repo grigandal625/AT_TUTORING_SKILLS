@@ -1,4 +1,4 @@
-import json
+# import json
 from typing import Protocol
 from django.db import models
 from at_tutoring_skills.apps.mistakes.models import Mistake
@@ -58,13 +58,13 @@ class KBTaskService:
         kb_event = KBRuleModel(**d)
         return kb_event.to_internal(context)
     
-#можешь переименовать
+# #можешь переименовать
 class KBIMServise():
     pass
 
-class Repository(Protocol):
-    # Логика добавления ошибка в БД из Django
-    ...
+class Repository(Protocol): ...
+#     # Логика добавления ошибка в БД из Django
+#     ...
 
 class TaskService(KBTaskService):
 

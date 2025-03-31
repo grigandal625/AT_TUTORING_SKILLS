@@ -4,5 +4,5 @@ from at_tutoring_skills.core.task.service import Repository
 
 
 class KBTypeService(KBTypeServiceSyntax, KBTypeServiceLogicLexic):
-    def __init__(self, repository: Repository):
-        self.repository = repository
+    def __init__():
+        super().__init__()
