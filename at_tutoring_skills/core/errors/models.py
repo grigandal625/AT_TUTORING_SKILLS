@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class CommonMistake(BaseModel):
-    user_id: int
+    user_id: str
     type: Literal["syntax", "logic", "lexic"]
     task_id: Optional[int]
     fine: float

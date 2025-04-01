@@ -1,4 +1,5 @@
 # import json
+import json
 import logging
 
 from asgiref.sync import sync_to_async
@@ -13,15 +14,17 @@ from at_krl.utils.context import Context as ATKRLContext
 from django.db import IntegrityError
 from django.db import models
 from django.db import transaction
+from jsonschema import ValidationError
 from pydantic import RootModel
 
-from at_tutoring_skills.apps.mistakes.models import Mistake
+from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES, Mistake
 from at_tutoring_skills.apps.skills.models import Skill
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.apps.skills.models import UserSkill
 from at_tutoring_skills.core.errors.models import CommonMistake
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeAttributeRequest, ResourceTypeRequest
 
 logger = logging.getLogger(__name__)
 
@@ -65,10 +68,47 @@ class KBTaskService:
 
 # #можешь переименовать
 class KBIMServise:
-    pass
+    async def get_resource_type_reference(self, task: Task)-> ResourceTypeRequest:
+        
+        # Получаем эталонные данные из task.object_reference
+        if isinstance(task.object_reference, str):
+            reference_data = json.loads(task.object_reference)
+
+        elif isinstance(task.object_reference, dict):
+            reference_data = task.object_reference
+
+        else:
+            raise ValueError("task.object_reference должен быть строкой JSON или словарём")
+
+        # Преобразуем данные в объект ResourceTypeRequest
+        attributes = [
+            ResourceTypeAttributeRequest(**attr_data)
+            for attr_data in reference_data["attributes"]
+        ]
+
+        return ResourceTypeRequest(
+            id=reference_data["id"],
+            name=reference_data["name"],
+            type=reference_data["type"],
+            attributes=attributes
+        )
+    
+
+    async def get_resource_reference(self, task: Task): ...
 
 
-class TaskService(KBTaskService):
+    async def get_template_reference(self, task: Task): ...
+
+
+    async def get_template_usage_reference(self, task: Task): ...
+
+
+    async def get_function_reference(self, task: Task): ...
+
+
+
+
+class TaskService(KBTaskService, KBIMServise):
     kb_service: KBTaskService
 
     def __init__(self):
@@ -129,7 +169,7 @@ class TaskService(KBTaskService):
             return None
 
     @sync_to_async
-    def append_mistake(mistake: CommonMistake) -> bool:
+    def append_mistake(self, mistake: CommonMistake) -> bool:
         """
         Сохраняет ошибку в базу (асинхронная обёртка для Django <5.0)
 
@@ -147,20 +187,41 @@ class TaskService(KBTaskService):
                 if not user:
                     logger.warning(f"User {mistake.user_id} not found")
                     return False
-
-                Mistake.objects.create(
-                    user=user,
-                    mistake_type=mistake.entity_type,
-                    task=task,
-                    fine=mistake.fine * mistake.coefficient,
-                    tip=mistake.tip,
-                    is_tip_shown=False,
-                )
-                return True
+                if type == 'syntax':
+                    Mistake.objects.create(
+                        user=user,
+                        mistake_type=MISTAKE_TYPE_CHOICES.SYNTAX,
+                        task=task,
+                        fine=mistake.fine * mistake.coefficient,
+                        tip=mistake.tip,
+                        is_tip_shown=False,
+                    )
+                    return True
+                elif type == 'logic':
+                    Mistake.objects.create(
+                        user=user,
+                        mistake_type=MISTAKE_TYPE_CHOICES.LOGIC,
+                        task=task,
+                        fine=mistake.fine * mistake.coefficient,
+                        tip=mistake.tip,
+                        is_tip_shown=False,
+                    )
+                    return True
+                elif type == 'lexic':
+                    Mistake.objects.create(
+                        user=user,
+                        mistake_type=MISTAKE_TYPE_CHOICES.LEXIC,
+                        task=task,
+                        fine=mistake.fine * mistake.coefficient,
+                        tip=mistake.tip,
+                        is_tip_shown=False,
+                    )
+                    return True
 
         except Exception as e:
             logger.error(f"Mistake save failed: {str(e)}")
             return False
+        
 
     async def create_user(self, auth_token: str) -> tuple[User, bool]:
         """

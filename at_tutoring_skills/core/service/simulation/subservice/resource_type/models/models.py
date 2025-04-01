@@ -26,8 +26,8 @@ class ResourceTypeAttributeResponse(ResourceTypeAttributeRequest):
 
 
 class ResourceTypeTypesEnum(Enum):
-    CONSTANT = "constant"
-    TEMPORAL = "temporal"
+    CONSTANT = "CONSTANT"
+    TEMPORAL = "TEMPORAL"
 
 
 class ResourceTypeRequest(BaseModel):

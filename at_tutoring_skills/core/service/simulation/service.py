@@ -3,16 +3,19 @@ from asyncio.log import logger
 from at_queue.core.at_component import ATComponent
 from at_queue.utils.decorators import authorized_method
 
-from at_tutoring_skills.apps.skills.models import User
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES, Task, User
 from at_tutoring_skills.core.service.simulation.dependencies import ITaskService
 from at_tutoring_skills.core.service.simulation.subservice.function.service import FunctionService
 from at_tutoring_skills.core.service.simulation.subservice.resource.service import ResourceService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.service import ResourceTypeService
 from at_tutoring_skills.core.service.simulation.subservice.template.service import TemplateService
 from at_tutoring_skills.core.service.simulation.subservice.template_usage.service import TemplateUsageService
-
+from at_tutoring_skills.core.task.service import TaskService
 
 class SimulationService(ATComponent):
+
+    main_task_service = None
+
     def __init__(
         self,
         connection_parameters,
@@ -28,6 +31,7 @@ class SimulationService(ATComponent):
         self.template_service = template_service
         self.template_usage_service = template_usage_service
         self.function_service = function_service
+        self.main_task_service = TaskService()
 
     async def get_user_id_or_token(self, auth_token: str) -> int | str:
         if await self.check_external_registered("AuthWorker"):
@@ -64,45 +68,88 @@ class SimulationService(ATComponent):
     async def handle_resource_type(self, event: str, data: dict, auth_token: int):
         print("Обучаемый отредактировал тип ресурса (ИМ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
-        user, created = await self.create_user(user_id)
-        # await self.task_service.createUserSkillConnectionAsync(user)
+        user, created = await self.main_task_service.create_user(user_id)
+        await self.main_task_service.create_user_skill_connection(user)
+        user_id = user.pk
+        # self.main_task_service.create_task_user_safe(task, user)
 
-        # kb_type, errors = await self.type_service.handle_syntax_mistakes(user_id, data)
-        # if errors:
-        # return errors
+        # try:
+        #     resource_type = await self.resource_type_service.handle_syntax_mistakes(user_id, data)
+        # except BaseException as e:
+        #     raise ValueError(f"Handle IM Resource Type Created: Syntax Mistakes: {e}") from e
 
-        try:
-            resource_type = await self.resource_type_service.handle_syntax_mistakes(user_id, data)
-        except BaseException as e:
-            raise ValueError(f"Handle IM Resource Type Created: Syntax Mistakes: {e}") from e
+        # task : Task = await self.main_task_service.get_task_by_name(resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES)
+        # print(task.object_name, task.object_reference, resource_type)
+        
 
-        try:
-            self.resource_type_service.handle_logic_mistakes(user_id, resource_type)
-        except BaseException as e:
-            raise ValueError(f"Handle IM Resource Type Created: Logic Mistakes: {e}") from e
+        # if task:
+        #     try:
+        #         await self.resource_type_service.handle_logic_mistakes(user_id, resource_type)
+        #     except BaseException as e:
+        #         raise ValueError(f"Handle IM Resource Type Created: Logic Mistakes: {e}") from e
 
-        try:
-            self.resource_type_service.handle_lexic_mistakes(user_id, resource_type)
-        except BaseException as e:
-            raise ValueError(f"Handle IM Resource Type Created: Lexic Mistakes: {e}") from e
+        #     try:
+        #         await self.resource_type_service.handle_lexic_mistakes(user_id, resource_type)
+        #     except BaseException as e:
+        #         raise ValueError(f"Handle IM Resource Type Created: Lexic Mistakes: {e}") from e
 
-        try:
-            ITaskService.complete_task(user_id, event, resource_type.id)
-        except BaseException as e:
-            raise ValueError(f"Handle IM Resource Type Created: Complete Task: {e}") from e
+        #     try:
+        #         await self.main_task_service.complete_task(task, user)
+        #     except BaseException as e:
+        #         raise ValueError(f"Handle IM Resource Type Created: Complete Task: {e}") from e
+        # else:
+        #     return "Задание не найдено"
+        
+        
+        resource_type = await self.resource_type_service.handle_syntax_mistakes(user_id, data)
+        
+        # Получение задачи по имени типа ресурса
+        task = await self.main_task_service.get_task_by_name(resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES)
+        print(task.object_name, task.object_reference)
 
+        if task:
+            # Обработка логических ошибок
+          # Обработка логических ошибок
+            logic_errors = await self.resource_type_service.handle_logic_mistakes(user_id, resource_type)
+            if logic_errors:
+                # Преобразуем объекты CommonMistake в словари
+                serialized_logic_errors = [error.model_dump() for error in logic_errors]
+                return {"status": "error", "message": "Logic mistakes", "errors": serialized_logic_errors}
+
+            # Обработка лексических ошибок
+            lexic_errors = await self.resource_type_service.handle_lexic_mistakes(user_id, resource_type)
+            if lexic_errors:
+                # Преобразуем объекты CommonMistake в словари
+                serialized_lexic_errors = [error.model_dump() for error in lexic_errors]
+                return {"status": "error", "message": "Lexic mistakes", "errors": serialized_lexic_errors}
+            # Завершение задачи
+            try:
+                await self.main_task_service.complete_task(task, user)
+            except BaseException as e:
+                return {"status": "error", "message": "Complete Task Error", "error": str(e)}
+        else:
+            return {"status": "error", "message": "Task not found"}
+
+        return {"status": "success", "message": "Resource type processed successfully"}
+  
+  
     #   =============================    Resource   =================================
     @authorized_method
     async def handle_resource(self, event: str, data: dict, auth_token: int):
         print("Обучаемый отредактировал ресурс (ИМ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
-        user, created = await self.create_user(user_id)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.create_user_skill_connection(user)
+        user_id = user.pk
+        self.task_service.create_task_user_safe(task, user)
 
         try:
             resource = self.resource_service.handle_syntax_mistakes(user_id, data)
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Created: Syntax Mistakes: {e}") from e
 
+
+        
         try:
             await self.resource_service.handle_logic_mistakes(user_id, resource)
         except BaseException as e:

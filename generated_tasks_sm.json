@@ -1,0 +1,39 @@
+[
+    {
+        "task_name": "Создать тип ресурса 'Потерпевший'",
+        "task_object": 6,
+        "object_name": "Потерпевший",
+        "description": "Задача по созданию типа ресурса 'Потерпевший' для модели simulation",
+        "object_reference": {
+            "id": 6,
+            "name": "Потерпевший",
+            "type": "CONSTANT",
+            "attributes": [
+                {
+                    "id": 1,
+                    "name": "Приоритет_пострадавшего",
+                    "type": "INT",
+                    "default_value": 1
+                },
+                {
+                    "id": 2,
+                    "name": "Состояние",
+                    "type": "INT",
+                    "default_value": 1
+                },
+                {
+                    "id": 3,
+                    "name": "Степень_тяжести",
+                    "type": "ENUM",
+                    "enum_values_set": [
+                        "Легкая",
+                        "Средняя",
+                        "Тяжелая",
+                        "Очень_тяжелая"
+                    ],
+                    "default_value": "Легкая"
+                }
+            ]
+        }
+    }
+]
