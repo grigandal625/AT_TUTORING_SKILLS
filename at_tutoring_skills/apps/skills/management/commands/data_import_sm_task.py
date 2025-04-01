@@ -1,13 +1,16 @@
 import json
-from django.core.management.base import BaseCommand
-from at_tutoring_skills.apps.skills.models import Task
-from django.db import transaction
 import logging
+
+from django.core.management.base import BaseCommand
+from django.db import transaction
+
+from at_tutoring_skills.apps.skills.models import Task
 
 logger = logging.getLogger(__name__)
 
+
 class Command(BaseCommand):
-    help = 'Генерирует и импортирует задачи для модели simulation'
+    help = "Генерирует и импортирует задачи для модели simulation"
 
     def handle(self, *args, **options):
         """Основной обработчик команды"""
@@ -31,10 +34,10 @@ class Command(BaseCommand):
     def generate_tasks_json(self, filename: str = "generated_tasks_sm.json") -> str:
         """
         Генерирует JSON-файл с задачами для модели simulation
-        
+
         Args:
             filename: Имя файла для сохранения
-            
+
         Returns:
             str: Путь к сохраненному файлу
         """
@@ -44,26 +47,16 @@ class Command(BaseCommand):
             "name": "Потерпевший",
             "type": "CONSTANT",
             "attributes": [
-                {
-                    "id": 1,
-                    "name": "Приоритет_пострадавшего",
-                    "type": "INT",
-                    "default_value": 1
-                },
-                {
-                    "id": 2,
-                    "name": "Состояние",
-                    "type": "INT",
-                    "default_value": 1
-                },
+                {"id": 1, "name": "Приоритет_пострадавшего", "type": "INT", "default_value": 1},
+                {"id": 2, "name": "Состояние", "type": "INT", "default_value": 1},
                 {
                     "id": 3,
                     "name": "Степень_тяжести",
                     "type": "ENUM",
                     "enum_values_set": ["Легкая", "Средняя", "Тяжелая", "Очень_тяжелая"],
-                    "default_value": "Легкая"
-                }
-            ]
+                    "default_value": "Легкая",
+                },
+            ],
         }
 
         # Создание задачи
@@ -73,12 +66,12 @@ class Command(BaseCommand):
                 "task_object": 6,  # Например, тип объекта (ресурс)
                 "object_name": "Потерпевший",
                 "description": "Задача по созданию типа ресурса 'Потерпевший' для модели simulation",
-                "object_reference": object_reference
+                "object_reference": object_reference,
             }
         ]
 
         # Сохранение в JSON-файл
-        with open(filename, 'w', encoding='utf-8') as f:
+        with open(filename, "w", encoding="utf-8") as f:
             json.dump(tasks_template, f, indent=4, ensure_ascii=False)  # Убедитесь, что ensure_ascii=False
 
         return filename
@@ -86,10 +79,10 @@ class Command(BaseCommand):
     def import_tasks_from_json(self, filename: str = "generated_tasks_sm.json") -> dict:
         """
         Импортирует задачи из JSON-файла в базу данных
-        
+
         Args:
             filename: Путь к JSON-файлу
-            
+
         Returns:
             dict: Статистика импорта {
                 'total': int,
@@ -98,48 +91,49 @@ class Command(BaseCommand):
                 'errors': int
             }
         """
-        stats = {'total': 0, 'created': 0, 'updated': 0, 'errors': 0}
+        stats = {"total": 0, "created": 0, "updated": 0, "errors": 0}
 
         try:
             # Чтение JSON-файла
-            with open(filename, 'r', encoding='utf-8') as f:
+            with open(filename, "r", encoding="utf-8") as f:
                 tasks_data = json.load(f)
 
-            stats['total'] = len(tasks_data)
+            stats["total"] = len(tasks_data)
 
             for item in tasks_data:
                 try:
                     with transaction.atomic():
                         # Преобразование данных для модели Task
                         task_data = {
-                            "task_name": item['task_name'],
-                            "task_object": item['task_object'],
-                            "object_name": item['object_name'],
-                            "description": item['description'],
-                            "object_reference": json.dumps(item['object_reference'], ensure_ascii=False)  # Преобразуем в JSON-строку
+                            "task_name": item["task_name"],
+                            "task_object": item["task_object"],
+                            "object_name": item["object_name"],
+                            "description": item["description"],
+                            "object_reference": json.dumps(
+                                item["object_reference"], ensure_ascii=False
+                            ),  # Преобразуем в JSON-строку
                         }
 
                         # Создание или обновление задачи
                         task, created = Task.objects.update_or_create(
-                            object_name=item['object_name'],
-                            defaults=task_data
+                            object_name=item["object_name"], defaults=task_data
                         )
 
                         if created:
-                            stats['created'] += 1
+                            stats["created"] += 1
                             logger.info(f"Создана задача: {task.object_name}")
                         else:
-                            stats['updated'] += 1
+                            stats["updated"] += 1
                             logger.debug(f"Обновлена задача: {task.object_name}")
 
                 except Exception as e:
-                    stats['errors'] += 1
+                    stats["errors"] += 1
                     logger.error(f"Ошибка обработки задачи {item.get('object_name', 'unknown')}: {str(e)}")
                     continue
 
         except Exception as e:
             logger.error(f"Ошибка чтения файла: {str(e)}")
-            stats['errors'] += 1
+            stats["errors"] += 1
 
         return stats
 

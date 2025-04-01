@@ -9,7 +9,7 @@ from at_tutoring_skills.apps.skills.models import User
 class MISTAKE_TYPE_CHOICES(models.IntegerChoices):
     SYNTAX = 1, " "
     LOGIC = 2, " "
-    LEXIC =  3, " "
+    LEXIC = 3, " "
 
 
 class Mistake(models.Model):

@@ -3,7 +3,8 @@ from asyncio.log import logger
 from at_queue.core.at_component import ATComponent
 from at_queue.utils.decorators import authorized_method
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES, Task, User
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.core.service.simulation.dependencies import ITaskService
 from at_tutoring_skills.core.service.simulation.subservice.function.service import FunctionService
 from at_tutoring_skills.core.service.simulation.subservice.resource.service import ResourceService
@@ -12,8 +13,8 @@ from at_tutoring_skills.core.service.simulation.subservice.template.service impo
 from at_tutoring_skills.core.service.simulation.subservice.template_usage.service import TemplateUsageService
 from at_tutoring_skills.core.task.service import TaskService
 
-class SimulationService(ATComponent):
 
+class SimulationService(ATComponent):
     main_task_service = None
 
     def __init__(
@@ -80,7 +81,6 @@ class SimulationService(ATComponent):
 
         # task : Task = await self.main_task_service.get_task_by_name(resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES)
         # print(task.object_name, task.object_reference, resource_type)
-        
 
         # if task:
         #     try:
@@ -99,17 +99,18 @@ class SimulationService(ATComponent):
         #         raise ValueError(f"Handle IM Resource Type Created: Complete Task: {e}") from e
         # else:
         #     return "Задание не найдено"
-        
-        
+
         resource_type = await self.resource_type_service.handle_syntax_mistakes(user_id, data)
-        
+
         # Получение задачи по имени типа ресурса
-        task = await self.main_task_service.get_task_by_name(resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES)
+        task = await self.main_task_service.get_task_by_name(
+            resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES
+        )
         print(task.object_name, task.object_reference)
 
         if task:
             # Обработка логических ошибок
-          # Обработка логических ошибок
+            # Обработка логических ошибок
             logic_errors = await self.resource_type_service.handle_logic_mistakes(user_id, resource_type)
             if logic_errors:
                 # Преобразуем объекты CommonMistake в словари
@@ -131,8 +132,7 @@ class SimulationService(ATComponent):
             return {"status": "error", "message": "Task not found"}
 
         return {"status": "success", "message": "Resource type processed successfully"}
-  
-  
+
     #   =============================    Resource   =================================
     @authorized_method
     async def handle_resource(self, event: str, data: dict, auth_token: int):
@@ -141,15 +141,13 @@ class SimulationService(ATComponent):
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
         user_id = user.pk
-        self.task_service.create_task_user_safe(task, user)
+        # self.task_service.create_task_user_safe(task, user)
 
         try:
             resource = self.resource_service.handle_syntax_mistakes(user_id, data)
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Created: Syntax Mistakes: {e}") from e
 
-
-        
         try:
             await self.resource_service.handle_logic_mistakes(user_id, resource)
         except BaseException as e:

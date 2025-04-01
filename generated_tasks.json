@@ -30,13 +30,13 @@
         }
     },
     {
-        "task_name": "Создать объект КЛАСС_объект1",
+        "task_name": "Создать объект объект1",
         "task_object": 2,
-        "object_name": "КЛАСС_объект1",
+        "object_name": "объект1",
         "description": "",
         "object_reference": {
             "tag": "class",
-            "id": "КЛАСС_объект1",
+            "id": "объект1",
             "group": "ГРУППА1",
             "desc": "Класс для объект1",
             "properties": [

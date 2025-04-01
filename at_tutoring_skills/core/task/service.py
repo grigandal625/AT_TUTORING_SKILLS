@@ -11,20 +11,22 @@ from at_krl.models.kb_type import KBSymbolicTypeModel
 from at_krl.models.temporal.allen_event import KBEventModel
 from at_krl.models.temporal.allen_interval import KBIntervalModel
 from at_krl.utils.context import Context as ATKRLContext
-from django.db import IntegrityError
 from django.db import models
 from django.db import transaction
-from jsonschema import ValidationError
 from pydantic import RootModel
 
-from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES, Mistake
+from at_tutoring_skills.apps.mistakes.models import Mistake
+from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES
 from at_tutoring_skills.apps.skills.models import Skill
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.apps.skills.models import UserSkill
 from at_tutoring_skills.core.errors.models import CommonMistake
-from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeAttributeRequest, ResourceTypeRequest
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
+    ResourceTypeAttributeRequest,
+)
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +70,7 @@ class KBTaskService:
 
 # #можешь переименовать
 class KBIMServise:
-    async def get_resource_type_reference(self, task: Task)-> ResourceTypeRequest:
-        
+    async def get_resource_type_reference(self, task: Task) -> ResourceTypeRequest:
         # Получаем эталонные данные из task.object_reference
         if isinstance(task.object_reference, str):
             reference_data = json.loads(task.object_reference)
@@ -81,31 +82,23 @@ class KBIMServise:
             raise ValueError("task.object_reference должен быть строкой JSON или словарём")
 
         # Преобразуем данные в объект ResourceTypeRequest
-        attributes = [
-            ResourceTypeAttributeRequest(**attr_data)
-            for attr_data in reference_data["attributes"]
-        ]
+        attributes = [ResourceTypeAttributeRequest(**attr_data) for attr_data in reference_data["attributes"]]
 
         return ResourceTypeRequest(
-            id=reference_data["id"],
-            name=reference_data["name"],
-            type=reference_data["type"],
-            attributes=attributes
+            id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
         )
-    
 
-    async def get_resource_reference(self, task: Task): ...
+    async def get_resource_reference(self, task: Task):
+        ...
 
+    async def get_template_reference(self, task: Task):
+        ...
 
-    async def get_template_reference(self, task: Task): ...
+    async def get_template_usage_reference(self, task: Task):
+        ...
 
-
-    async def get_template_usage_reference(self, task: Task): ...
-
-
-    async def get_function_reference(self, task: Task): ...
-
-
+    async def get_function_reference(self, task: Task):
+        ...
 
 
 class TaskService(KBTaskService, KBIMServise):
@@ -141,10 +134,7 @@ class TaskService(KBTaskService, KBIMServise):
         def _complete_task():
             try:
                 with transaction.atomic():
-                    task_user = TaskUser.objects.select_for_update().get(
-                        task=task,
-                        user=user
-                    )
+                    task_user = TaskUser.objects.select_for_update().get(task=task, user=user)
                     task_user.is_completed = True
                     task_user.attempts = models.F("attempts") + 1
                     task_user.save()
@@ -190,7 +180,7 @@ class TaskService(KBTaskService, KBIMServise):
                 if not user:
                     logger.warning(f"User {mistake.user_id} not found")
                     return False
-                if type == 'syntax':
+                if type == "syntax":
                     Mistake.objects.create(
                         user=user,
                         mistake_type=MISTAKE_TYPE_CHOICES.SYNTAX,
@@ -200,7 +190,7 @@ class TaskService(KBTaskService, KBIMServise):
                         is_tip_shown=False,
                     )
                     return True
-                elif type == 'logic':
+                elif type == "logic":
                     Mistake.objects.create(
                         user=user,
                         mistake_type=MISTAKE_TYPE_CHOICES.LOGIC,
@@ -210,7 +200,7 @@ class TaskService(KBTaskService, KBIMServise):
                         is_tip_shown=False,
                     )
                     return True
-                elif type == 'lexic':
+                elif type == "lexic":
                     Mistake.objects.create(
                         user=user,
                         mistake_type=MISTAKE_TYPE_CHOICES.LEXIC,
@@ -224,7 +214,6 @@ class TaskService(KBTaskService, KBIMServise):
         except Exception as e:
             logger.error(f"Mistake save failed: {str(e)}")
             return False
-        
 
     async def create_user(self, auth_token: str) -> tuple[User, bool]:
         """
@@ -360,8 +349,6 @@ class TaskService(KBTaskService, KBIMServise):
             stats["errors"] = stats["total_pairs"]
             return stats
 
-    
-
     async def create_task_user_safe(self, task: Task, user: User) -> tuple[TaskUser, bool]:
         """
         Создает запись TaskUser, только если её не существует.
@@ -371,6 +358,7 @@ class TaskService(KBTaskService, KBIMServise):
         Returns:
             tuple[TaskUser, bool]: (объект TaskUser, created: bool)
         """
+
         @sync_to_async
         def _create_or_get_task_user():
             try:
@@ -378,13 +366,13 @@ class TaskService(KBTaskService, KBIMServise):
                 task_user = TaskUser.objects.filter(task=task, user=user).first()
                 if task_user:
                     return task_user, False
-                
+
                 # Если записи нет - создаем новую
                 with transaction.atomic():
                     # Двойная проверка для защиты от race condition
                     if TaskUser.objects.filter(task=task, user=user).exists():
                         return TaskUser.objects.get(task=task, user=user), False
-                    
+
                     task_user = TaskUser.objects.create(task=task, user=user)
                     return task_user, True
             except Exception as e:

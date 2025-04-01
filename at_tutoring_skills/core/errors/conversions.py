@@ -1,6 +1,5 @@
 from at_tutoring_skills.core.errors.consts import Coefficients
 from at_tutoring_skills.core.errors.models import CommonMistake
-from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES
 
 # class CommonMistake(BaseModel):
 # user_id: int

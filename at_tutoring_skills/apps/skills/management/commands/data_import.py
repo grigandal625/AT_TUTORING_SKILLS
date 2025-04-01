@@ -1,7 +1,7 @@
 import json
 import logging
 
-from at_krl.core.kb_class import KBClass
+from at_krl.core.kb_class import PropertyDefinition
 from at_krl.core.kb_rule import KBRule
 from at_krl.core.kb_type import KBType
 from at_krl.core.knowledge_base import KnowledgeBase
@@ -90,7 +90,7 @@ class Command(BaseCommand):
     def get_knowledge_base(self, text: str) -> list:
         """Парсинг KRL текста"""
         kb = KnowledgeBase.from_krl(text)
-        return list(kb.types) + list(kb.classes.all) + list(kb.rules)
+        return list(kb.types) + list(kb.world.properties) + list(kb.classes.temporal_objects) + list(kb.rules)
 
     def generate_tasks_json(self, knowledge_array: list, filename: str = "generated_tasks.json") -> str:
         """Генерация JSON с задачами"""
@@ -99,9 +99,12 @@ class Command(BaseCommand):
             if isinstance(item, KBType):
                 task_object = SUBJECT_CHOICES.KB_TYPE.value
                 name = "тип"
-            elif isinstance(item, KBClass):
+                repr = item.to_representation()
+            elif isinstance(item, PropertyDefinition):
                 task_object = SUBJECT_CHOICES.KB_OBJECT.value
                 name = "объект"
+                repr = item.type.target.to_representation()
+                repr["id"] = item.id
             elif isinstance(item, (KBEvent, KBInterval, KBRule)):
                 continue  # Для примера обрабатываем только типы и объекты
 
@@ -111,7 +114,7 @@ class Command(BaseCommand):
                     "task_object": task_object,
                     "object_name": item.id,
                     "description": "",
-                    "object_reference": item.to_representation(),
+                    "object_reference": repr,
                 }
             )
 

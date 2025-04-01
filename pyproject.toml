@@ -14,6 +14,7 @@ uvicorn = "^0.34.0"
 adrf = {git = "https://github.com/grigandal625/adrf.git", rev = "main"}
 psycopg2-binary = "^2.9.10"
 psycopg2 = "^2.9.10"
+whitenoise = "^6.9.0"
 
 
 [build-system]

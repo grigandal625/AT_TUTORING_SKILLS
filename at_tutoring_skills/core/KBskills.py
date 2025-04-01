@@ -1,16 +1,18 @@
+from asgiref.sync import sync_to_async
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 from rest_framework import exceptions
 
-from at_tutoring_skills.apps.skills.models import Task, TaskUser
+from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService
 from at_tutoring_skills.core.knowledge_base.object.service import KBObjectService
 from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
 from at_tutoring_skills.core.task.service import TaskService
-from asgiref.sync import sync_to_async
+
 
 class ATTutoringKBSkills(ATComponent):
     skills: dict = None
@@ -28,7 +30,7 @@ class ATTutoringKBSkills(ATComponent):
         self.cash = {}
         self.task_service = TaskService()
         self.type_service = KBTypeService()
-        self.object_service = KBObjectService()
+        self.object_service = KBObjectService(self)
         self.event_service = KBEventService()
         self.interval_service = KBIntervalService()
         self.rule_service = KBRuleService()
@@ -290,16 +292,16 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_type_created(self, event: str, data: dict, auth_token: str) -> None:
         pass
-    
-    
+
     async def print_all_tasks_async(self):
         @sync_to_async
         def get_all_tasks():
             return list(TaskUser.objects.all())
-        
+
         tasks = await get_all_tasks()
         for task in tasks:
             print(f"\n ID: {task.pk}\n")
+
     @authorized_method
     async def handle_kb_type_updated(self, event: str, data: dict, auth_token: str):
         print("Обучаемый отредактировал тип (БЗ): ", data)
@@ -317,11 +319,10 @@ class ATTutoringKBSkills(ATComponent):
         task: Task = await self.task_service.get_task_by_name(kb_type.id, 1)
         await self.task_service.create_task_user_safe(task, user)
 
-        
         et_type = await self.task_service.get_type_reference(task)
         print(et_type)
         if task:
-            errors_list= None
+            errors_list = None
             errors_list = self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
             if errors_list:
                 return errors_list
@@ -388,7 +389,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_object_updated(self, event: str, data: dict, auth_token: str):
         print("Обучаемый отредактировал объект (БЗ): ", data)
-        
+
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -401,10 +402,10 @@ class ATTutoringKBSkills(ATComponent):
 
         task: Task = await self.task_service.get_task_by_name(kb_object.id, 2)
         await self.task_service.create_task_user_safe(task, user)
-        
+
         obj_et = await self.task_service.get_object_reference(task)
         print(obj_et)
-        
+
         if task:
             errors_list = None
             errors_list = self.object_service.handle_logic_lexic_mistakes(user, task, kb_object, obj_et)
@@ -435,7 +436,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_event_updated(self, event: str, data: dict, auth_token: str):
         print("Обучаемый отредактировал событие (БЗ): ", data)
-        
+
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -448,12 +449,12 @@ class ATTutoringKBSkills(ATComponent):
 
         task: Task = await self.task_service.get_task_by_name(kb_event.id, 3)
         await self.task_service.create_task_user_safe(task, user)
-        
+
         event_et = await self.task_service.get_event_reference(task)
         print(event_et)
-        
+
         self.add_event_to_cache(kb_event, user_id)
-        
+
         if task:
             errors_list = None
             errors_list = self.event_service.handle_logic_lexic_mistakes(user, task, kb_event, event_et)
@@ -464,7 +465,7 @@ class ATTutoringKBSkills(ATComponent):
                 return "Обучаемый успешно выполнил задание"
         else:
             return "Задание не найдено, продолжайте выполнение работы"
-        
+
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
@@ -498,7 +499,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_interval_updated(self, event: str, data: dict, auth_token: str):
         print("Обучаемый отредактировал интервал (БЗ): ", data)
-        
+
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -511,10 +512,10 @@ class ATTutoringKBSkills(ATComponent):
 
         task: Task = await self.task_service.get_task_by_name(kb_interval.id, 4)
         await self.task_service.create_task_user_safe(task, user)
-        
+
         interval_et = await self.task_service.get_interval_reference(task)
         print(interval_et)
-        
+
         if task:
             errors_list = None
             errors_list = self.interval_service.handle_logic_lexic_mistakes(user, task, kb_interval, interval_et)
@@ -525,8 +526,6 @@ class ATTutoringKBSkills(ATComponent):
                 return "Обучаемый успешно выполнил задание"
         else:
             return "Задание не найдено, продолжайте выполнение работы"
-
-
 
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
@@ -561,7 +560,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_rule_updated(self, event: str, data: dict, auth_token: str):
         print("Обучаемый отредактировал правило (БЗ): ", data)
-        
+
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -574,10 +573,10 @@ class ATTutoringKBSkills(ATComponent):
 
         task: Task = await self.task_service.get_task_by_name(kb_rule.id, 5)
         await self.task_service.create_task_user_safe(task, user)
-        
+
         rule_et = await self.task_service.get_rule_reference(task)
         print(rule_et)
-        
+
         if task:
             errors_list = None
             errors_list = self.rule_service.handle_logic_lexic_mistakes(user, task, kb_rule, rule_et)

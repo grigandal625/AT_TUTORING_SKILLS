@@ -1,6 +1,9 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 from django.db import transaction
-from at_tutoring_skills.apps.skills.models import TaskUser  # Замените `your_app` на имя вашего приложения
+
+from at_tutoring_skills.apps.skills.models import Task
+
 
 class Command(BaseCommand):
     help = "Очищает таблицу TaskUser (удаляет все записи)."  # Описание команды
@@ -17,7 +20,7 @@ class Command(BaseCommand):
         noinput = options["noinput"]
 
         # Получаем количество записей перед удалением
-        count = TaskUser.objects.count()
+        count = Task.objects.count()
 
         if count == 0:
             self.stdout.write(self.style.SUCCESS("Таблица TaskUser уже пуста."))
@@ -25,9 +28,7 @@ class Command(BaseCommand):
 
         # Запрос подтверждения (если не указан --noinput)
         if not noinput:
-            confirm = input(
-                f"Вы уверены, что хотите удалить ВСЕ {count} записей из TaskUser? [y/N] "
-            )
+            confirm = input(f"Вы уверены, что хотите удалить ВСЕ {count} записей из TaskUser? [y/N] ")
             if confirm.lower() != "y":
                 self.stdout.write("Отменено.")
                 return
@@ -35,9 +36,7 @@ class Command(BaseCommand):
         # Удаление в транзакции для безопасности
         try:
             with transaction.atomic():
-                deleted_count = TaskUser.objects.all().delete()[0]
-                self.stdout.write(
-                    self.style.SUCCESS(f"Удалено {deleted_count} записей.")
-                )
+                deleted_count = Task.objects.all().delete()[0]
+                self.stdout.write(self.style.SUCCESS(f"Удалено {deleted_count} записей."))
         except Exception as e:
             raise CommandError(f"Ошибка при удалении: {e}")
