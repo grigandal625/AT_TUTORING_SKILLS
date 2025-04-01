@@ -194,22 +194,22 @@ class KBTypeServiceLogicLexic:
                         user_id, task_id, type, etalon_type, context=context.create_child("fuzzy type attr")
                     )
         if errors_list:
-            raise ExceptionGroup("Были выявлены ошибки", errors_list)
+            return errors_list
 
     def handle_logic_lexic_mistakes(self: "KBTypeService", user: User, task: Task, type: KBType, type_et: KBType):
         user_id = user.user_id
         task_id = task.pk
 
-        try:
-            self.estimate_type(user_id, task_id, type, type_et)
-        except ExceptionGroup as eg:
+        errors_list = None
+        errors_list = self.estimate_type(user_id, task_id, type, type_et)
+        if errors_list:
             # mistakes: list[CommonMistake] = []
             service = TaskService()
-            for exception in eg.exceptions:
+            for exception in errors_list:
                 if isinstance(exception, CommonMistake):
                     # добавление в бд
                     service.append_mistake(exception)
 
-            service.increment_existing_attempts(task, user)
+            service.increment_taskuser_attempts(task, user)
 
-            return eg.exceptions
+            return errors_list

@@ -3,14 +3,14 @@ from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 from rest_framework import exceptions
 
-from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import Task, TaskUser
 from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService
 from at_tutoring_skills.core.knowledge_base.object.service import KBObjectService
 from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
 from at_tutoring_skills.core.task.service import TaskService
-
+from asgiref.sync import sync_to_async
 
 class ATTutoringKBSkills(ATComponent):
     skills: dict = None
@@ -290,15 +290,24 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_type_created(self, event: str, data: dict, auth_token: str) -> None:
         pass
-
+    
+    
+    async def print_all_tasks_async(self):
+        @sync_to_async
+        def get_all_tasks():
+            return list(TaskUser.objects.all())
+        
+        tasks = await get_all_tasks()
+        for task in tasks:
+            print(f"\n ID: {task.pk}\n")
     @authorized_method
     async def handle_kb_type_updated(self, event: str, data: dict, auth_token: str):
         print("Обучаемый отредактировал тип (БЗ): ", data)
+
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
         user_id = user.pk
-        self.task_service.create_task_user_safe(task, user)
 
         try:
             kb_type = await self.type_service.handle_syntax_mistakes(user_id, data)
@@ -306,21 +315,21 @@ class ATTutoringKBSkills(ATComponent):
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         task: Task = await self.task_service.get_task_by_name(kb_type.id, 1)
-        print(task.object_name, task.object_reference)
+        await self.task_service.create_task_user_safe(task, user)
+
+        
         et_type = await self.task_service.get_type_reference(task)
         print(et_type)
         if task:
-            try:
-                self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
-            except ExceptionGroup as e:
-                raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
-
-            try:
+            errors_list= None
+            errors_list = self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
+            if errors_list:
+                return errors_list
+            else:
                 await self.task_service.complete_task(task, user)
-            except BaseException as e:
-                raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
+                return "обучаемый успешно выполнил задание"
         else:
-            return "Задание не найдено"
+            return "Задание не найдено,  продолжайте выполнение работы"
 
     @authorized_method
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):
@@ -378,30 +387,34 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_object_updated(self, event: str, data: dict, auth_token: str):
-        print("Обучаемый отредактировал тип (БЗ): ", data)
+        print("Обучаемый отредактировал объект (БЗ): ", data)
+        
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        user_id = user.pk
 
         try:
-            kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
+            kb_object = await self.object_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
-            raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
+            raise ValueError(f"Handle KB Object Created: Syntax Mistakes: {e}") from e
 
         task: Task = await self.task_service.get_task_by_name(kb_object.id, 2)
-        print(task.object_name, task.object_reference)
+        await self.task_service.create_task_user_safe(task, user)
+        
         obj_et = await self.task_service.get_object_reference(task)
         print(obj_et)
-
-        try:
-            self.object_service.handle_logic_lexic_mistakes(user, task, kb_object, obj_et)
-        except ExceptionGroup as e:
-            raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
-
-        try:
-            TaskService.complete_task(task, user)
-        except BaseException as e:
-            raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
+        
+        if task:
+            errors_list = None
+            errors_list = self.object_service.handle_logic_lexic_mistakes(user, task, kb_object, obj_et)
+            if errors_list:
+                return errors_list
+            else:
+                await self.task_service.complete_task(task, user)
+                return "Обучаемый успешно выполнил задание"
+        else:
+            return "Задание не найдено, продолжайте выполнение работы"
 
     @authorized_method
     async def handle_kb_object_deleted(self, event: str, data: dict, auth_token: str):
@@ -421,33 +434,37 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_event_updated(self, event: str, data: dict, auth_token: str):
-        print("Обучаемый отредактировал тип (БЗ): ", data)
+        print("Обучаемый отредактировал событие (БЗ): ", data)
+        
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        user_id = user.pk
 
         try:
-            kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
+            kb_event = await self.event_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
-            raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
+            raise ValueError(f"Handle KB Event Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.task_service.get_task_by_name(kb_event.id, 2)
-        print(task.object_name, task.object_reference)
+        task: Task = await self.task_service.get_task_by_name(kb_event.id, 3)
+        await self.task_service.create_task_user_safe(task, user)
+        
         event_et = await self.task_service.get_event_reference(task)
         print(event_et)
-
-        self.add_event_to_cash(kb_event, user_id)
-
-        try:
-            self.event_service.handle_logic_lexic_mistakes(user_id, kb_event)
-        except ExceptionGroup as e:
-            raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
-
-        try:
-            TaskService.complete_task(user_id, event, kb_event.id)
-        except BaseException as e:
-            raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
-
+        
+        self.add_event_to_cache(kb_event, user_id)
+        
+        if task:
+            errors_list = None
+            errors_list = self.event_service.handle_logic_lexic_mistakes(user, task, kb_event, event_et)
+            if errors_list:
+                return errors_list
+            else:
+                await self.task_service.complete_task(task, user)
+                return "Обучаемый успешно выполнил задание"
+        else:
+            return "Задание не найдено, продолжайте выполнение работы"
+        
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
         user_id = self.get_user_id_or_token(self, auth_token)
@@ -480,30 +497,36 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_interval_updated(self, event: str, data: dict, auth_token: str):
-        print("Обучаемый отредактировал тип (БЗ): ", data)
+        print("Обучаемый отредактировал интервал (БЗ): ", data)
+        
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        user_id = user.pk
 
         try:
-            kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
+            kb_interval = await self.interval_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
-            raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
+            raise ValueError(f"Handle KB Interval Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.task_service.get_task_by_name(kb_interval.id, 2)
-        print(task.object_name, task.object_reference)
+        task: Task = await self.task_service.get_task_by_name(kb_interval.id, 4)
+        await self.task_service.create_task_user_safe(task, user)
+        
         interval_et = await self.task_service.get_interval_reference(task)
-        print(event)
+        print(interval_et)
+        
+        if task:
+            errors_list = None
+            errors_list = self.interval_service.handle_logic_lexic_mistakes(user, task, kb_interval, interval_et)
+            if errors_list:
+                return errors_list
+            else:
+                await self.task_service.complete_task(task, user)
+                return "Обучаемый успешно выполнил задание"
+        else:
+            return "Задание не найдено, продолжайте выполнение работы"
 
-        try:
-            self.interval_service.handle_logic_lexic_mistakes(user_id, kb_interval)
-        except ExceptionGroup as e:
-            raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
 
-        try:
-            TaskService.complete_task(user_id, event, kb_interval.id)
-        except BaseException as e:
-            raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
 
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
@@ -537,32 +560,34 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_rule_updated(self, event: str, data: dict, auth_token: str):
-        print("Обучаемый отредактировал тип (БЗ): ", data)
+        print("Обучаемый отредактировал правило (БЗ): ", data)
+        
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        user_id = user.pk
 
         try:
-            kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
+            kb_rule = await self.rule_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
-            raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
+            raise ValueError(f"Handle KB Rule Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.task_service.get_task_by_name(kb_rule.id, 2)
-        print(task.object_name, task.object_reference)
+        task: Task = await self.task_service.get_task_by_name(kb_rule.id, 5)
+        await self.task_service.create_task_user_safe(task, user)
+        
         rule_et = await self.task_service.get_rule_reference(task)
         print(rule_et)
-
-        self.add_rule_to_cash(kb_rule, user_id)
-
-        try:
-            self.rule_service.handle_logic_lexic_mistakes(user_id, kb_rule)
-        except ExceptionGroup as e:
-            raise ValueError(f"Handle KB Type Created: Logic Mistakes: {e}") from e
-
-        try:
-            TaskService.complete_task(user_id, event, kb_rule.id)
-        except BaseException as e:
-            raise ValueError(f"Handle KB Type Created: Complete Task: {e}") from e
+        
+        if task:
+            errors_list = None
+            errors_list = self.rule_service.handle_logic_lexic_mistakes(user, task, kb_rule, rule_et)
+            if errors_list:
+                return errors_list
+            else:
+                await self.task_service.complete_task(task, user)
+                return "Обучаемый успешно выполнил задание"
+        else:
+            return "Задание не найдено, продолжайте выполнение работы"
 
     @authorized_method
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):

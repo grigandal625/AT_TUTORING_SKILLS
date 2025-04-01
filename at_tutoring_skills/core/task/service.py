@@ -115,7 +115,7 @@ class TaskService(KBTaskService, KBIMServise):
         # self.repository = repository
         self.kb_service = KBTaskService()
 
-    async def increment_existing_attempts(self, task: Task, user: User) -> bool:
+    async def increment_taskuser_attempts(self, task: Task, user: User) -> bool:
         """
         Увеличивает счетчик попыток только для существующих записей (Django <5.0)
         """
@@ -134,26 +134,29 @@ class TaskService(KBTaskService, KBIMServise):
     async def complete_task(self, task: Task, user: User):
         """
         Помечает задание как выполненное (Django <5.0)
+        Только обновляет существующую запись, не создает новую
         """
 
         @sync_to_async
         def _complete_task():
-            with transaction.atomic():
-                task_user, created = TaskUser.objects.update_or_create(
-                    task=task,
-                    user=user,
-                    defaults={
-                        "is_completed": True,
-                        "attempts": models.F("attempts") + 1,
-                    },
-                )
-                return task_user
+            try:
+                with transaction.atomic():
+                    task_user = TaskUser.objects.select_for_update().get(
+                        task=task,
+                        user=user
+                    )
+                    task_user.is_completed = True
+                    task_user.attempts = models.F("attempts") + 1
+                    task_user.save()
+                    return task_user
+            except TaskUser.DoesNotExist:
+                return None
 
         try:
             task_user = await _complete_task()
-            if task_user.is_completed:
-                await self.increment_existing_attempts(task, user)
-            return True
+            if task_user and task_user.is_completed:
+                await self.increment_taskuser_attempts(task, user)
+            return task_user is not None
         except Exception as e:
             print(f"Ошибка при выполнении задания: {str(e)}")
             return False
@@ -357,28 +360,38 @@ class TaskService(KBTaskService, KBIMServise):
             stats["errors"] = stats["total_pairs"]
             return stats
 
-    async def create_task_user_safe(task: Task, user: User) -> tuple[TaskUser, bool]:
-        """
-        Асинхронно создает запись TaskUser, если она не существует
+    
 
-        Args:
-            task: Объект Task
-            user: Объект User
+    async def create_task_user_safe(self, task: Task, user: User) -> tuple[TaskUser, bool]:
+        """
+        Создает запись TaskUser, только если её не существует.
+        Если запись уже есть — возвращает её БЕЗ ИЗМЕНЕНИЙ (attempts и is_completed остаются как были).
+        Гарантирует, что дубликаты не будут созданы даже в условиях гонки.
 
         Returns:
-            Кортеж (TaskUser объект, created: bool)
-            created=True если запись была создана, False если уже существовала
+            tuple[TaskUser, bool]: (объект TaskUser, created: bool)
         """
-
         @sync_to_async
-        def _create_task_user():
+        def _create_or_get_task_user():
             try:
-                # Пытаемся создать запись
-                task_user = TaskUser.objects.create(task=task, user=user)
-                return task_user, True
-            except IntegrityError:
-                # Если запись уже существует - получаем её
-                task_user = TaskUser.objects.get(task=task, user=user)
-                return task_user, False
+                # Сначала пробуем найти существующую запись
+                task_user = TaskUser.objects.filter(task=task, user=user).first()
+                if task_user:
+                    return task_user, False
+                
+                # Если записи нет - создаем новую
+                with transaction.atomic():
+                    # Двойная проверка для защиты от race condition
+                    if TaskUser.objects.filter(task=task, user=user).exists():
+                        return TaskUser.objects.get(task=task, user=user), False
+                    
+                    task_user = TaskUser.objects.create(task=task, user=user)
+                    return task_user, True
+            except Exception as e:
+                # В случае любой ошибки пытаемся вернуть существующую запись
+                existing = TaskUser.objects.filter(task=task, user=user).first()
+                if existing:
+                    return existing, False
+                raise ValueError(f"Failed to create or get TaskUser: {str(e)}")
 
-        return await _create_task_user()
+        return await _create_or_get_task_user()
