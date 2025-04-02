@@ -1,3 +1,4 @@
+import json
 from typing import TYPE_CHECKING
 
 from at_krl.core.fuzzy.membership_function import MembershipFunction
@@ -28,12 +29,12 @@ class KBTypeServiceLogicLexic:
         check_et = type_et.values
 
         if len(check) < len(check_et):
-            place = context.full_path_list()
+            place = json.dumps(context.full_path_list, ensure_ascii=False)
             errors_list.append(
                 to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Введено меньше значений аттрибутов, чем требуется, в типе {type.id} \n расположение: {place}",
+                    tip=f"Введено меньше значений аттрибутов, чем требуется, в типе {type.id} \n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
                 )
@@ -45,13 +46,13 @@ class KBTypeServiceLogicLexic:
                     check[j] = None
                     check_et[j] = None
             if check_et[j] is not None:
-                context = context.create_child("Атрибут {check_et[j]}")
-                place = context.full_path_list()
+                context = context.create_child(f"Атрибут {check_et[j]}")
+                place = json.dumps(context.full_path_list, ensure_ascii=False)
                 errors_list.append(
                     to_lexic_mistake(
                         user_id=user_id,
                         task_id=task_id,
-                        tip="Введено неверное значение в атрибуте типа {type.id}: {check[i]}\n расположение: {place}",
+                        tip=f"Введено неверное значение в атрибуте типа {type.id}: {check[i]}\n расположение: {place}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type="type",
                     )
@@ -72,25 +73,27 @@ class KBTypeServiceLogicLexic:
         errors_list = []
 
         # Перевірка _from
-        if not self.estimate_number(type.from_, type_et.from_, context=context.create_child("Значение ОТ")):
-            place = context.full_path_list()
+        if type.from_ != type_et.from_:
+            context=context.create_child("Значение ОТ")
+            place = json.dumps(context.full_path_list, ensure_ascii=False)
             errors_list.append(
                 to_lexic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Введено неверное значение ОТ в типе {type.id}\n расположение: {place}",
+                    tip=f"Введено неверное значение ОТ в типе {type.id}\n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
                 )
             )
 
-        if not self.estimate_number(type.to_, type_et.to_, context=context.create_child("Значение ОТ")):
-            place = context.full_path_list()
+        if type.to_ != type_et.to_:
+            context=context.create_child("Значение ДО")
+            place = json.dumps(context.full_path_list, ensure_ascii=False)
             errors_list.append(
                 to_lexic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Введено неверное значение ДО в типе {type.id}\n расположение: {place}",
+                    tip=f"Введено неверное значение ДО в типе {type.id}\n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
                 )
@@ -112,7 +115,7 @@ class KBTypeServiceLogicLexic:
                     )
 
             if flag == 0:
-                place = context.full_path_list()
+                place = json.dumps(context.full_path_list, ensure_ascii=False)
                 errors_list.append(
                     to_logic_mistake(
                         user_id=user_id,
@@ -130,23 +133,25 @@ class KBTypeServiceLogicLexic:
     ):
         errors_list = []
         if mf_et.min != mf.min:
-            place = context.full_path_list()
+            context = context.create_child("Значение ОТ")
+            place = json.dumps(context.full_path_list, ensure_ascii=False)
             errors_list.append(
                 to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Несовпадение минимальных значений для функции {mem_func_et.name}: {mem_func_et.min}\n расположение: {place}",
+                    tip=f"Несовпадение минимальных значений для функции {mem_func_et.name}: {mem_func_et.min}\n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
                 )
             )
         if mf_et.max != mf.max:
-            place = context.full_path_list()
+            context = context.create_child("Значение ДО")
+            place = json.dumps(context.full_path_list, ensure_ascii=False)
             errors_list.append(
                 to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Несовпадение максимальных значений для функции {mem_func_et.name}: {mem_func_et.max}\n расположение: {place}",
+                    tip=f"Несовпадение максимальных значений для функции {mem_func_et.name}: {mem_func_et.max}\n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
                 )
@@ -161,42 +166,42 @@ class KBTypeServiceLogicLexic:
                 if point.x == point_et.x and point.y == point_et.y:
                     flag = 1
             if flag == 0:
-                place = context.full_path_list()
+                place = json.dumps(context.full_path_list, ensure_ascii=False)
                 errors_list.append(
                     to_logic_mistake(
                         user_id=user_id,
                         task_id=task_id,
-                        tip="Отсутствует точка ({point_et.x}, {point_et.y})",
+                        tip=f"Отсутствует точка ({point_et.x}, {point_et.y})",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type="type",
                     )
                 )
         return errors_list
 
-    def estimate_type(self, user_id: int, task_id: int, etalon_type: KBType, type: KBType):
-        context = Context(parent=None, name="Тип {etalon_type.name}")
+    def estimate_type(self, user_id: int, task_id: int, type: KBType, etalon_type: KBType):
+        context = Context(parent=None, name=f"Тип {etalon_type.id}\n")
         errors_list = []
 
         if type.id == etalon_type.id:
             if type.meta == "string":
                 if isinstance(type, KBSymbolicType):
                     errors_list = self.estimate_string_type(
-                        user_id, task_id, type, etalon_type, context=context.create_child("string type attr")
+                        user_id, task_id, type, etalon_type, context=context.create_child("Атрибут ")
                     )
             if type.meta == "number":
                 if isinstance(type, KBNumericType):
                     errors_list = self.estimate_number_type(
-                        user_id, task_id, type, etalon_type, context=context.create_child("number type attr")
+                        user_id, task_id, type, etalon_type, context=context.create_child("Атрибут ")
                     )
             if type.meta == "fuzzy":
                 if isinstance(type, KBFuzzyType):
                     errors_list = self.estimate_fuzzy_type(
-                        user_id, task_id, type, etalon_type, context=context.create_child("fuzzy type attr")
+                        user_id, task_id, type, etalon_type, context=context.create_child("Атрибут ")
                     )
         if errors_list:
             return errors_list
 
-    def handle_logic_lexic_mistakes(self: "KBTypeService", user: User, task: Task, type: KBType, type_et: KBType):
+    async def handle_logic_lexic_mistakes(self: "KBTypeService", user: User, task: Task, type: KBType, type_et: KBType):
         user_id = user.user_id
         task_id = task.pk
 
@@ -208,8 +213,8 @@ class KBTypeServiceLogicLexic:
             for exception in errors_list:
                 if isinstance(exception, CommonMistake):
                     # добавление в бд
-                    service.append_mistake(exception)
+                    await service.append_mistake(exception)
 
-            service.increment_taskuser_attempts(task, user)
+            await service.increment_taskuser_attempts(task, user)
 
             return errors_list

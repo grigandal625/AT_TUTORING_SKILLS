@@ -21,7 +21,7 @@ class KBIntervalServiceLogixLexic:
         #                               event.occurance_condition,
         #                               context=context.create_child('open condition'))
 
-    def handle_logic_lexic_mistakes(
+    async def handle_logic_lexic_mistakes(
         self: "KBIntervalService", user_id: int, event: KBInterval, event_et: KBInterval
     ) -> KBInterval:
         # try:

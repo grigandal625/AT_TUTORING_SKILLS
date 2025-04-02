@@ -328,9 +328,13 @@ class ATTutoringKBSkills(ATComponent):
         print(et_type)
         if task:
             errors_list = None
-            errors_list = self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
+            errors_list = await self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
             if errors_list:
-                return errors_list
+                serialized_errors = [error.model_dump() for error in errors_list]
+                errors_message = " ".join(
+                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                )
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
             else:
                 await self.task_service.complete_task(task, user)
                 return "обучаемый успешно выполнил задание"
@@ -345,7 +349,7 @@ class ATTutoringKBSkills(ATComponent):
         await self.task_service.create_user_skill_connection(user)
 
         try:
-            kb_type = self.type_service.handle_syntax_mistakes(user_id, data)
+            kb_type = await self.type_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
@@ -380,7 +384,7 @@ class ATTutoringKBSkills(ATComponent):
         await self.task_service.create_user_skill_connection(user)
 
         try:
-            kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
+            kb_object = await self.object_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
@@ -413,9 +417,13 @@ class ATTutoringKBSkills(ATComponent):
 
         if task:
             errors_list = None
-            errors_list = self.object_service.handle_logic_lexic_mistakes(user, task, kb_object, obj_et)
+            errors_list = await self.object_service.handle_logic_lexic_mistakes(user, task, kb_object, obj_et)
             if errors_list:
-                return errors_list
+                serialized_errors = [error.model_dump() for error in errors_list]
+                errors_message = " ".join(
+                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                )
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
             else:
                 await self.task_service.complete_task(task, user)
                 return "Обучаемый успешно выполнил задание"
@@ -461,9 +469,13 @@ class ATTutoringKBSkills(ATComponent):
             print(event_et)
 
             # self.add_event_to_cache(kb_event, user_id)
-            errors_list = self.event_service.handle_logic_lexic_mistakes(user, task, kb_event, event_et)
+            errors_list = await self.event_service.handle_logic_lexic_mistakes(user, task, kb_event, event_et)
             if errors_list:
-                return errors_list
+                serialized_errors = [error.model_dump() for error in errors_list]
+                errors_message = " ".join(
+                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                )
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
             else:
                 await self.task_service.complete_task(task, user)
                 return "Обучаемый успешно выполнил задание"
@@ -477,7 +489,7 @@ class ATTutoringKBSkills(ATComponent):
         await self.task_service.create_user_skill_connection(user)
 
         try:
-            kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
+            kb_event = await self.event_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
@@ -521,9 +533,13 @@ class ATTutoringKBSkills(ATComponent):
             interval_et = await self.task_service.get_interval_reference(task)
             print(interval_et)
             errors_list = None
-            errors_list = self.interval_service.handle_logic_lexic_mistakes(user, task, kb_interval, interval_et)
+            errors_list = await self.interval_service.handle_logic_lexic_mistakes(user, task, kb_interval, interval_et)
             if errors_list:
-                return errors_list
+                serialized_errors = [error.model_dump() for error in errors_list]
+                errors_message = " ".join(
+                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                )
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
             else:
                 await self.task_service.complete_task(task, user)
                 return "Обучаемый успешно выполнил задание"
@@ -537,7 +553,7 @@ class ATTutoringKBSkills(ATComponent):
         await self.task_service.create_user_skill_connection(user)
 
         try:
-            kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
+            kb_interval = await self.interval_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
@@ -582,9 +598,13 @@ class ATTutoringKBSkills(ATComponent):
 
         if task:
             errors_list = None
-            errors_list = self.rule_service.handle_logic_lexic_mistakes(user, task, kb_rule, rule_et)
+            errors_list = await self.rule_service.handle_logic_lexic_mistakes(user, task, kb_rule, rule_et)
             if errors_list:
-                return errors_list
+                serialized_errors = [error.model_dump() for error in errors_list]
+                errors_message = " ".join(
+                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                )
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
             else:
                 await self.task_service.complete_task(task, user)
                 return "Обучаемый успешно выполнил задание"
@@ -598,7 +618,7 @@ class ATTutoringKBSkills(ATComponent):
         await self.task_service.create_user_skill_connection(user)
 
         try:
-            kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
+            kb_rule = await self.rule_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 

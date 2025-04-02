@@ -56,7 +56,7 @@ class KBObjectServiceLogicLexic:
 
             if not found:
                 child_context = context.create_child(f"Свойство {property_et.id}")
-                place = child_context.full_path_list()
+                place = child_context.full_path_list
 
                 if min_distance <= 1:  # Порог для опечаток
                     errors_list.append(
@@ -80,7 +80,7 @@ class KBObjectServiceLogicLexic:
                     )
         return errors_list
 
-    def handle_logic_lexic_mistakes(
+    async def handle_logic_lexic_mistakes(
         self: "KBObjectService", user: User, task: Task, obj: KBClass, obj_et: KBClass
     ) -> Optional[List[CommonMistake]]:
         """Обрабатывает логические и лексические ошибки в объекте."""
@@ -94,9 +94,9 @@ class KBObjectServiceLogicLexic:
             service = TaskService()
             for mistake in errors_list:
                 if isinstance(mistake, CommonMistake):
-                    service.append_mistake(mistake)
+                    await service.append_mistake(mistake)
 
-            service.increment_taskuser_attempts(task, user)
+            await service.increment_taskuser_attempts(task, user)
             return errors_list
 
         return None

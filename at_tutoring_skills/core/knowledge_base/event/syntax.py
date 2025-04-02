@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
     from at_krl.core.temporal.allen_event import KBEvent
 
-class KBObjectServiceSyntax:
+class KBEventServiceSyntax:
     async def handle_syntax_mistakes(self: "KBEventService", user_id: int, data: dict) -> "KBEvent":
         serializer = KBEventDataSerializer(data=data["result"])
         try:

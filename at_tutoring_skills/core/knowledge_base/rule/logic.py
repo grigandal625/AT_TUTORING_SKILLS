@@ -11,7 +11,7 @@ class KBRuleServiceLogicLexic:
     def process_tip(self, exception: str) -> str:
         ...
 
-    def handle_logic_lexic_mistakes(self: "KBRuleService", user_id: int, data: dict) -> KBRule:
+    async def handle_logic_lexic_mistakes(self: "KBRuleService", user_id: int, data: dict) -> KBRule:
         ...
         # serializer = KBClassDataSerializer(data=data["args"])
         # try:
