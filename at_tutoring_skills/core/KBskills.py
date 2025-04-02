@@ -234,58 +234,63 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_knowledge_base_created(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
         self.init_cash(user_id)
 
     @authorized_method
     async def handle_knowledge_base_updated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
         self.init_cash(user_id)
 
     @authorized_method
     async def handle_kb_types_get(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
-        self.init_cash(user_id)
-        types_array = data["result"]["items"]
+        # user_id = self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        # types_array = data["result"]["items"]
 
-        for item in types_array:
-            self.add_type_to_cash("kb_types", auth_token)
+        # for item in types_array:
+        #     self.add_type_to_cash("kb_types", auth_token)
+        ...
 
     @authorized_method
     async def handle_kb_objects_get(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
-        self.init_cash(user_id)
-        types_array = data["result"]["items"]
+        # user_id = self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        # types_array = data["result"]["items"]
 
-        for item in types_array:
-            self.add_type_to_cash("kb_objects", auth_token)
+        # for item in types_array:
+        #     self.add_type_to_cash("kb_objects", auth_token)
+        ...
 
     @authorized_method
     async def handle_kb_events_get(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
-        self.init_cash(user_id)
-        types_array = data["result"]["items"]
+        # user_id = self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        # types_array = data["result"]["items"]
 
-        for item in types_array:
-            self.add_type_to_cash("kb_events", auth_token)
+        # for item in types_array:
+        #     self.add_type_to_cash("kb_events", auth_token)
+        ...
 
     @authorized_method
     async def handle_kb_intervals_get(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
-        self.init_cash(user_id)
-        types_array = data["result"]["items"]
+        # user_id = self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        # types_array = data["result"]["items"]
 
-        for item in types_array:
-            self.add_type_to_cash("kb_intervals", auth_token)
+        # for item in types_array:
+        #     self.add_type_to_cash("kb_intervals", auth_token)
+        ...
 
     @authorized_method
     async def handle_kb_rules_get(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
-        self.init_cash(user_id)
-        types_array = data["result"]["items"]
+        # user_id = self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        # types_array = data["result"]["items"]
 
-        for item in types_array:
-            self.add_type_to_cash("kb_rules", auth_token)
+        # for item in types_array:
+        #     self.add_type_to_cash("kb_rules", auth_token)
+        ...
 
     # ============================= type ===================
 
@@ -353,7 +358,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_type_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -384,7 +389,7 @@ class ATTutoringKBSkills(ATComponent):
         obj_type = await self.task_service.get_object_reference(task)
         print(obj_type)
 
-        self.add_object_to_cash(kb_object, user_id)
+        # self.add_object_to_cash(kb_object, user_id)
 
     @authorized_method
     async def handle_kb_object_updated(self, event: str, data: dict, auth_token: str):
@@ -419,7 +424,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_object_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -446,17 +451,16 @@ class ATTutoringKBSkills(ATComponent):
             kb_event = await self.event_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Event Created: Syntax Mistakes: {e}") from e
-
+        print (kb_event.id)
         task: Task = await self.task_service.get_task_by_name(kb_event.id, 3)
-        await self.task_service.create_task_user_safe(task, user)
-
-        event_et = await self.task_service.get_event_reference(task)
-        print(event_et)
-
-        self.add_event_to_cache(kb_event, user_id)
 
         if task:
-            errors_list = None
+            await self.task_service.create_task_user_safe(task, user)
+
+            event_et = await self.task_service.get_event_reference(task)
+            print(event_et)
+
+            # self.add_event_to_cache(kb_event, user_id)
             errors_list = self.event_service.handle_logic_lexic_mistakes(user, task, kb_event, event_et)
             if errors_list:
                 return errors_list
@@ -468,7 +472,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -477,11 +481,11 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        self.add_event_to_cash(kb_event, user_id)
+        # self.add_event_to_cash(kb_event, user_id)
 
     @authorized_method
     async def handle_kb_event_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -511,12 +515,11 @@ class ATTutoringKBSkills(ATComponent):
             raise ValueError(f"Handle KB Interval Created: Syntax Mistakes: {e}") from e
 
         task: Task = await self.task_service.get_task_by_name(kb_interval.id, 4)
-        await self.task_service.create_task_user_safe(task, user)
-
-        interval_et = await self.task_service.get_interval_reference(task)
-        print(interval_et)
-
         if task:
+            await self.task_service.create_task_user_safe(task, user)
+
+            interval_et = await self.task_service.get_interval_reference(task)
+            print(interval_et)
             errors_list = None
             errors_list = self.interval_service.handle_logic_lexic_mistakes(user, task, kb_interval, interval_et)
             if errors_list:
@@ -529,7 +532,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -538,11 +541,11 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        self.add_interval_to_cash(kb_interval, user_id)
+        # self.add_interval_to_cash(kb_interval, user_id)
 
     @authorized_method
     async def handle_kb_interval_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
 
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -590,7 +593,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -599,15 +602,14 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        self.add_rule_to_cash(kb_rule, user_id)
+        # self.add_rule_to_cash(kb_rule, user_id)
 
     @authorized_method
     async def handle_kb_rule_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
         rule_dict_raw = data.get("result")
         rule_id = rule_dict_raw.get("itemId")
 
-        self.remove_rule_from_cash(rule_id, user_id)

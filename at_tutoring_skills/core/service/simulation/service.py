@@ -166,7 +166,7 @@ class SimulationService(ATComponent):
     #   =============================    Template   ================================
     def handle_template(self, event: str, data: dict, auth_token: int):
         print("Обучаемый отредактировал образец операции (ИМ): ", data)
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = self.get_user_id_or_token(auth_token)
         try:
             template = TemplateService.handle_syntax_mistakes(user_id, data)
         except BaseException as e:
