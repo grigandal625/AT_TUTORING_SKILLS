@@ -23,6 +23,8 @@ from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.apps.skills.models import UserSkill
 from at_tutoring_skills.core.errors.models import CommonMistake
+from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest, FunctionRequest
+from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceAttributeRequest, ResourceRequest
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
     ResourceTypeAttributeRequest,
 )
@@ -88,17 +90,47 @@ class KBIMServise:
             id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
         )
 
+
     async def get_resource_reference(self, task: Task):
-        ...
+        if isinstance(task.object_reference, str):
+            reference_data = json.loads(task.object_reference)
+
+        elif isinstance(task.object_reference, dict):
+            reference_data = task.object_reference
+
+        else:
+            raise ValueError("task.object_reference должен быть строкой JSON или словарём")
+
+        attributes = [ResourceAttributeRequest(**attr_data) for attr_data in reference_data["attributes"]]
+
+        return ResourceRequest(
+            id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
+        )
+
 
     async def get_template_reference(self, task: Task):
         ...
 
+
     async def get_template_usage_reference(self, task: Task):
         ...
 
+
     async def get_function_reference(self, task: Task):
-        ...
+        if isinstance(task.object_reference, str):
+            reference_data = json.loads(task.object_reference)
+
+        elif isinstance(task.object_reference, dict):
+            reference_data = task.object_reference
+
+        else:
+            raise ValueError("task.object_reference должен быть строкой JSON или словарём")
+
+        attributes = [FunctionParameterRequest(**attr_data) for attr_data in reference_data["attributes"]]
+
+        return FunctionRequest(
+            id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
+        )
 
 
 class TaskService(KBTaskService, KBIMServise):
