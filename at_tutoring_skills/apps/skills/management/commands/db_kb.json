@@ -1,0 +1,137 @@
+{
+  "skills": [
+    {
+      "name": "Анализ ПрО и выделение сущностей",
+      "group": 1,
+      "required_for_objects": [1, 2, 3, 4, 5]
+    },
+    {
+      "name": "Формулирование задач для темпоральной БЗ",
+      "group": 1,
+      "required_for_objects": [1, 2, 3]
+    },
+    {
+      "name": "Работа с числовыми типами данных",
+      "group": 1,
+      "required_for_objects": [1, 2]
+    },
+    {
+      "name": "Работа с символьными типами данных",
+      "group": 1,
+      "required_for_objects": [1, 2]
+    },
+    {
+      "name": "Работа с нечеткими типами данных",
+      "group": 1,
+      "required_for_objects": [1, 2]
+    },
+    {
+      "name": "Определение функций принадлежности",
+      "group": 1,
+      "required_for_objects": [1, 2]
+    },
+    {
+      "name": "Создание базовых объектов",
+      "group": 1,
+      "required_for_objects": [2]
+    },
+    {
+      "name": "Определение атрибутов объектов",
+      "group": 1,
+      "required_for_objects": [2]
+    },
+    {
+      "name": "Логичное именование объектов",
+      "group": 1,
+      "required_for_objects": [1, 2, 3, 4, 5]
+    },
+    {
+      "name": "Создание интервалов",
+      "group": 1,
+      "required_for_objects": [4]
+    },
+    {
+      "name": "Определение условий интервалов",
+      "group": 1,
+      "required_for_objects": [4]
+    },
+    {
+      "name": "Создание событий",
+      "group": 1,
+      "required_for_objects": [3]
+    },
+    {
+      "name": "Определение условий событий",
+      "group": 1,
+      "required_for_objects": [3]
+    },
+    {
+      "name": "Применение логики Аллена",
+      "group": 1,
+      "required_for_objects": [3, 4]
+    },
+    {
+      "name": "Создание правил ЕСЛИ-ТО",
+      "group": 1,
+      "required_for_objects": [5]
+    },
+    {
+      "name": "Создание правил с ИНАЧЕ",
+      "group": 1,
+      "required_for_objects": [5]
+    },
+    {
+      "name": "Учет темпоральных отношений в правилах",
+      "group": 1,
+      "required_for_objects": [5]
+    },
+    {
+      "name": "Экспорт БЗ в ЯПЗ",
+      "group": 1,
+      "required_for_objects": [1, 2, 3, 4, 5]
+    },
+    {
+      "name": "Проверка файлов .kbs",
+      "group": 1,
+      "required_for_objects": [1, 2, 3, 4, 5]
+    },
+    {
+      "name": "Выявление ошибок в БЗ",
+      "group": 1,
+      "required_for_objects": [1, 2, 3, 4, 5]
+    },
+    {
+      "name": "Исправление ошибок в БЗ",
+      "group": 1,
+      "required_for_objects": [1, 2, 3, 4, 5]
+    }
+  ],
+    "variants": [
+      {
+        "name": "Анализ погодных условий",
+        "tasks": [
+          {
+            "task_name": "Задание 1",
+            "task_object": 1,
+            "object_name": "Тип 1",
+            "description": "Описание задания 1",
+            "object_reference": {"key": "value"},
+            "required_skill_names": ["Навык KB"]
+          }
+        ]
+      },
+      {
+        "name": "Анализ погодных условий",
+        "tasks": [
+          {
+            "task_name": "Задание 1",
+            "task_object": 1,
+            "object_name": "Тип 1",
+            "description": "Описание задания 1",
+            "object_reference": {"key": "value"},
+            "required_skill_names": ["Навык KB"]
+          }
+        ]
+      }
+    ]
+  }

@@ -127,15 +127,15 @@ class Command(BaseCommand):
                 repr = item.to_representation()
             elif isinstance(item, (KBEvent)):
                 task_object = SUBJECT_CHOICES.KB_EVENT.value
-                name = "событие" 
+                name = "событие"
                 repr = item.to_representation()
             elif isinstance(item, (KBInterval)):
                 task_object = SUBJECT_CHOICES.KB_INTERVAL.value
-                name = "интервал" 
+                name = "интервал"
                 repr = item.to_representation()
             elif isinstance(item, (KBRule)):
                 task_object = SUBJECT_CHOICES.KB_RULE.value
-                name = "правило" 
+                name = "правило"
                 repr = item.to_representation()
 
             elif isinstance(item, PropertyDefinition):
@@ -143,7 +143,7 @@ class Command(BaseCommand):
                 name = "объект"
                 repr = item.type.target.to_representation()
                 repr["id"] = item.id
-            
+
             tasks.append(
                 {
                     "task_name": f"Создать {name} {item.id}",

@@ -74,7 +74,7 @@ class KBTypeServiceLogicLexic:
 
         # Перевірка _from
         if type.from_ != type_et.from_:
-            context=context.create_child("Значение ОТ")
+            context = context.create_child("Значение ОТ")
             place = json.dumps(context.full_path_list, ensure_ascii=False)
             errors_list.append(
                 to_lexic_mistake(
@@ -87,7 +87,7 @@ class KBTypeServiceLogicLexic:
             )
 
         if type.to_ != type_et.to_:
-            context=context.create_child("Значение ДО")
+            context = context.create_child("Значение ДО")
             place = json.dumps(context.full_path_list, ensure_ascii=False)
             errors_list.append(
                 to_lexic_mistake(

@@ -1,45 +1,58 @@
-from typing import TYPE_CHECKING, List
+from typing import List, Union
+from typing import Optional
+from typing import TYPE_CHECKING
 
+from at_krl.core.simple.simple_operation import SimpleOperation
 from at_krl.core.temporal.allen_event import KBEvent
 
-from at_tutoring_skills.apps.skills.models import Task, User
-from at_tutoring_skills.core.data_serializers import KBEventDataSerializer
+from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.core.errors.context import Context
-from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.task.service import TaskService
+from at_krl.core.simple.simple_evaluatable import SimpleEvaluatable
+from at_krl.core.simple.simple_reference import SimpleReference
+from at_krl.core.simple.simple_operation import SimpleOperation
+from at_krl.core.simple.simple_value import SimpleValue
 
 if TYPE_CHECKING:
     from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 
 
 class KBEventServiceLogicLexic:
-    def estimate_event(self, etalon_event: dict, event: KBEvent, context: Context):
-        print("Estimate event")
-
-        event_et = KBEvent.from_dict(etalon_event)
-        if event_et.id == event.id:
-            self.estimate_condition(
-                event_et.occurance_condition, event.occurance_condition, context=context.create_child("open condition")
-            )
-
-    def process_tip(self, exception: str) -> str:
+    def estimate_occurance_condition(
+        self, user_id: str, task_id: int, 
+        condition: Union[SimpleValue, SimpleReference, SimpleOperation], 
+        et_condition: Union[SimpleValue, SimpleReference, SimpleOperation], 
+        context : Context
+    ):
         ...
 
-    async def handle_logic_lexic_mistakes(self: "KBEventService", user: User, task: Task, event: KBEvent, event_et: KBEvent):
-            user_id = user.user_id
-            task_id = task.pk
+    def estimate_event(self, user_id: str, task_id: int, etalon_event: KBEvent, event: KBEvent, context: Context):
+        print("Estimate event")
+        errors_list = []
 
-            errors_list = None
-            errors_list = self.estimate_event(user_id, task_id, event, event_et)
-            if errors_list:
-                # mistakes: list[CommonMistake] = []
-                service = TaskService()
-                for exception in errors_list:
-                    if isinstance(exception, CommonMistake):
-                        # добавление в бд
-                        await service.append_mistake(exception)
+        check = self.estimate_occurance_condition(
+            user_id, task_id, etalon_event.occurance_condition, event.occurance_condition, context
+        )
 
-                await service.increment_taskuser_attempts(task, user)
+    async def handle_logic_lexic_mistakes(
+        self: "KBEventService", user: User, task: Task, event: KBEvent, event_et: KBEvent
+    ) -> Optional[List[CommonMistake]]:
+        """Обрабатывает логические и лексические ошибки в событии."""
+        user_id = user.user_id
+        task_id = task.pk
+        context = Context(parent=None, name=f"Событие {event_et.id}")
 
-                return errors_list
+        errors_list = self.estimate_event(user_id, task_id, event, event_et, context)
+
+        if errors_list:
+            service = TaskService()
+            for mistake in errors_list:
+                if isinstance(mistake, CommonMistake):
+                    await service.append_mistake(mistake)
+
+            await service.increment_taskuser_attempts(task, user)
+            return errors_list
+
+        return None

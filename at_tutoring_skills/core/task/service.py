@@ -383,3 +383,8 @@ class TaskService(KBTaskService, KBIMServise):
                 raise ValueError(f"Failed to create or get TaskUser: {str(e)}")
 
         return await _create_or_get_task_user()
+
+
+    # @sync_to_async
+    #     def _create_or_get_task_user():
+        

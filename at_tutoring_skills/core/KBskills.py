@@ -193,6 +193,7 @@ class ATTutoringKBSkills(ATComponent):
         self.add_to_cash("kb_types", data, auth_token_or_id)
 
     def add_object_to_cash(self, data, auth_token_or_id):
+        
         self.add_to_cash("kb_objects", data, auth_token_or_id)
 
     def add_event_to_cash(self, data, auth_token_or_id):
@@ -459,7 +460,7 @@ class ATTutoringKBSkills(ATComponent):
             kb_event = await self.event_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Event Created: Syntax Mistakes: {e}") from e
-        print (kb_event.id)
+        print(kb_event.id)
         task: Task = await self.task_service.get_task_by_name(kb_event.id, 3)
 
         if task:
@@ -632,4 +633,3 @@ class ATTutoringKBSkills(ATComponent):
 
         rule_dict_raw = data.get("result")
         rule_id = rule_dict_raw.get("itemId")
-

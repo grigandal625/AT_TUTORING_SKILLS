@@ -1,12 +1,15 @@
-from typing import List, Optional, TYPE_CHECKING
 import json
+from typing import List
+from typing import Optional
+from typing import TYPE_CHECKING
 
 from at_krl.core.kb_class import KBClass
 
-from at_tutoring_skills.apps.skills.models import Task, User
+from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.core.errors.consts import KNOWLEDGE_COEFFICIENTS
 from at_tutoring_skills.core.errors.context import Context
-from at_tutoring_skills.core.errors.conversions import to_lexic_mistake, to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.task.service import TaskService
 
@@ -66,7 +69,7 @@ class KBObjectServiceLogicLexic:
                 if distance == 0:
                     found = True
                     # Проверка значения свойства
-                    if prop.type.id!= property_et.type.id:
+                    if prop.type.id != property_et.type.id:
                         child_context = context.create_child(f"Тип атрибута {property_et.type.id}")
                         place = json.dumps(child_context.full_path_list, ensure_ascii=False)
                         errors_list.append(
@@ -84,8 +87,7 @@ class KBObjectServiceLogicLexic:
                 child_context = context.create_child(f"Атрибут {property_et.id} ")
                 place = json.dumps(child_context.full_path_list, ensure_ascii=False)
 
-                if min_distance >= 1:  
-
+                if min_distance >= 1:
                     errors_list.append(
                         to_logic_mistake(
                             user_id=user_id,
