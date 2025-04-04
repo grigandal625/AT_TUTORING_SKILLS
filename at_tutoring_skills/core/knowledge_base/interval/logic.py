@@ -88,7 +88,7 @@ class KBIntervalServiceLogicLexic:  # Изменено с KBEventServiceLogicLex
                     if condition.right.sign in {'add', 'sub'}:
                         ...
                     
-            if condition.sign in {'add', 'mul','and', 'or'}:
+            # if condition.sign in {'add', 'mul','and', 'or'}:
             #     ...
             # if condition.sign in {}:
                 
