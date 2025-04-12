@@ -235,12 +235,12 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_knowledge_base_created(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         self.init_cash(user_id)
 
     @authorized_method
     async def handle_knowledge_base_updated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         self.init_cash(user_id)
 
     @authorized_method
@@ -363,7 +363,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_type_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -433,7 +433,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_object_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -485,7 +485,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -498,7 +498,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_event_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -549,7 +549,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -562,7 +562,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_interval_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
 
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -614,7 +614,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -627,7 +627,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_rule_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(auth_token)
+        user_id =  await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 

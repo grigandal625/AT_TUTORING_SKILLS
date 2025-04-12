@@ -40,6 +40,7 @@ class KBTypeServiceLogicLexic:
                 )
             )
 
+
         for j in range(len(check_et)):
             for i in range(len(check)):
                 if check_et[j] == check[i]:
