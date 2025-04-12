@@ -29,10 +29,10 @@ KNOWLEDGE_COEFFICIENTS = Coefficients(
     logic_fine=2,
     lexic_fine=1,
     entity_fines={
-        "event": 1,
-        "interval": 2,
-        "object": 3,
-        "rule": 4,
-        "type": 5,
+        "event": 1.25,
+        "interval": 1.25,
+        "object": 1,
+        "rule": 1.25,
+        "type": 0.5,
     },
 )

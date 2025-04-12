@@ -53,6 +53,7 @@ class KBObjectServiceLogicLexic:
                     tip=f"Введено меньше свойств, чем требуется, в объекте {obj.id}\nрасположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="object",
+                    skills=[301],
                 )
             )
 
@@ -79,6 +80,7 @@ class KBObjectServiceLogicLexic:
                                 tip=f"Неверный тип атрибута '{property_et.id}'. Ожидалось: {property_et.type.id}, получено: {prop.type.id}\nрасположение: {place}",
                                 coefficients=KNOWLEDGE_COEFFICIENTS,
                                 entity_type="object",
+                                skills=[300, 302]
                             )
                         )
                     break
@@ -95,6 +97,7 @@ class KBObjectServiceLogicLexic:
                             tip=f"Отсутствует атрибут '{property_et.id}'\nрасположение: {place}",
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="object",
+                            skills=[300, 301]
                         )
                     )
 

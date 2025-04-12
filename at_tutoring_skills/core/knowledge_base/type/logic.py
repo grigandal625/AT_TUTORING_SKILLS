@@ -37,6 +37,7 @@ class KBTypeServiceLogicLexic:
                     tip=f"Введено меньше значений аттрибутов, чем требуется, в типе {type.id} \n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
+                    skills=[221]
                 )
             )
 
@@ -56,6 +57,7 @@ class KBTypeServiceLogicLexic:
                         tip=f"Введено неверное значение в атрибуте типа {type.id}: {check[i]}\n расположение: {place}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type="type",
+                        skills=[220]
                     )
                 )
 
@@ -84,6 +86,7 @@ class KBTypeServiceLogicLexic:
                     tip=f"Введено неверное значение ОТ в типе {type.id}\n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
+                    skills=[210]
                 )
             )
 
@@ -97,6 +100,7 @@ class KBTypeServiceLogicLexic:
                     tip=f"Введено неверное значение ДО в типе {type.id}\n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
+                    skills=[210]
                 )
             )
 
@@ -123,7 +127,7 @@ class KBTypeServiceLogicLexic:
                         task_id=task_id,
                         tip=f"Отсутствует функция {mf.name}\n расположение: {place}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
-                        entity_type="type",
+                        entity_type="type"
                     )
                 )
 
@@ -140,7 +144,7 @@ class KBTypeServiceLogicLexic:
                 to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Несовпадение минимальных значений для функции {mem_func_et.name}: {mem_func_et.min}\n расположение: {place}",
+                    tip=f"Несовпадение минимальных значений для функции {mf_et.name}: {mf_et.min}\n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
                 )
@@ -152,7 +156,7 @@ class KBTypeServiceLogicLexic:
                 to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Несовпадение максимальных значений для функции {mem_func_et.name}: {mem_func_et.max}\n расположение: {place}",
+                    tip=f"Несовпадение максимальных значений для функции {mf_et.name}: {mf_et.max}\n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
                 )

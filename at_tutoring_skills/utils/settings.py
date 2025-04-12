@@ -2,6 +2,9 @@ import os
 import re
 import subprocess
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_django_settings_module() -> str:
@@ -34,7 +37,15 @@ def get_django_settings_module() -> str:
 
     process.wait()
 
+    if process.returncode != 0:
+        if process.stderr:
+            error_result = process.stderr.read().decode()
+            if error_result:
+                logger.error(error_result)
+        raise Exception(f'Failed to get settings module with command: \n\n {command}')
+
     command_result = process.stdout.read().decode()
+    
     index = -1
     while not re.match(r"\w", command_result[index]):
         index -= 1
