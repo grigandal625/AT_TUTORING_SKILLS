@@ -8,7 +8,8 @@ from pydantic import BaseModel
 class RelevantResourceRequest(BaseModel):
     id: Optional[int] = None
     name: str
-    resource_type_id: int
+    resource_type_id: Optional[int] = None
+    resource_type_id_str: Optional[str] = None 
 
 
 class RelevantResourceResponse(RelevantResourceRequest):
@@ -90,3 +91,7 @@ class IrregularEventRequest(BaseModel):
 
 class IrregularEventResponse(IrregularEventRequest):
     meta: TemplateMetaResponse
+
+
+
+

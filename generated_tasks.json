@@ -73,5 +73,77 @@
             ],
             "rules": []
         }
+    },
+    {
+        "task_name": "Создать интервал инт1",
+        "task_object": 4,
+        "object_name": "инт1",
+        "description": "",
+        "object_reference": {
+            "tag": "interval",
+            "id": "инт1",
+            "group": "ИНТЕРВАЛ",
+            "desc": "инт1",
+            "open": {
+                "tag": "eq",
+                "left": {
+                    "tag": "ref",
+                    "id": "объект1",
+                    "ref": {
+                        "tag": "ref",
+                        "id": "атр1",
+                        "ref": null
+                    }
+                },
+                "right": {
+                    "tag": "value",
+                    "content": 3
+                }
+            },
+            "close": {
+                "tag": "gt",
+                "left": {
+                    "tag": "ref",
+                    "id": "объект1",
+                    "ref": {
+                        "tag": "ref",
+                        "id": "атр1",
+                        "ref": null
+                    }
+                },
+                "right": {
+                    "tag": "value",
+                    "content": 5
+                }
+            }
+        }
+    },
+    {
+        "task_name": "Создать событие событие1",
+        "task_object": 3,
+        "object_name": "событие1",
+        "description": "",
+        "object_reference": {
+            "tag": "event",
+            "id": "событие1",
+            "group": "СОБЫТИЕ",
+            "desc": "событие1",
+            "occurance_condition": {
+                "tag": "eq",
+                "left": {
+                    "tag": "ref",
+                    "id": "объект1",
+                    "ref": {
+                        "tag": "ref",
+                        "id": "атр2",
+                        "ref": null
+                    }
+                },
+                "right": {
+                    "tag": "value",
+                    "content": "Ф"
+                }
+            }
+        }
     }
 ]

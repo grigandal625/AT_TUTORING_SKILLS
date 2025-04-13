@@ -1,6 +1,7 @@
 # import json
 import json
 import logging
+from typing import Union
 
 from asgiref.sync import sync_to_async
 from at_krl.models.kb_class import KBClassModel
@@ -29,6 +30,7 @@ from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.
     ResourceTypeAttributeRequest,
 )
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventBody, IrregularEventGenerator, IrregularEventRequest, OperationBody, OperationRequest, RelevantResourceRequest, RuleBody, RuleRequest, TemplateMetaRequest
 
 logger = logging.getLogger(__name__)
 
@@ -104,12 +106,105 @@ class KBIMServise:
         attributes = [ResourceAttributeRequest(**attr_data) for attr_data in reference_data["attributes"]]
 
         return ResourceRequest(
-            id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
+            id=reference_data["id"], name=reference_data["name"], resource_type_id_str = reference_data["resource_type_id_str"], attributes=attributes
         )
 
 
-    async def get_template_reference(self, task: Task):
-        ...
+    async def get_template_reference(self, task: Task) -> Union[IrregularEventRequest, RuleRequest, OperationRequest]:
+        """
+        Получение эталонного шаблона (template reference) из task.object_reference.
+        """
+        # Проверяем тип task.object_reference и преобразуем его в словарь
+        if isinstance(task.object_reference, str):
+            try:
+                reference_data = json.loads(task.object_reference)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Неверный формат JSON в task.object_reference: {e}")
+        elif isinstance(task.object_reference, dict):
+            reference_data = task.object_reference
+        else:
+            raise ValueError("task.object_reference должен быть строкой JSON или словарём")
+
+        # Определяем тип шаблона
+        template_type = reference_data["meta"]["type"]
+        pydantic_class = self._get_template_class(template_type)
+
+        # Преобразуем данные в соответствующую Pydantic модель
+        if pydantic_class == IrregularEventRequest:
+            generator_data = reference_data["generator"]
+            body_data = reference_data["body"]
+
+            return IrregularEventRequest(
+                meta=TemplateMetaRequest(
+                    id=reference_data["meta"]["id"],
+                    name=reference_data["meta"]["name"],
+                    type=template_type,
+                    rel_resources=[
+                        RelevantResourceRequest(**res_data) for res_data in reference_data["meta"]["rel_resources"]
+                    ],
+                ),
+                generator=IrregularEventGenerator(
+                    type=generator_data["type"],
+                    value=generator_data["value"],
+                    dispersion=generator_data["dispersion"],
+                ),
+                body=IrregularEventBody(body=body_data["body"]),
+            )
+
+        elif pydantic_class == RuleRequest:
+            body_data = reference_data["body"]
+
+            return RuleRequest(
+                meta=TemplateMetaRequest(
+                    id=reference_data["meta"]["id"],
+                    name=reference_data["meta"]["name"],
+                    type=template_type,
+                    rel_resources=[
+                        RelevantResourceRequest(**res_data) for res_data in reference_data["meta"]["rel_resources"]
+                    ],
+                ),
+                body=RuleBody(
+                    condition=body_data["condition"],
+                    body=body_data["body"],
+                ),
+            )
+
+        elif pydantic_class == OperationRequest:
+            body_data = reference_data["body"]
+
+            return OperationRequest(
+                meta=TemplateMetaRequest(
+                    id=reference_data["meta"]["id"],
+                    name=reference_data["meta"]["name"],
+                    type=template_type,
+                    rel_resources=[
+                        RelevantResourceRequest(**res_data) for res_data in reference_data["meta"]["rel_resources"]
+                    ],
+                ),
+                body=OperationBody(
+                    condition=body_data["condition"],
+                    body_before=body_data["body_before"],
+                    delay=body_data["delay"],
+                    body_after=body_data["body_after"],
+                ),
+            )
+
+        else:
+            raise ValueError(f"Неизвестный тип шаблона: {template_type}")
+
+    def _get_template_class(self, template_type: str):
+        """
+        Возвращает соответствующий класс Pydantic на основе типа шаблона.
+        """
+        type_to_class = {
+            "IRREGULAR_EVENT": IrregularEventRequest,
+            "RULE": RuleRequest,
+            "OPERATION": OperationRequest,
+        }
+        pydantic_class = type_to_class.get(template_type)
+        if not pydantic_class:
+            raise ValueError(f"Неизвестный тип шаблона: {template_type}")
+        return pydantic_class
 
 
     async def get_template_usage_reference(self, task: Task):

@@ -47,26 +47,51 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f"Критическая ошибка: {str(e)}"))
 
     TEXT = """
-    ТИП тип1
-    СИМВОЛ
-        "Ф"
-        "Т"
-    КОММЕНТАРИЙ тип1
-    ТИП тип2
-    ЧИСЛО
-        ОТ 0
-        ДО 1
-    КОММЕНТАРИЙ тип2
-    ОБЪЕКТ объект1
-    ГРУППА ГРУППА1
-        АТРИБУТЫ
-        АТРИБУТ атр1
-            ТИП тип1
-            КОММЕНТАРИЙ атр1
-        АТРИБУТ атр2
-            ТИП тип2
-            КОММЕНТАРИЙ атр2
-    КОММЕНТАРИЙ объект1
+ТИП тип1
+СИМВОЛ
+    "Ф"
+    "Т"
+КОММЕНТАРИЙ тип1
+
+ТИП тип2
+ЧИСЛО
+    ОТ 0
+    ДО 1
+КОММЕНТАРИЙ тип2
+
+ОБЪЕКТ объект1
+ГРУППА ГРУППА1
+    АТРИБУТЫ
+    АТРИБУТ атр1
+        ТИП тип1
+        КОММЕНТАРИЙ атр1
+    АТРИБУТ атр2
+        ТИП тип2
+        КОММЕНТАРИЙ атр2
+КОММЕНТАРИЙ объект1
+
+ОБЪЕКТ инт1
+ГРУППА ИНТЕРВАЛ
+АТРИБУТЫ
+    АТРИБУТ УслНач
+        ТИП ЛогВыр
+        ЗНАЧЕНИЕ
+            (объект1.атр1) = (3)
+    АТРИБУТ УслОконч
+        ТИП ЛогВыр
+        ЗНАЧЕНИЕ
+            (объект1.атр1) > (5)
+КОММЕНТАРИЙ инт1
+
+ОБЪЕКТ событие1
+ГРУППА СОБЫТИЕ
+АТРИБУТЫ
+    АТРИБУТ УслВозн
+        ТИП ЛогВыр
+        ЗНАЧЕНИЕ
+            (объект1.атр2) = ("Ф")
+КОММЕНТАРИЙ событие1
+
     """
 
     def load_skills_from_json(self, file_path: str) -> dict:
@@ -100,14 +125,25 @@ class Command(BaseCommand):
                 task_object = SUBJECT_CHOICES.KB_TYPE.value
                 name = "тип"
                 repr = item.to_representation()
+            elif isinstance(item, (KBEvent)):
+                task_object = SUBJECT_CHOICES.KB_EVENT.value
+                name = "событие" 
+                repr = item.to_representation()
+            elif isinstance(item, (KBInterval)):
+                task_object = SUBJECT_CHOICES.KB_INTERVAL.value
+                name = "интервал" 
+                repr = item.to_representation()
+            elif isinstance(item, (KBRule)):
+                task_object = SUBJECT_CHOICES.KB_RULE.value
+                name = "правило" 
+                repr = item.to_representation()
+
             elif isinstance(item, PropertyDefinition):
                 task_object = SUBJECT_CHOICES.KB_OBJECT.value
                 name = "объект"
                 repr = item.type.target.to_representation()
                 repr["id"] = item.id
-            elif isinstance(item, (KBEvent, KBInterval, KBRule)):
-                continue  # Для примера обрабатываем только типы и объекты
-
+            
             tasks.append(
                 {
                     "task_name": f"Создать {name} {item.id}",
