@@ -12,6 +12,7 @@ from at_tutoring_skills.core.knowledge_base.object.service import KBObjectServic
 from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
 from at_tutoring_skills.core.task.service import TaskService
+from at_tutoring_skills.core.task.transitions import TransitionsService
 
 
 class ATTutoringKBSkills(ATComponent):
@@ -23,6 +24,7 @@ class ATTutoringKBSkills(ATComponent):
     event_service = None
     interval_service = None
     rule_service = None
+    transition_service = None
 
     def __init__(self, connection_parameters: ConnectionParameters, *args, **kwargs):
         super().__init__(connection_parameters, *args, **kwargs)
@@ -34,6 +36,7 @@ class ATTutoringKBSkills(ATComponent):
         self.event_service = KBEventService()
         self.interval_service = KBIntervalService()
         self.rule_service = KBRuleService()
+        self.transition_service = TransitionsService()
 
     def init_cash(self, auth_token_or_id: str):
         if auth_token_or_id not in self.cash:
@@ -234,58 +237,63 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_knowledge_base_created(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         self.init_cash(user_id)
 
     @authorized_method
     async def handle_knowledge_base_updated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         self.init_cash(user_id)
 
     @authorized_method
     async def handle_kb_types_get(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
-        self.init_cash(user_id)
-        types_array = data["result"]["items"]
+        # user_id = self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        # types_array = data["result"]["items"]
 
-        for item in types_array:
-            self.add_type_to_cash("kb_types", auth_token)
+        # for item in types_array:
+        #     self.add_type_to_cash("kb_types", auth_token)
+        ...
 
     @authorized_method
     async def handle_kb_objects_get(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
-        self.init_cash(user_id)
-        types_array = data["result"]["items"]
+        # user_id = self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        # types_array = data["result"]["items"]
 
-        for item in types_array:
-            self.add_type_to_cash("kb_objects", auth_token)
+        # for item in types_array:
+        #     self.add_type_to_cash("kb_objects", auth_token)
+        ...
 
     @authorized_method
     async def handle_kb_events_get(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
-        self.init_cash(user_id)
-        types_array = data["result"]["items"]
+        # user_id = self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        # types_array = data["result"]["items"]
 
-        for item in types_array:
-            self.add_type_to_cash("kb_events", auth_token)
+        # for item in types_array:
+        #     self.add_type_to_cash("kb_events", auth_token)
+        ...
 
     @authorized_method
     async def handle_kb_intervals_get(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
-        self.init_cash(user_id)
-        types_array = data["result"]["items"]
+        # user_id = self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        # types_array = data["result"]["items"]
 
-        for item in types_array:
-            self.add_type_to_cash("kb_intervals", auth_token)
+        # for item in types_array:
+        #     self.add_type_to_cash("kb_intervals", auth_token)
+        ...
 
     @authorized_method
     async def handle_kb_rules_get(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
-        self.init_cash(user_id)
-        types_array = data["result"]["items"]
+        # user_id = self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        # types_array = data["result"]["items"]
 
-        for item in types_array:
-            self.add_type_to_cash("kb_rules", auth_token)
+        # for item in types_array:
+        #     self.add_type_to_cash("kb_rules", auth_token)
+        ...
 
     # ============================= type ===================
 
@@ -323,14 +331,19 @@ class ATTutoringKBSkills(ATComponent):
         print(et_type)
         if task:
             errors_list = None
-            errors_list = self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
+            errors_list = await self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
             if errors_list:
-                return errors_list
+                serialized_errors = [error.model_dump() for error in errors_list]
+                errors_message = " ".join(
+                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                )
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
             else:
                 await self.task_service.complete_task(task, user)
-                return "обучаемый успешно выполнил задание"
+                stage = await self.transition_service.check_stage_tasks_completed(user, 1)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
         else:
-            return "Задание не найдено,  продолжайте выполнение работы"
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
 
     @authorized_method
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):
@@ -340,7 +353,7 @@ class ATTutoringKBSkills(ATComponent):
         await self.task_service.create_user_skill_connection(user)
 
         try:
-            kb_type = self.type_service.handle_syntax_mistakes(user_id, data)
+            kb_type = await self.type_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
@@ -353,7 +366,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_type_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -375,7 +388,7 @@ class ATTutoringKBSkills(ATComponent):
         await self.task_service.create_user_skill_connection(user)
 
         try:
-            kb_object = self.object_service.handle_syntax_mistakes(user_id, data)
+            kb_object = await self.object_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
@@ -384,7 +397,7 @@ class ATTutoringKBSkills(ATComponent):
         obj_type = await self.task_service.get_object_reference(task)
         print(obj_type)
 
-        self.add_object_to_cash(kb_object, user_id)
+        # self.add_object_to_cash(kb_object, user_id)
 
     @authorized_method
     async def handle_kb_object_updated(self, event: str, data: dict, auth_token: str):
@@ -408,18 +421,23 @@ class ATTutoringKBSkills(ATComponent):
 
         if task:
             errors_list = None
-            errors_list = self.object_service.handle_logic_lexic_mistakes(user, task, kb_object, obj_et)
+            errors_list = await self.object_service.handle_logic_lexic_mistakes(user, task, kb_object, obj_et)
             if errors_list:
-                return errors_list
+                serialized_errors = [error.model_dump() for error in errors_list]
+                errors_message = " ".join(
+                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                )
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
             else:
                 await self.task_service.complete_task(task, user)
-                return "Обучаемый успешно выполнил задание"
+                stage = await self.transition_service.check_stage_tasks_completed(user, 2)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
         else:
-            return "Задание не найдено, продолжайте выполнение работы"
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
 
     @authorized_method
     async def handle_kb_object_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -446,42 +464,46 @@ class ATTutoringKBSkills(ATComponent):
             kb_event = await self.event_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Event Created: Syntax Mistakes: {e}") from e
-
+        print(kb_event.id)
         task: Task = await self.task_service.get_task_by_name(kb_event.id, 3)
-        await self.task_service.create_task_user_safe(task, user)
-
-        event_et = await self.task_service.get_event_reference(task)
-        print(event_et)
-
-        self.add_event_to_cache(kb_event, user_id)
 
         if task:
-            errors_list = None
-            errors_list = self.event_service.handle_logic_lexic_mistakes(user, task, kb_event, event_et)
+            await self.task_service.create_task_user_safe(task, user)
+
+            event_et = await self.task_service.get_event_reference(task)
+            print(event_et)
+
+            # self.add_event_to_cache(kb_event, user_id)
+            errors_list = await self.event_service.handle_logic_lexic_mistakes(user, task, kb_event, event_et)
             if errors_list:
-                return errors_list
+                serialized_errors = [error.model_dump() for error in errors_list]
+                errors_message = " ".join(
+                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                )
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
             else:
                 await self.task_service.complete_task(task, user)
-                return "Обучаемый успешно выполнил задание"
+                stage = await self.transition_service.check_stage_tasks_completed(user, 3)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
         else:
-            return "Задание не найдено, продолжайте выполнение работы"
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
 
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
         try:
-            kb_event = self.event_service.handle_syntax_mistakes(user_id, data)
+            kb_event = await self.event_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        self.add_event_to_cash(kb_event, user_id)
+        # self.add_event_to_cash(kb_event, user_id)
 
     @authorized_method
     async def handle_kb_event_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
@@ -511,38 +533,42 @@ class ATTutoringKBSkills(ATComponent):
             raise ValueError(f"Handle KB Interval Created: Syntax Mistakes: {e}") from e
 
         task: Task = await self.task_service.get_task_by_name(kb_interval.id, 4)
-        await self.task_service.create_task_user_safe(task, user)
-
-        interval_et = await self.task_service.get_interval_reference(task)
-        print(interval_et)
-
         if task:
+            await self.task_service.create_task_user_safe(task, user)
+
+            interval_et = await self.task_service.get_interval_reference(task)
+            print(interval_et)
             errors_list = None
-            errors_list = self.interval_service.handle_logic_lexic_mistakes(user, task, kb_interval, interval_et)
+            errors_list = await self.interval_service.handle_logic_lexic_mistakes(user, task, kb_interval, interval_et)
             if errors_list:
-                return errors_list
+                serialized_errors = [error.model_dump() for error in errors_list]
+                errors_message = " ".join(
+                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                )
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
             else:
                 await self.task_service.complete_task(task, user)
-                return "Обучаемый успешно выполнил задание"
+                stage = await self.transition_service.check_stage_tasks_completed(user, 4)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
         else:
-            return "Задание не найдено, продолжайте выполнение работы"
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
 
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
         try:
-            kb_interval = self.interval_service.handle_syntax_mistakes(user_id, data)
+            kb_interval = await self.interval_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        self.add_interval_to_cash(kb_interval, user_id)
+        # self.add_interval_to_cash(kb_interval, user_id)
 
     @authorized_method
     async def handle_kb_interval_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
 
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -579,35 +605,38 @@ class ATTutoringKBSkills(ATComponent):
 
         if task:
             errors_list = None
-            errors_list = self.rule_service.handle_logic_lexic_mistakes(user, task, kb_rule, rule_et)
+            errors_list = await self.rule_service.handle_logic_lexic_mistakes(user, task, kb_rule, rule_et)
             if errors_list:
-                return errors_list
+                serialized_errors = [error.model_dump() for error in errors_list]
+                errors_message = " ".join(
+                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                )
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
             else:
                 await self.task_service.complete_task(task, user)
-                return "Обучаемый успешно выполнил задание"
+                stage = await self.transition_service.check_stage_tasks_completed(user, 5)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
         else:
-            return "Задание не найдено, продолжайте выполнение работы"
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
 
     @authorized_method
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
         try:
-            kb_rule = self.rule_service.handle_syntax_mistakes(user_id, data)
+            kb_rule = await self.rule_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
-        self.add_rule_to_cash(kb_rule, user_id)
+        # self.add_rule_to_cash(kb_rule, user_id)
 
     @authorized_method
     async def handle_kb_rule_deleted(self, event: str, data: dict, auth_token: str):
-        user_id = self.get_user_id_or_token(self, auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 
         rule_dict_raw = data.get("result")
         rule_id = rule_dict_raw.get("itemId")
-
-        self.remove_rule_from_cash(rule_id, user_id)

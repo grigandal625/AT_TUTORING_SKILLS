@@ -514,7 +514,77 @@ class SimulationService(ATComponent):
         
 #         raise KeyError(f"Element with {search_key}='{key_value}' not found in array '{array_name}'.")
 
+    #   =============================    Template   ================================
+    def handle_template(self, event: str, data: dict, auth_token: int):
+        print("Обучаемый отредактировал образец операции (ИМ): ", data)
+        user_id = self.get_user_id_or_token(auth_token)
+        try:
+            template = TemplateService.handle_syntax_mistakes(user_id, data)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Template Created: Syntax Mistakes: {e}") from e
 
-#     # Методы для получения Name по id
-#     def get_im_resourceType_name_by_id(self, id: str, auth_token: str):
-#         return self.get_smth_val_by_key('im_resourceTypes', 'typeId', 'Name', id, auth_token)
+        try:
+            TemplateService.handle_logic_mistakes(user_id, template)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Template Created: Logic Mistakes: {e}") from e
+
+        try:
+            TemplateService.handle_lexic_mistakes(user_id, template)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Template Created: Lexic Mistakes: {e}") from e
+
+        try:
+            ITaskService.complete_task(user_id, event, template.id)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Template Created: Complete Task: {e}") from e
+
+    #   ============================= Template Usage ================================
+    def handle_template_usage(self, event: str, data: dict, auth_token: int):
+        print("Обучаемый отредактировал тип ресурса (ИМ): ", data)
+        user_id = self.get_user_id_or_token(self, auth_token)
+        try:
+            template_usage = TemplateUsageService.handle_syntax_mistakes(user_id, data)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Template Usage Created: Syntax Mistakes: {e}") from e
+
+        try:
+            TemplateUsageService.handle_logic_mistakes(user_id, template_usage)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Template Usage Created: Logic Mistakes: {e}") from e
+
+        try:
+            TemplateUsageService.handle_lexic_mistakes(user_id, template_usage)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Template Usage Created: Lexic Mistakes: {e}") from e
+
+        try:
+            ITaskService.complete_task(user_id, event, template_usage.id)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Template Usage Created: Complete Task: {e}") from e
+
+    #   ============================= Function =====================================
+    @authorized_method
+    async def handle_function(self, event: str, data: dict, auth_token: int):
+        print("Обучаемый отредактировал функцию (ИМ): ", data)
+        user_id = await self.get_user_id_or_token(auth_token)
+        user, created = await self.create_user(user_id)
+
+        try:
+            function = await self.function_service.handle_syntax_mistakes(user_id, data)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Function Created: Syntax Mistakes: {e}") from e
+
+        try:
+            await self.function_service.handle_logic_mistakes(user_id, function)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Function Created: Logic Mistakes: {e}") from e
+
+        try:
+            await self.function_service.handle_lexic_mistakes(user_id, function)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Function Created: Lexic Mistakes: {e}") from e
+
+        try:
+            ITaskService.complete_task(user_id, event, function.id)
+        except BaseException as e:
+            raise ValueError(f"Handle IM Function Created: Complete Task: {e}") from e

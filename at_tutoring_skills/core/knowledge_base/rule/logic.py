@@ -1,6 +1,14 @@
+from typing import List
+from typing import Optional
 from typing import TYPE_CHECKING
 
 from at_krl.core.kb_rule import KBRule
+
+from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import User
+from at_tutoring_skills.core.errors.context import Context
+from at_tutoring_skills.core.errors.models import CommonMistake
+from at_tutoring_skills.core.task.service import TaskService
 
 
 if TYPE_CHECKING:
@@ -8,27 +16,27 @@ if TYPE_CHECKING:
 
 
 class KBRuleServiceLogicLexic:
-    def process_tip(self, exception: str) -> str:
+    def estimate_rule(self, exception: str) -> str:
         ...
 
-    def handle_logic_lexic_mistakes(self: "KBRuleService", user_id: int, data: dict) -> KBRule:
-        ...
-        # serializer = KBClassDataSerializer(data=data["args"])
-        # try:
-        #     serializer.IsValid(raise_exception=True)
-        #     return serializer.Save()
-        # except BaseException as e:
-        #     syntax_mistakes: list[CommonMistake] = []
-        #     for exception in e.detail:
-        #         syntax_mistakes.append(
-        #             to_logic_mistake(
-        #                 user_id,
-        #                 None,
-        #                 self.process_tip(exception),
-        #             )
-        #         )
+    async def handle_logic_lexic_mistakes(
+        self: "KBRuleService", user: User, task: Task, obj: KBRule, obj_et: KBRule
+    ) -> Optional[List[CommonMistake]]:
+        """Обрабатывает логические и лексические ошибки в объекте."""
+        user_id = user.user_id
+        task_id = task.pk
+        context = Context(parent=None, name=f"Объект {obj_et.id}")
 
-        #     for syntax_mistake in syntax_mistakes:
-        #         self.repository.create_mistake(syntax_mistake)
+        # errors_list = self.estimate_rule(user_id, task_id, obj, obj_et, context)
+        errors_list = []
 
-        #     raise e
+        if errors_list:
+            service = TaskService()
+            for mistake in errors_list:
+                if isinstance(mistake, CommonMistake):
+                    await service.append_mistake(mistake)
+
+            await service.increment_taskuser_attempts(task, user)
+            return errors_list
+
+        return None

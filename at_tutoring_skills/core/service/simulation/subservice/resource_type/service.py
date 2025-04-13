@@ -1,20 +1,17 @@
 from typing import List
 
-from at_tutoring_skills.apps.skills.models import Task
-from at_tutoring_skills.core.errors.models import CommonMistake
-
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-
 from at_tutoring_skills.core.errors.conversions import to_lexic_mistake
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
-
+from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import ITaskService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
     ResourceTypeAttributeRequest,
-    ResourceTypeRequest,
 )
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
 from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 from at_tutoring_skills.core.task.service import TaskService
 
@@ -32,11 +29,7 @@ class ResourceTypeService:
         self._task_service = task_service
         self.main_task_service = TaskService()
 
-    async def handle_syntax_mistakes(
-            self, 
-            user_id: int, 
-            data: dict
-        ) -> ResourceTypeRequest:
+    async def handle_syntax_mistakes(self, user_id: int, data: dict) -> ResourceTypeRequest:
         result = pydantic_mistakes(
             user_id=user_id,
             raw_request=data["args"]["resourceType"],
@@ -56,7 +49,6 @@ class ResourceTypeService:
             raise ValueError("Handle resource type: syntax mistakes")
 
         raise TypeError("Handle resource type: unexpected result")
-
 
     async def handle_logic_mistakes(
         self,

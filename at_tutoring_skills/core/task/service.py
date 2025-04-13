@@ -12,6 +12,7 @@ from at_krl.models.kb_type import KBSymbolicTypeModel
 from at_krl.models.temporal.allen_event import KBEventModel
 from at_krl.models.temporal.allen_interval import KBIntervalModel
 from at_krl.utils.context import Context as ATKRLContext
+from django.db import DatabaseError
 from django.db import models
 from django.db import transaction
 from pydantic import RootModel
@@ -24,8 +25,10 @@ from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.apps.skills.models import UserSkill
 from at_tutoring_skills.core.errors.models import CommonMistake
-from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest, FunctionRequest
-from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceAttributeRequest, ResourceRequest
+from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest
+from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionRequest
+from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceAttributeRequest
+from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceRequest
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
     ResourceTypeAttributeRequest,
 )
@@ -91,7 +94,6 @@ class KBIMServise:
         return ResourceTypeRequest(
             id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
         )
-
 
     async def get_resource_reference(self, task: Task):
         if isinstance(task.object_reference, str):
@@ -210,7 +212,6 @@ class KBIMServise:
     async def get_template_usage_reference(self, task: Task):
         ...
 
-
     async def get_function_reference(self, task: Task):
         if isinstance(task.object_reference, str):
             reference_data = json.loads(task.object_reference)
@@ -288,10 +289,9 @@ class TaskService(KBTaskService, KBIMServise):
             logger.error(f"Multiple tasks found: {object_name}, {task_object}")
             return None
 
-    @sync_to_async
-    def append_mistake(self, mistake: CommonMistake) -> bool:
+    async def append_mistake(self, mistake: CommonMistake) -> bool:
         """
-        Сохраняет ошибку в базу (асинхронная обёртка для Django <5.0)
+        Асинхронно сохраняет ошибку в базу с использованием async-ORM Django
 
         Args:
             mistake: Объект ошибки CommonMistake
@@ -300,44 +300,48 @@ class TaskService(KBTaskService, KBIMServise):
             bool: True при успешном сохранении, False при ошибке
         """
         try:
-            with transaction.atomic():
-                user = User.objects.filter(user_id=mistake.user_id).first()
-                task = Task.objects.filter(pk=mistake.task_id).first()
+            # Для Django < 4.2 используем sync_to_async для транзакции
+            from asgiref.sync import sync_to_async
 
-                if not user:
-                    logger.warning(f"User {mistake.user_id} not found")
-                    return False
-                if type == "syntax":
-                    Mistake.objects.create(
-                        user=user,
-                        mistake_type=MISTAKE_TYPE_CHOICES.SYNTAX,
-                        task=task,
-                        fine=mistake.fine * mistake.coefficient,
-                        tip=mistake.tip,
-                        is_tip_shown=False,
-                    )
-                    return True
-                elif type == "logic":
-                    Mistake.objects.create(
-                        user=user,
-                        mistake_type=MISTAKE_TYPE_CHOICES.LOGIC,
-                        task=task,
-                        fine=mistake.fine * mistake.coefficient,
-                        tip=mistake.tip,
-                        is_tip_shown=False,
-                    )
-                    return True
-                elif type == "lexic":
-                    Mistake.objects.create(
-                        user=user,
-                        mistake_type=MISTAKE_TYPE_CHOICES.LEXIC,
-                        task=task,
-                        fine=mistake.fine * mistake.coefficient,
-                        tip=mistake.tip,
-                        is_tip_shown=False,
-                    )
+            @sync_to_async
+            def _create_mistake():
+                with transaction.atomic():
+                    user = User.objects.filter(user_id=mistake.user_id).first()
+                    if not user:
+                        logger.warning(f"User {mistake.user_id} not found")
+                        return False
+
+                    task = Task.objects.filter(pk=mistake.task_id).first() if mistake.task_id else None
+                    skills = Skill.objects.filter(code__in=mistake.skills) if mistake.skills else None
+
+                    mistake_data = {
+                        "user": user,
+                        "task": task,
+                        "fine": mistake.fine * mistake.coefficient,
+                        "tip": mistake.tip,
+                        "is_tip_shown": False,
+                    }
+
+                    if mistake.type == "syntax":
+                        new_mistake = Mistake.objects.create(mistake_type=MISTAKE_TYPE_CHOICES.SYNTAX, **mistake_data)
+                    elif mistake.type == "logic":
+                        new_mistake = Mistake.objects.create(mistake_type=MISTAKE_TYPE_CHOICES.LOGIC, **mistake_data)
+                    elif mistake.type == "lexic":
+                        new_mistake = Mistake.objects.create(mistake_type=MISTAKE_TYPE_CHOICES.LEXIC, **mistake_data)
+                    else:
+                        logger.warning(f"Unknown mistake type: {mistake.type}")
+                        return False
+
+                    if skills:
+                        new_mistake.skills.set(skills)
+
                     return True
 
+            return await _create_mistake()
+
+        except DatabaseError as e:
+            logger.error(f"Database error: {str(e)}")
+            return False
         except Exception as e:
             logger.error(f"Mistake save failed: {str(e)}")
             return False
@@ -510,3 +514,6 @@ class TaskService(KBTaskService, KBIMServise):
                 raise ValueError(f"Failed to create or get TaskUser: {str(e)}")
 
         return await _create_or_get_task_user()
+
+    # @sync_to_async
+    #     def _create_or_get_task_user():
