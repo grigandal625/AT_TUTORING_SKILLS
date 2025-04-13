@@ -1,8 +1,11 @@
-from typing import List, Union
+from typing import List
 from typing import Optional
 from typing import TYPE_CHECKING
+from typing import Union
 
 from at_krl.core.simple.simple_operation import SimpleOperation
+from at_krl.core.simple.simple_reference import SimpleReference
+from at_krl.core.simple.simple_value import SimpleValue
 from at_krl.core.temporal.allen_event import KBEvent
 
 from at_tutoring_skills.apps.skills.models import Task
@@ -10,10 +13,6 @@ from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.core.errors.context import Context
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.task.service import TaskService
-from at_krl.core.simple.simple_evaluatable import SimpleEvaluatable
-from at_krl.core.simple.simple_reference import SimpleReference
-from at_krl.core.simple.simple_operation import SimpleOperation
-from at_krl.core.simple.simple_value import SimpleValue
 
 if TYPE_CHECKING:
     from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
@@ -21,12 +20,15 @@ if TYPE_CHECKING:
 
 class KBEventServiceLogicLexic:
     def estimate_occurance_condition(
-        self, user_id: str, task_id: int, 
-        condition: Union[SimpleValue, SimpleReference, SimpleOperation], 
-        et_condition: Union[SimpleValue, SimpleReference, SimpleOperation], 
-        context : Context
+        self,
+        user_id: str,
+        task_id: int,
+        condition: Union[SimpleValue, SimpleReference, SimpleOperation],
+        et_condition: Union[SimpleValue, SimpleReference, SimpleOperation],
+        context: Context,
     ):
-        ...
+        errors = []
+        return errors
 
     def estimate_event(self, user_id: str, task_id: int, etalon_event: KBEvent, event: KBEvent, context: Context):
         print("Estimate event")
@@ -35,6 +37,7 @@ class KBEventServiceLogicLexic:
         check = self.estimate_occurance_condition(
             user_id, task_id, etalon_event.occurance_condition, event.occurance_condition, context
         )
+        return errors_list
 
     async def handle_logic_lexic_mistakes(
         self: "KBEventService", user: User, task: Task, event: KBEvent, event_et: KBEvent

@@ -12,6 +12,7 @@ from at_tutoring_skills.core.knowledge_base.object.service import KBObjectServic
 from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
 from at_tutoring_skills.core.task.service import TaskService
+from at_tutoring_skills.core.task.transitions import TransitionsService
 
 
 class ATTutoringKBSkills(ATComponent):
@@ -23,6 +24,7 @@ class ATTutoringKBSkills(ATComponent):
     event_service = None
     interval_service = None
     rule_service = None
+    transition_service = None
 
     def __init__(self, connection_parameters: ConnectionParameters, *args, **kwargs):
         super().__init__(connection_parameters, *args, **kwargs)
@@ -34,6 +36,7 @@ class ATTutoringKBSkills(ATComponent):
         self.event_service = KBEventService()
         self.interval_service = KBIntervalService()
         self.rule_service = KBRuleService()
+        self.transition_service = TransitionsService()
 
     def init_cash(self, auth_token_or_id: str):
         if auth_token_or_id not in self.cash:
@@ -193,7 +196,6 @@ class ATTutoringKBSkills(ATComponent):
         self.add_to_cash("kb_types", data, auth_token_or_id)
 
     def add_object_to_cash(self, data, auth_token_or_id):
-        
         self.add_to_cash("kb_objects", data, auth_token_or_id)
 
     def add_event_to_cash(self, data, auth_token_or_id):
@@ -335,12 +337,13 @@ class ATTutoringKBSkills(ATComponent):
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
             else:
                 await self.task_service.complete_task(task, user)
-                return "обучаемый успешно выполнил задание"
+                stage = await self.transition_service.check_stage_tasks_completed(user, 1)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
         else:
-            return "Задание не найдено,  продолжайте выполнение работы"
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
 
     @authorized_method
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):
@@ -424,12 +427,13 @@ class ATTutoringKBSkills(ATComponent):
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
             else:
                 await self.task_service.complete_task(task, user)
-                return "Обучаемый успешно выполнил задание"
+                stage = await self.transition_service.check_stage_tasks_completed(user, 2)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
         else:
-            return "Задание не найдено, продолжайте выполнение работы"
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
 
     @authorized_method
     async def handle_kb_object_deleted(self, event: str, data: dict, auth_token: str):
@@ -476,12 +480,13 @@ class ATTutoringKBSkills(ATComponent):
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
             else:
                 await self.task_service.complete_task(task, user)
-                return "Обучаемый успешно выполнил задание"
+                stage = await self.transition_service.check_stage_tasks_completed(user, 3)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
         else:
-            return "Задание не найдено, продолжайте выполнение работы"
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
 
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
@@ -540,12 +545,13 @@ class ATTutoringKBSkills(ATComponent):
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
             else:
                 await self.task_service.complete_task(task, user)
-                return "Обучаемый успешно выполнил задание"
+                stage = await self.transition_service.check_stage_tasks_completed(user, 4)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
         else:
-            return "Задание не найдено, продолжайте выполнение работы"
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
 
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
@@ -605,12 +611,13 @@ class ATTutoringKBSkills(ATComponent):
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
             else:
                 await self.task_service.complete_task(task, user)
-                return "Обучаемый успешно выполнил задание"
+                stage = await self.transition_service.check_stage_tasks_completed(user, 5)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
         else:
-            return "Задание не найдено, продолжайте выполнение работы"
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
 
     @authorized_method
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):
@@ -627,7 +634,7 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_rule_deleted(self, event: str, data: dict, auth_token: str):
-        user_id =  await self.get_user_id_or_token(auth_token)
+        user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
 

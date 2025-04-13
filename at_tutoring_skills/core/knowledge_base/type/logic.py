@@ -37,10 +37,9 @@ class KBTypeServiceLogicLexic:
                     tip=f"Введено меньше значений аттрибутов, чем требуется, в типе {type.id} \n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
-                    skills=[221]
+                    skills=[221],
                 )
             )
-
 
         for j in range(len(check_et)):
             for i in range(len(check)):
@@ -57,7 +56,7 @@ class KBTypeServiceLogicLexic:
                         tip=f"Введено неверное значение в атрибуте типа {type.id}: {check[i]}\n расположение: {place}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type="type",
-                        skills=[220]
+                        skills=[220],
                     )
                 )
 
@@ -86,7 +85,7 @@ class KBTypeServiceLogicLexic:
                     tip=f"Введено неверное значение ОТ в типе {type.id}\n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
-                    skills=[210]
+                    skills=[210],
                 )
             )
 
@@ -100,7 +99,7 @@ class KBTypeServiceLogicLexic:
                     tip=f"Введено неверное значение ДО в типе {type.id}\n расположение: {place}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
-                    skills=[210]
+                    skills=[210],
                 )
             )
 
@@ -127,7 +126,7 @@ class KBTypeServiceLogicLexic:
                         task_id=task_id,
                         tip=f"Отсутствует функция {mf.name}\n расположение: {place}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
-                        entity_type="type"
+                        entity_type="type",
                     )
                 )
 

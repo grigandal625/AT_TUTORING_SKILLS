@@ -3,11 +3,7 @@ from at_tutoring_skills.core.errors.models import CommonMistake
 
 
 def to_syntax_mistake(
-    user_id: int,
-    tip: str,
-    coefficients: Coefficients,
-    entity_type: str,
-    skills: list[int] = None
+    user_id: int, tip: str, coefficients: Coefficients, entity_type: str, skills: list[int] = None
 ) -> CommonMistake:
     skills = skills or []
     return CommonMistake(
@@ -18,17 +14,12 @@ def to_syntax_mistake(
         coefficient=coefficients.entity_fines[entity_type],
         tip=tip,
         is_tip_shown=False,
-        skills = skills,
+        skills=skills,
     )
 
 
 def to_logic_mistake(
-    user_id: int,
-    task_id: int,
-    tip: str,
-    coefficients: Coefficients,
-    entity_type: str,
-    skills: list[int] = None
+    user_id: int, task_id: int, tip: str, coefficients: Coefficients, entity_type: str, skills: list[int] = None
 ) -> CommonMistake:
     skills = skills or []
     return CommonMistake(
@@ -39,17 +30,12 @@ def to_logic_mistake(
         coefficient=coefficients.entity_fines[entity_type],
         tip=tip,
         is_tip_shown=False,
-        skills = skills,
+        skills=skills,
     )
 
 
 def to_lexic_mistake(
-    user_id: int,
-    task_id: int,
-    tip: str,
-    coefficients: Coefficients,
-    entity_type: str,
-    skills: list[int] = None
+    user_id: int, task_id: int, tip: str, coefficients: Coefficients, entity_type: str, skills: list[int] = None
 ) -> CommonMistake:
     skills = skills or []
     return CommonMistake(
@@ -60,5 +46,5 @@ def to_lexic_mistake(
         coefficient=coefficients.entity_fines[entity_type],
         tip=tip,
         is_tip_shown=False,
-        skills = skills,
+        skills=skills,
     )

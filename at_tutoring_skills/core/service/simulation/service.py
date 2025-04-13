@@ -190,7 +190,7 @@ class SimulationService(ATComponent):
     #   ============================= Template Usage ================================
     def handle_template_usage(self, event: str, data: dict, auth_token: int):
         print("Обучаемый отредактировал тип ресурса (ИМ): ", data)
-        user_id = self.get_user_id_or_token(self, user_id)
+        user_id = self.get_user_id_or_token(self, auth_token)
         try:
             template_usage = TemplateUsageService.handle_syntax_mistakes(user_id, data)
         except BaseException as e:

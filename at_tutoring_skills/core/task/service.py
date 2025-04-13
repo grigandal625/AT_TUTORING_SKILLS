@@ -11,13 +11,10 @@ from at_krl.models.kb_type import KBSymbolicTypeModel
 from at_krl.models.temporal.allen_event import KBEventModel
 from at_krl.models.temporal.allen_interval import KBIntervalModel
 from at_krl.utils.context import Context as ATKRLContext
+from django.db import DatabaseError
 from django.db import models
 from django.db import transaction
 from pydantic import RootModel
-
-from asgiref.sync import sync_to_async
-
-from django.db import DatabaseError
 
 from at_tutoring_skills.apps.mistakes.models import Mistake
 from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES
@@ -165,22 +162,20 @@ class TaskService(KBTaskService, KBIMServise):
             logger.error(f"Multiple tasks found: {object_name}, {task_object}")
             return None
 
-
-
     async def append_mistake(self, mistake: CommonMistake) -> bool:
         """
         Асинхронно сохраняет ошибку в базу с использованием async-ORM Django
-        
+
         Args:
             mistake: Объект ошибки CommonMistake
-            
+
         Returns:
             bool: True при успешном сохранении, False при ошибке
         """
         try:
             # Для Django < 4.2 используем sync_to_async для транзакции
             from asgiref.sync import sync_to_async
-            
+
             @sync_to_async
             def _create_mistake():
                 with transaction.atomic():
@@ -193,35 +188,26 @@ class TaskService(KBTaskService, KBIMServise):
                     skills = Skill.objects.filter(code__in=mistake.skills) if mistake.skills else None
 
                     mistake_data = {
-                        'user': user,
-                        'task': task,
-                        'fine': mistake.fine * mistake.coefficient,
-                        'tip': mistake.tip,
-                        'is_tip_shown': False
+                        "user": user,
+                        "task": task,
+                        "fine": mistake.fine * mistake.coefficient,
+                        "tip": mistake.tip,
+                        "is_tip_shown": False,
                     }
 
                     if mistake.type == "syntax":
-                        new_mistake = Mistake.objects.create(
-                            mistake_type=MISTAKE_TYPE_CHOICES.SYNTAX,
-                            **mistake_data
-                        )
+                        new_mistake = Mistake.objects.create(mistake_type=MISTAKE_TYPE_CHOICES.SYNTAX, **mistake_data)
                     elif mistake.type == "logic":
-                        new_mistake = Mistake.objects.create(
-                            mistake_type=MISTAKE_TYPE_CHOICES.LOGIC,
-                            **mistake_data
-                        )
+                        new_mistake = Mistake.objects.create(mistake_type=MISTAKE_TYPE_CHOICES.LOGIC, **mistake_data)
                     elif mistake.type == "lexic":
-                        new_mistake = Mistake.objects.create(
-                            mistake_type=MISTAKE_TYPE_CHOICES.LEXIC,
-                            **mistake_data
-                        )
+                        new_mistake = Mistake.objects.create(mistake_type=MISTAKE_TYPE_CHOICES.LEXIC, **mistake_data)
                     else:
                         logger.warning(f"Unknown mistake type: {mistake.type}")
                         return False
 
                     if skills:
                         new_mistake.skills.set(skills)
-                    
+
                     return True
 
             return await _create_mistake()
@@ -402,7 +388,5 @@ class TaskService(KBTaskService, KBIMServise):
 
         return await _create_or_get_task_user()
 
-
     # @sync_to_async
     #     def _create_or_get_task_user():
-        

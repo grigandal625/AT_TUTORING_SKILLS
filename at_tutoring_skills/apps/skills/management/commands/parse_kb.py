@@ -9,24 +9,26 @@ from at_krl.core.temporal.allen_event import KBEvent
 from at_krl.core.temporal.allen_interval import KBInterval
 from django.core.management.base import BaseCommand
 
-from at_tutoring_skills.apps.skills.models import GROUP_CHOICES
-from at_tutoring_skills.apps.skills.models import Skill
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+
 logger = logging.getLogger(__name__)
 
-'''
+"""
 записать содержимое формата kbs в txt и поменять имя файла в file_name
 экспорт в корневую папку, файл :generated_tasks.json
-'''
+"""
+
+
 class Command(BaseCommand):
     help = "Заполняет базу данных из JSON файлов и KRL текста"
 
     def handle(self, *args, **options):
-
         try:
             text = None
             file_name = "TrafficAccidentsKB_test.txt"
-            with open(f'at_tutoring_skills/apps/skills/management/commands/{file_name}.txt', "r", encoding="utf-8") as f:
+            with open(
+                f"at_tutoring_skills/apps/skills/management/commands/{file_name}.txt", "r", encoding="utf-8"
+            ) as f:
                 text = f.read()
             kb = self.get_knowledge_base(text)
             json_file = self.generate_tasks_json(kb)
@@ -80,5 +82,3 @@ class Command(BaseCommand):
             with open(filename, "w", encoding="utf-8") as f:
                 json.dump(tasks, f, indent=4, ensure_ascii=False)
         return filename
-
-

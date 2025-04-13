@@ -60,13 +60,12 @@ class KBObjectServiceLogicLexic:
         for property_et in obj_et.properties:
             min_distance = 100
             found = False
-            closest_property = None
 
             for prop in obj.properties:
                 distance = levenshtein_distance(prop.id, property_et.id)
                 if distance < min_distance:
                     min_distance = distance
-                    closest_property = prop
+
                 if distance == 0:
                     found = True
                     # Проверка значения свойства
@@ -80,7 +79,7 @@ class KBObjectServiceLogicLexic:
                                 tip=f"Неверный тип атрибута '{property_et.id}'. Ожидалось: {property_et.type.id}, получено: {prop.type.id}\nрасположение: {place}",
                                 coefficients=KNOWLEDGE_COEFFICIENTS,
                                 entity_type="object",
-                                skills=[300, 302]
+                                skills=[300, 302],
                             )
                         )
                     break
@@ -97,7 +96,7 @@ class KBObjectServiceLogicLexic:
                             tip=f"Отсутствует атрибут '{property_et.id}'\nрасположение: {place}",
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="object",
-                            skills=[300, 301]
+                            skills=[300, 301],
                         )
                     )
 

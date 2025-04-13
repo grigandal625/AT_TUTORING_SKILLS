@@ -63,4 +63,5 @@ class TaskUser(models.Model):
 class UserSkill(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
+    mark = models.FloatField(default=100)
     is_completed = models.BooleanField(default=False)
