@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Sequence
 
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.models import CommonMistake
