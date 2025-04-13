@@ -3,6 +3,7 @@ import logging
 import os
 
 from at_queue.core.session import ConnectionParameters
+from django.core import management
 from uvicorn import Config
 from uvicorn import Server
 
@@ -114,4 +115,6 @@ async def main_with_django():
 
 
 if __name__ == "__main__":
+    management.call_command("migrate")
+    management.call_command("importkb")
     asyncio.run(main_with_django())

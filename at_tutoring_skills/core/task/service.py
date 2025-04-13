@@ -24,8 +24,10 @@ from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.apps.skills.models import UserSkill
 from at_tutoring_skills.core.errors.models import CommonMistake
-from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest, FunctionRequest
-from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceAttributeRequest, ResourceRequest
+from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest
+from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionRequest
+from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceAttributeRequest
+from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceRequest
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
     ResourceTypeAttributeRequest,
 )
@@ -91,7 +93,6 @@ class KBIMServise:
             id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
         )
 
-
     async def get_resource_reference(self, task: Task):
         if isinstance(task.object_reference, str):
             reference_data = json.loads(task.object_reference)
@@ -108,14 +109,11 @@ class KBIMServise:
             id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
         )
 
-
     async def get_template_reference(self, task: Task):
         ...
 
-
     async def get_template_usage_reference(self, task: Task):
         ...
-
 
     async def get_function_reference(self, task: Task):
         if isinstance(task.object_reference, str):

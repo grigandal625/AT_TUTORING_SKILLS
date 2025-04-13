@@ -1,8 +1,11 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import List
+from typing import Optional
+from typing import TYPE_CHECKING
 
 from at_krl.core.kb_rule import KBRule
 
-from at_tutoring_skills.apps.skills.models import Task, User
+from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.core.errors.context import Context
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.task.service import TaskService
@@ -15,7 +18,6 @@ if TYPE_CHECKING:
 class KBRuleServiceLogicLexic:
     def estimate_rule(self, exception: str) -> str:
         ...
-
 
     async def handle_logic_lexic_mistakes(
         self: "KBRuleService", user: User, task: Task, obj: KBRule, obj_et: KBRule
@@ -38,4 +40,3 @@ class KBRuleServiceLogicLexic:
             return errors_list
 
         return None
-

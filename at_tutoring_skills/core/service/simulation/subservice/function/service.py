@@ -1,23 +1,18 @@
-from typing import List, Sequence
-
-from at_tutoring_skills.apps.skills.models import Task
-from at_tutoring_skills.core.errors.models import CommonMistake
+from typing import List
+from typing import Sequence
 
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-
-from at_tutoring_skills.core.errors.conversions import to_lexic_mistake
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
-
+from at_tutoring_skills.core.errors.models import CommonMistake
+from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest
+from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionRequest
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import ITaskService
-from at_tutoring_skills.core.service.simulation.subservice.function.models.models import (
-    FunctionParameterRequest,
-    FunctionRequest,
-)
-from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
 from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 from at_tutoring_skills.core.task.service import TaskService
+
 
 class FunctionService:
     mistake_service = None
@@ -32,11 +27,7 @@ class FunctionService:
         self._task_service = task_service
         self.main_task_service = TaskService()
 
-    async def handle_syntax_mistakes(
-        self, 
-        user_id: int, 
-        data: dict
-        ) -> FunctionRequest:
+    async def handle_syntax_mistakes(self, user_id: int, data: dict) -> FunctionRequest:
         result = pydantic_mistakes(
             user_id=user_id,
             raw_request=data["args"]["func"],
@@ -57,16 +48,13 @@ class FunctionService:
 
         raise TypeError("Handle function: unexpected result")
 
-
     async def handle_logic_mistakes(
         self,
         user_id: int,
         function: FunctionRequest,
     ) -> None:
         try:
-            task: Task = await self.main_task_service.get_task_by_name(
-                function.name, SUBJECT_CHOICES.SIMULATION_FUNCS 
-            )
+            task: Task = await self.main_task_service.get_task_by_name(function.name, SUBJECT_CHOICES.SIMULATION_FUNCS)
             task_id = task.pk
             object_reference = await self.main_task_service.get_function_reference(task)
 
@@ -96,14 +84,11 @@ class FunctionService:
         function: FunctionRequest,
     ) -> None:
         try:
-            task: Task = await self.main_task_service.get_task_by_name(
-                function.name, SUBJECT_CHOICES.SIMULATION_FUNCS 
-            )
+            task: Task = await self.main_task_service.get_task_by_name(function.name, SUBJECT_CHOICES.SIMULATION_FUNCS)
             task_id = task.pk
             object_reference = await self.main_task_service.get_function_reference(task)
 
             print("Данные object reference, полученные для сравнения: ", object_reference)
-
 
         except ValueError:  # NotFoundError
             return
