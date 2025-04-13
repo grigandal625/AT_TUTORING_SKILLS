@@ -39,41 +39,7 @@ class KBIntervalServiceLogicLexic:  # Изменено с KBEventServiceLogicLex
 
         # value значение
 
-    def get_various_references(
-        condition: Union[
-            SimpleValue,
-            SimpleReference,
-            SimpleOperation,
-            AllenOperation,
-        ],
-        iterations: int,
-    ):
-        variations = []
 
-        if isinstance(condition, SimpleOperation):
-            # коммутативность
-            if condition.sign in {"eq", "ne", "add", "mul", "and", "or", "xor"}:
-                variations.append(SimpleOperation(sign=condition.sign, left=condition.right, right=condition.left))
-
-            # ассоциативность
-            if condition.sign in {"add", "mul", "and", "or", "xor"}:
-                if isinstance(condition.left, SimpleOperation):
-                    if condition.left.sign == condition.sign:
-                        op = SimpleOperation(sign=condition.left.sign, left=condition.left.left, right=condition.right)
-                        variations.append(SimpleOperation(sign=condition.sign, right=condition.left.right, left=op))
-
-                        op = SimpleOperation(sign=condition.left.sign, left=condition.right, right=condition.left.right)
-                        variations.append(SimpleOperation(sign=condition.sign, right=condition.left.right, left=op))
-
-                if isinstance(condition.right, SimpleOperation):
-                    if condition.right.sign == condition.sign:
-                        op = SimpleOperation(
-                            sign=condition.right.sign, left=condition.right.right, right=condition.left
-                        )
-                        variations.append(SimpleOperation(sign=condition.sign, left=condition.right.right, right=op))
-
-                        op = SimpleOperation(sign=condition.right.sign, left=condition.right.left, right=condition.left)
-                        variations.append(SimpleOperation(sign=condition.sign, left=condition.right.left, right=op))
             # дистрибутивность правая
             # if condition.sign in {'mul'}:
             #     if isinstance(condition.right, SimpleOperation):
@@ -101,7 +67,7 @@ class KBIntervalServiceLogicLexic:  # Изменено с KBEventServiceLogicLex
         # "oi": {"inversion": "o"},
         # "e": {"event_event": True, "inversion": "e"},
         # "a":{"interval_interval": False, "event_interval": True, "inversion": "b"}
-        return variations
+
 
     def estimate_interval(
         self, user_id: str, task_id: int, etalon_interval: KBInterval, interval: KBInterval, context: Context
