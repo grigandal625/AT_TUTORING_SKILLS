@@ -5,17 +5,17 @@ from at_krl.core.simple.simple_reference import SimpleReference
 from at_krl.core.simple.simple_value import SimpleValue
 from at_krl.core.temporal.allen_operation import AllenOperation
 from at_krl.core.temporal.allen_reference import AllenReference
-
+from at_krl.core.kb_operation import KBOperation
 from at_tutoring_skills.core.knowledge_base.condition.reference_variations import ReferenceVariationsService
 
 
 class CompareConditionsService(ReferenceVariationsService):
     def find_most_similar(
         self,
-        condition: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation],
-        variations: List[Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation]],
+        condition: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation],
+        variations: List[Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation]],
         weights: Dict[str, float] = {'structure': 0.6, 'variables': 0.3, 'constants': 0.1}
-    ) -> Tuple[Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation], float]:
+    ) -> Tuple[Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation], float]:
         """
         Находит наиболее похожее выражение из variations на condition
         
@@ -56,8 +56,8 @@ class CompareConditionsService(ReferenceVariationsService):
 
     def _calculate_similarity(
         self,
-        expr1: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation],
-        expr2: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation],
+        expr1: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation],
+        expr2: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation],
         weights: Dict[str, float]
     ) -> float:
         """
@@ -83,8 +83,8 @@ class CompareConditionsService(ReferenceVariationsService):
 
     def _structural_similarity(
         self,
-        expr1: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation],
-        expr2: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation]
+        expr1: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation],
+        expr2: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation]
     ) -> float:
         """
         Вычисляет схожесть структуры выражений (0-1)
@@ -108,7 +108,7 @@ class CompareConditionsService(ReferenceVariationsService):
                 return 0.0
             return 1.0 if expr1.left.id == expr2.left.id and expr1.right.id == expr2.right.id else 0.0
         
-        if isinstance(expr1, SimpleOperation):
+        if isinstance(expr1, (SimpleOperation, KBOperation)):
             if expr1.sign != expr2.sign:
                 return 0.0
             
@@ -121,8 +121,8 @@ class CompareConditionsService(ReferenceVariationsService):
 
     def _variables_similarity(
         self,
-        expr1: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation],
-        expr2: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation]
+        expr1: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation],
+        expr2: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation]
     ) -> float:
         """
         Вычисляет схожесть переменных в выражениях (0-1)
@@ -140,8 +140,8 @@ class CompareConditionsService(ReferenceVariationsService):
 
     def _constants_similarity(
         self,
-        expr1: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation],
-        expr2: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation]
+        expr1: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation],
+        expr2: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation]
     ) -> float:
         """
         Вычисляет схожесть констант в выражениях (0-1)
@@ -165,14 +165,14 @@ class CompareConditionsService(ReferenceVariationsService):
 
     def _extract_variables(
         self,
-        expr: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation]
+        expr: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation]
     ) -> Set[str]:
         """Извлекает все переменные из выражения"""
         variables = set()
         
         if isinstance(expr, (SimpleReference, AllenReference)):
             variables.add(expr.id)
-        elif isinstance(expr, (SimpleOperation, AllenOperation)):
+        elif isinstance(expr, (SimpleOperation, AllenOperation, KBOperation)):
             variables.update(self._extract_variables(expr.left))
             variables.update(self._extract_variables(expr.right))
         
@@ -180,14 +180,14 @@ class CompareConditionsService(ReferenceVariationsService):
 
     def _extract_constants(
         self,
-        expr: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation]
+        expr: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation]
     ) -> List[Union[int, float, str, bool]]:
         """Извлекает все константы из выражения"""
         constants = []
         
         if isinstance(expr, SimpleValue):
             constants.append(expr.content)
-        elif isinstance(expr, (SimpleOperation, AllenOperation)):
+        elif isinstance(expr, (SimpleOperation, AllenOperation, KBOperation)):
             constants.extend(self._extract_constants(expr.left))
             constants.extend(self._extract_constants(expr.right))
         
@@ -195,7 +195,7 @@ class CompareConditionsService(ReferenceVariationsService):
 
     def _get_expression_fingerprint(
         self,
-        expr: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation]
+        expr: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation]
     ) -> str:
         """
         Создает уникальный отпечаток выражения для быстрого сравнения
@@ -207,7 +207,7 @@ class CompareConditionsService(ReferenceVariationsService):
             return f"REF:{expr.id}{ref_part}"
         elif isinstance(expr, AllenOperation):
             return f"ALLEN:{expr.sign}({expr.left.id},{expr.right.id})"
-        elif isinstance(expr, SimpleOperation):
+        elif isinstance(expr, (SimpleOperation, KBOperation)):
             left = self._get_expression_fingerprint(expr.left)
             right = self._get_expression_fingerprint(expr.right)
             return f"OP:{expr.sign}({left},{right})"

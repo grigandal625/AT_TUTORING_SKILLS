@@ -246,5 +246,11 @@ class SkillsTestCase(TestCase):
             condition = kb_rule1.condition,
             max_depth = 5,
         ) 
-        # print(array)
-        print(len(array))
+        kb_rule1.condition = array[0]
+        
+        print(kb_rule1.krl) 
+        kb_rule1.condition = array[1]
+        
+        print(kb_rule1.krl) 
+
+        
