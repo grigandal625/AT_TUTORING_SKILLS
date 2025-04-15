@@ -317,6 +317,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        user, created= await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         try:
@@ -325,7 +327,7 @@ class ATTutoringKBSkills(ATComponent):
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         task: Task = await self.task_service.get_task_by_name(kb_type.id, 1)
-        await self.task_service.create_task_user_safe(task, user)
+        
 
         et_type = await self.task_service.get_type_reference(task)
         print(et_type)
@@ -351,6 +353,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
 
         try:
             kb_type = await self.type_service.handle_syntax_mistakes(user_id, data)
@@ -369,6 +373,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
 
         type_dict_raw = data.get("result")
         type_id = type_dict_raw.get("itemId")
@@ -386,6 +392,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
 
         try:
             kb_object = await self.object_service.handle_syntax_mistakes(user_id, data)
@@ -406,6 +414,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         try:
@@ -414,7 +424,7 @@ class ATTutoringKBSkills(ATComponent):
             raise ValueError(f"Handle KB Object Created: Syntax Mistakes: {e}") from e
 
         task: Task = await self.task_service.get_task_by_name(kb_object.id, 2)
-        await self.task_service.create_task_user_safe(task, user)
+        # await self.task_service.create_task_user_safe(task, user)
 
         obj_et = await self.task_service.get_object_reference(task)
         print(obj_et)
@@ -440,6 +450,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
 
         object_dict_raw = data.get("result")
         object_id = object_dict_raw.get("itemId")
@@ -458,6 +470,9 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
+
         user_id = user.pk
 
         try:
@@ -468,7 +483,7 @@ class ATTutoringKBSkills(ATComponent):
         task: Task = await self.task_service.get_task_by_name(kb_event.id, 3)
 
         if task:
-            await self.task_service.create_task_user_safe(task, user)
+            # await self.task_service.create_task_user_safe(task, user)
 
             event_et = await self.task_service.get_event_reference(task)
             print(event_et)
@@ -493,6 +508,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
 
         try:
             kb_event = await self.event_service.handle_syntax_mistakes(user_id, data)
@@ -506,6 +523,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
 
         event_dict_raw = data.get("result")
         event_id = event_dict_raw.get("itemId")
@@ -525,6 +544,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         try:
@@ -534,7 +555,7 @@ class ATTutoringKBSkills(ATComponent):
 
         task: Task = await self.task_service.get_task_by_name(kb_interval.id, 4)
         if task:
-            await self.task_service.create_task_user_safe(task, user)
+            # await self.task_service.create_task_user_safe(task, user)
 
             interval_et = await self.task_service.get_interval_reference(task)
             print(interval_et)
@@ -558,6 +579,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
 
         try:
             kb_interval = await self.interval_service.handle_syntax_mistakes(user_id, data)
@@ -572,6 +595,8 @@ class ATTutoringKBSkills(ATComponent):
 
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
 
         interval_raw = data.get("result")
         interval_id = interval_raw.get("itemId")
@@ -590,6 +615,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         try:
@@ -598,7 +625,7 @@ class ATTutoringKBSkills(ATComponent):
             raise ValueError(f"Handle KB Rule Created: Syntax Mistakes: {e}") from e
 
         task: Task = await self.task_service.get_task_by_name(kb_rule.id, 5)
-        await self.task_service.create_task_user_safe(task, user)
+        # await self.task_service.create_task_user_safe(task, user)
 
         rule_et = await self.task_service.get_rule_reference(task)
         print(rule_et)
@@ -624,6 +651,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
 
         try:
             kb_rule = await self.rule_service.handle_syntax_mistakes(user_id, data)
@@ -637,6 +666,8 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
+        await self.task_service.asign_user_random_variant(user)
+        await self.task_service.create_task_user_entries(user)
 
         rule_dict_raw = data.get("result")
         rule_id = rule_dict_raw.get("itemId")

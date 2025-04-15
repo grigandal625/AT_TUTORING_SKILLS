@@ -1,5 +1,7 @@
-from typing import List
-from typing import Sequence
+from typing import List, Sequence
+
+from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.core.errors.models import CommonMistake
 
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
@@ -65,6 +67,8 @@ class FunctionService:
             return
 
         mistakes = self._params_logic_mistakes(
+            function,
+            object_reference,
             function.params,
             object_reference.params,
             user_id,
@@ -108,13 +112,53 @@ class FunctionService:
 
     def _params_logic_mistakes(
         self,
-        params: List[FunctionParameterRequest],
-        params_reference: List[FunctionParameterRequest],
+        function: FunctionRequest,
+        function_reference: FunctionRequest,
+        params: Sequence[FunctionParameterRequest],
+        params_reference: Sequence[FunctionParameterRequest],
         user_id: int,
         task_id: int,
     ) -> List[CommonMistake]:
         mistakes = []
         match_params_count = 0
+
+        print(f"Comparing function: provided={function.ret_type}, reference={function_reference.ret_type}")
+        if function.ret_type != function_reference.ret_type:
+            mistake = to_logic_mistake(
+                user_id=user_id,
+                task_id=task_id,
+                tip="Указан неправильный тип функции.",
+                coefficients=SIMULATION_COEFFICIENTS,
+                entity_type="function",
+            )
+            mistakes.append(mistake)
+            return mistakes
+        
+        print(f"Comparing function body: provided={function.body}, reference={function_reference.body}")
+
+        # Проверка, является ли body пустой строкой или строкой с пробелами
+        if not function.body.strip():
+            mistake = to_logic_mistake(
+                user_id=user_id,
+                task_id=task_id,
+                tip="Тело функции не может быть пустым.",
+                coefficients=SIMULATION_COEFFICIENTS,
+                entity_type="function",
+            )
+            mistakes.append(mistake)
+            return mistakes
+
+        # Проверка на совпадение с эталонным значением
+        if function.body != function_reference.body:
+            mistake = to_logic_mistake(
+                user_id=user_id,
+                task_id=task_id,
+                tip=f"Указано неверное тело функции. Ожидалось: '{function_reference.body}', получено: '{function.body}'.",
+                coefficients=SIMULATION_COEFFICIENTS,
+                entity_type="function",
+            )
+            mistakes.append(mistake)
+            return mistakes
 
         print(f"Comparing number of parameters: provided={len(params)}, reference={len(params_reference)}")
         if len(params) != len(params_reference):
@@ -136,15 +180,6 @@ class FunctionService:
             print(f"\nProcessing parameter: name={param.name}, type={param.type}, default_value={param.default_value}")
 
             if param.name not in params_reference_dict:
-                print(f"Unknown parameter: '{param.name}'")
-                mistake = to_logic_mistake(
-                    user_id=user_id,
-                    task_id=task_id,
-                    tip=f"Неизвестный параметр '{param.name}'.",
-                    coefficients=SIMULATION_COEFFICIENTS,
-                    entity_type="function",
-                )
-                mistakes.append(mistake)
                 continue
 
             param_reference = params_reference_dict[param.name]
@@ -160,22 +195,7 @@ class FunctionService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Недопустимый тип параметра '{param.name}'.",
-                    coefficients=SIMULATION_COEFFICIENTS,
-                    entity_type="function",
-                )
-                mistakes.append(mistake)
-                continue
-
-            # Проверка значения по умолчанию
-            if param.default_value != param_reference.default_value:
-                print(
-                    f"Default value mismatch for parameter '{param.name}': provided={param.default_value}, reference={param_reference.default_value}"
-                )
-                mistake = to_logic_mistake(
-                    user_id=user_id,
-                    task_id=task_id,
-                    tip=f"Недопустимое значение по умолчанию для параметра '{param.name}'.",
+                    tip=f"Недопустимый тип параметра {param.name}.",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="function",
                 )
@@ -197,7 +217,7 @@ class FunctionService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip=f"Отсутствует обязательный параметр '{param_name}'.",
+                tip=f"Отсутствует обязательный параметр {param_name}.",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="function",
             )
@@ -209,26 +229,51 @@ class FunctionService:
         self,
         params: Sequence[FunctionParameterRequest],
         params_reference: Sequence[FunctionParameterRequest],
+        user_id: int,
+        task_id: int,
     ) -> List[CommonMistake]:
         mistakes: List[CommonMistake] = []
-        match_attrs_count = 0
+
+        # Создаем словарь для быстрого доступа к эталонным параметрам
+        params_reference_dict = {param.name: param for param in params_reference}
+        print(f"Reference parameters dictionary: {params_reference_dict}")
 
         for param in params:
-            find_flag = False
+            print(f"\nProcessing parameter: name={param.name}, type={param.type}, default_value={param.default_value}")
+
+            if param.name in params_reference_dict:
+                continue  # Параметр совпадает с эталоном
+
             closest_match = None
+            min_distance = float("inf")
+
+            # Поиск ближайшего совпадения по расстоянию Левенштейна
             for param_reference in params_reference:
-                if param.name == param_reference.name:
-                    find_flag = True
-                    break
-                else:
-                    distance = self._levenshtein_distance(param.name, param_reference.name)
-                    if distance == 1:
-                        closest_match = param_reference.name
-                        mistake = CommonMistake(
-                            message=f"Parameters naming error.",
-                        )
-                        mistakes.append(mistake)
-                        break
+                distance = self._levenshtein_distance(param.name, param_reference.name)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_match = param_reference.name
+
+            if closest_match and min_distance <= 1:
+                mistake = to_lexic_mistake(
+                    user_id=user_id,
+                    task_id=task_id,
+                    tip=f"Ошибка в имени параметра: {param.name} не найден, но {closest_match} является ближайшим.",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="function",
+                )
+                mistakes.append(mistake)
+                print(f"Lexic mistake: Close match found for '{param.name}' -> '{closest_match}'")
+            else:
+                mistake = to_lexic_mistake(
+                    user_id=user_id,
+                    task_id=task_id,
+                    tip=f"Неизвестный параметр: {param.name} не найден.",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="function",
+                )
+                mistakes.append(mistake)
+                print(f"Lexic mistake: Unknown parameter '{param.name}'")
 
         return mistakes
 

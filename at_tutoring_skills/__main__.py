@@ -17,6 +17,8 @@ from at_tutoring_skills.core.service.simulation.service import SimulationService
 from at_tutoring_skills.core.service.simulation.subservice.function.service import FunctionService
 from at_tutoring_skills.core.service.simulation.subservice.resource.service import ResourceService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.service import ResourceTypeService
+from at_tutoring_skills.core.service.simulation.subservice.template.service import TemplateService
+from at_tutoring_skills.core.service.simulation.subservice.template_usage.service import TemplateUsageService
 
 
 def get_skills():
@@ -38,13 +40,10 @@ def get_skills():
     task_service = TaskService(mistake_service)
 
     resource_type_service = ResourceTypeService(mistake_service, task_service)
-    resource_service = ResourceService(mistake_service, task_service, resource_type_service)
-    template_service = ResourceTypeService(
-        mistake_service, task_service
-    )  # TemplateService(mistake_service, task_service)
-    template_usage_service = ResourceTypeService(
-        mistake_service, task_service
-    )  # TemplateUsageService(mistake_service, task_service)
+    resource_service = ResourceService(mistake_service, task_service)
+    template_service = TemplateService(mistake_service, task_service)
+    template_usage_service =  TemplateService(mistake_service, task_service)
+    # template_usage_service = TemplateUsageService(mistake_service, task_service)
     function_service = FunctionService(mistake_service, task_service)
 
     # Инициализация навыков
