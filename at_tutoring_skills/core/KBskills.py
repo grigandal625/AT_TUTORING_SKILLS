@@ -13,7 +13,7 @@ from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
 from at_tutoring_skills.core.task.service import TaskService
 from at_tutoring_skills.core.task.transitions import TransitionsService
-
+from urllib.parse import quote_plus
 
 class ATTutoringKBSkills(ATComponent):
     skills: dict = None
@@ -339,7 +339,9 @@ class ATTutoringKBSkills(ATComponent):
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
+                encoded_text = quote_plus(errors_message)
+
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False, 'url': encoded_text}
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 1)
@@ -437,7 +439,9 @@ class ATTutoringKBSkills(ATComponent):
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
+                encoded_text = quote_plus(errors_message)
+
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False, 'url': encoded_text}
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 2)
@@ -495,7 +499,9 @@ class ATTutoringKBSkills(ATComponent):
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
+                encoded_text = quote_plus(errors_message)
+
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False, 'url': encoded_text}
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 3)
@@ -566,7 +572,9 @@ class ATTutoringKBSkills(ATComponent):
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
+                encoded_text = quote_plus(errors_message)
+
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False, 'url': encoded_text}
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 4)
@@ -638,7 +646,9 @@ class ATTutoringKBSkills(ATComponent):
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
+                encoded_text = quote_plus(errors_message)
+
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False, 'url': encoded_text}
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 5)
