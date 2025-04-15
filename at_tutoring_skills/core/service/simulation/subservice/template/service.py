@@ -1,5 +1,6 @@
+import asyncio
 import json
-from typing import List, Union
+from typing import Dict, List, Union
 
 from jsonschema import ValidationError
 
@@ -33,6 +34,16 @@ class TemplateService:
         self._task_service = task_service
         self.main_task_service = TaskService()
 
+    
+    def _get_template_class(self, template_type: str):
+        type_to_class = {
+            "IRREGULAR_EVENT": IrregularEventRequest,
+            "RULE": RuleRequest,
+            "OPERATION": OperationRequest,
+        }
+        return type_to_class.get(template_type)
+
+
     async def handle_syntax_mistakes(
             self, 
             user_id: int, 
@@ -63,50 +74,57 @@ class TemplateService:
         self,
         user_id: int,
         template: Union[IrregularEventRequest, RuleRequest, OperationRequest],
-        resource_type: str,
+        resource_data: List[Dict[str, str]],
     ) -> None:
-        """
-        Обработка логических ошибок.
-        """
         try:
-            try:
-                if isinstance(resource_type, str):
-                    # Если resource_type — строка, пытаемся разобрать её как JSON
-                    resource_type_data = json.loads(resource_type)
-                elif isinstance(resource_type, dict):
-                    # Если resource_type уже словарь, используем его напрямую
-                    resource_type_data = resource_type
-                else:
-                    raise ValueError("Некорректный тип данных для resource_type. Ожидалась строка или словарь.")
-
-                # Создаем объект ResourceTypeRequest
-                resource_type_obj = ResourceTypeRequest(**resource_type_data)
-            except (json.JSONDecodeError, ValidationError) as e:
-                print(f"Ошибка при преобразовании resource_type: {e}")
-                return
-            
             task: Task = await self.main_task_service.get_task_by_name(
                 template.meta.name, SUBJECT_CHOICES.SIMULATION_TEMPLATES
             )
-
             task_id = task.pk
             object_reference = await self.main_task_service.get_template_reference(task)
+            
             print("Данные object reference, полученные для сравнения: ", object_reference)
+        
         except ValueError:  # NotFoundError
-            print("Создан шаблон, не касающийся задания")
+            print("Создан образец операции, не касающийся задания")
             return
 
-        mistakes = self._attributes_logic_mistakes(
-            resource_type_obj,
+        mistakes: List[CommonMistake] = []
+
+        mistake = self._relevant_resources_logic_mistakes(
+            resource_data,
+            template,
+            object_reference.meta.rel_resources,
+            user_id,
+            task_id,)
+        if mistake:  # Добавляем только непустые ошибки
+            mistakes.extend(mistake)
+
+        if isinstance(template, IrregularEventRequest):
+            mistake = self._generator_logic_mistakes(
+                template,
+                object_reference,
+                user_id,
+                task_id,)
+            
+            if mistake:  # Добавляем только непустые ошибки
+                mistakes.extend(mistake)
+
+        mistake = self._body_logic_mistakes(
             template,
             object_reference,
             user_id,
-            task_id,
-        )
+            task_id,)
+        
+        if mistake:  # Добавляем только непустые ошибки
+            mistakes.extend(mistake)
+
         print("Найденные ошибки: ", mistakes)
+
         if len(mistakes) != 0:
             for mistake in mistakes:
                 await self.main_task_service.append_mistake(mistake)
+                
             return mistakes  # raise ValueError("Handle template: logic mistakes")
 
 
@@ -114,6 +132,7 @@ class TemplateService:
         self,
         user_id: int,
         template: Union[IrregularEventRequest, RuleRequest, OperationRequest],
+        resource_data: List[Dict[str, str]],
     ) -> None:
         """
         Обработка лексических ошибок.
@@ -124,67 +143,58 @@ class TemplateService:
             )
             task_id = task.pk
             object_reference = await self.main_task_service.get_template_reference(task)
+            
             print("Данные object reference, полученные для сравнения: ", object_reference)
+        
         except ValueError:  # NotFoundError
+            print("Создан образец операции, не касающийся задания")
             return
 
-        mistakes = self._attributes_lexic_mistakes(
-            template.meta.rel_resources,
+        mistakes = self._relevant_resources_lexic_mistakes(
+            resource_data,
+            template,
             object_reference.meta.rel_resources,
             user_id,
             task_id,
         )
+
+        print("Найденные ошибки: ", mistakes)
+
         if len(mistakes) != 0:
             for mistake in mistakes:
                 await self.main_task_service.append_mistake(mistake)
+            
             return mistakes  # raise ValueError("Handle template: lexic mistakes")
 
 
-    def _get_template_class(self, template_type: str):
-        """
-        Возвращает соответствующий класс Pydantic на основе типа шаблона.
-        """
-        type_to_class = {
-            "IRREGULAR_EVENT": IrregularEventRequest,
-            "RULE": RuleRequest,
-            "OPERATION": OperationRequest,
-        }
-        return type_to_class.get(template_type)
-
-
-
-    def _attributes_logic_mistakes(
+    def _relevant_resources_logic_mistakes(
         self,
-        resource_type: ResourceTypeRequest,
+        resource_data: List[Dict[str, str]],
         template: Union[IrregularEventRequest, RuleRequest, OperationRequest],
-        template_reference: Union[IrregularEventRequest, RuleRequest, OperationRequest],
+        rel_resources_reference: List[RelevantResourceRequest],
         user_id: int,
         task_id: int,
     ) -> List[CommonMistake]:
         """
-        Проверка логических ошибок в шаблоне.
+        Проверка логических ошибок в релевантных ресурсах
         """
         mistakes: List[CommonMistake] = []
         match_attrs_count = 0
 
-        print(f"Reference resource type: {resource_type.name}")
+        rel_resources = resource_data  # Список словарей
+        reference_dict = {res.name: res for res in rel_resources_reference}
 
-        if template.meta.type != template_reference.meta.type:
+        if resource_data is None:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip=f"Указан неправильный тип шаблона.",
+                tip="Данные релевантных ресурсов не были загружены.",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="template",
             )
             mistakes.append(mistake)
             return mistakes
-
-        # Сравнение связанных ресурсов
-        rel_resources = template.meta.rel_resources
-        rel_resources_reference = template_reference.meta.rel_resources
-        attrs_reference_dict = {attr.name: attr for attr in attrs_reference}
-       
+    
         if len(rel_resources) != len(rel_resources_reference):
             mistake = to_logic_mistake(
                 user_id=user_id,
@@ -194,61 +204,81 @@ class TemplateService:
                 entity_type="template",
             )
             mistakes.append(mistake)
+            return mistakes
 
-        # Создаем словарь для быстрого поиска эталонных ресурсов
-        rel_resources_reference_dict = {res.name: res for res in rel_resources_reference}
-        for res in rel_resources:
-            if res.name not in rel_resources_reference_dict:
-                continue
+        # resource - полученные данные
+        for resource in rel_resources:
+            resource_name = resource.get("name")
+            resource_type = resource.get("resource_type_str")
 
-            res_reference = rel_resources_reference_dict[res.name]
-            if res.resource_type_id != res_reference.resource_type_id:
-                mistake = to_logic_mistake(
-                    user_id=user_id,
-                    task_id=task_id,
-                    tip=f"Недопустимый resource_type_id для ресурса '{res.name}'.",
-                    coefficients=SIMULATION_COEFFICIENTS,
-                    entity_type="template",
-                )
-                mistakes.append(mistake)
+            for resource_reference in rel_resources_reference:
+                resource_name_reference = resource_reference.name
+                resource_type_reference = resource_reference.resource_type_id_str
 
-        # Сравнение тела шаблона
-        if isinstance(template, IrregularEventRequest):
-            if template.generator.type != template_reference.generator.type:
-                mistake = to_logic_mistake(
-                    user_id=user_id,
-                    task_id=task_id,
-                    tip=f"Недопустимый тип генератора.",
-                    coefficients=SIMULATION_COEFFICIENTS,
-                    entity_type="template",
-                )
-                mistakes.append(mistake)
+                if resource_name not in reference_dict:
+                    mistake = to_logic_mistake(
+                        user_id=user_id,
+                        task_id=task_id,
+                        tip=f"Введено имя релевантного ресурса {resource_name} не касающийся данного образца операции.",
+                        coefficients=SIMULATION_COEFFICIENTS,
+                        entity_type="template",
+                    )
+                    mistakes.append(mistake)
+                    continue
+                
+                if resource_name == resource_name_reference:
+                    # Сравниваем типы ресурсов
+                    if str(resource_type) != str(resource_type_reference):  # Преобразуем оба значения в строки
+                        mistake = to_logic_mistake(
+                            user_id=user_id,
+                            task_id=task_id,
+                            tip=f"Тип ресурса {resource_name} не совпадает с эталонным типом (ожидалось: {resource_type_reference}).",
+                            coefficients=SIMULATION_COEFFICIENTS,
+                            entity_type="template",
+                        )
+                        mistakes.append(mistake)
 
-            if template.generator.value != template_reference.generator.value:
-                mistake = to_logic_mistake(
-                    user_id=user_id,
-                    task_id=task_id,
-                    tip=f"Неверное значение генератора.",
-                    coefficients=SIMULATION_COEFFICIENTS,
-                    entity_type="template",
-                )
-                mistakes.append(mistake)
+        return mistakes
 
-            if template.generator.dispersion != template_reference.generator.dispersion:
-                mistake = to_logic_mistake(
-                    user_id=user_id,
-                    task_id=task_id,
-                    tip=f"Неверное значение дисперсии генератора.",
-                    coefficients=SIMULATION_COEFFICIENTS,
-                    entity_type="template",
-                )
-                mistakes.append(mistake)
+    
+    def _generator_logic_mistakes(
+        self,
+        template: IrregularEventRequest,
+        template_reference: IrregularEventRequest,
+        user_id: int,
+        task_id: int,
+    ) -> List[CommonMistake]:
+        mistakes: List[CommonMistake] = []
+        match_attrs_count = 0
 
-        if template.body != template_reference.body:
+        generator = template.generator
+        generator_reference = template_reference.generator
+
+        if generator.type != generator_reference.type:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip=f"Неверное тело шаблона.",
+                tip=f"Тип генератора {generator.type} не соответствует эталонному типу.",
+                coefficients=SIMULATION_COEFFICIENTS,
+                entity_type="template",
+            )
+            mistakes.append(mistake)
+
+        if generator.value != generator_reference.value:
+            mistake = to_logic_mistake(
+                user_id=user_id,
+                task_id=task_id,
+                tip=f"Значение генератора {generator.value} не соответствует эталонному значению.",
+                coefficients=SIMULATION_COEFFICIENTS,
+                entity_type="template",
+            )
+            mistakes.append(mistake)
+
+        if generator.dispersion != generator_reference.dispersion:
+            mistake = to_logic_mistake(
+                user_id=user_id,
+                task_id=task_id,
+                tip=f"Дисперсия генератора {generator.dispersion} не соответствует эталонной дисперсии.",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="template",
             )
@@ -256,51 +286,146 @@ class TemplateService:
 
         return mistakes
 
-    def _attributes_lexic_mistakes(
+
+    def _body_logic_mistakes(
         self,
-        rel_resources: List[RelevantResourceRequest],
-        rel_resources_reference: List[RelevantResourceRequest],
+        template: Union[IrregularEventRequest, RuleRequest, OperationRequest],
+        template_reference: Union[IrregularEventRequest, RuleRequest, OperationRequest],
         user_id: int,
         task_id: int,
     ) -> List[CommonMistake]:
         """
-        Проверка лексических ошибок в связанных ресурсах.
+        Проверка логических ошибок 
         """
-        mistakes = []
-        rel_resources_reference_dict = {res.name: res for res in rel_resources_reference}
+        mistakes: List[CommonMistake] = []
+        match_attrs_count = 0
 
-        for res in rel_resources:
-            if res.name in rel_resources_reference_dict:
-                continue
-
-            closest_match = None
-            min_distance = float("inf")
-            for res_reference in rel_resources_reference:
-                distance = self._levenshtein_distance(res.name, res_reference.name)
-                if distance < min_distance:
-                    min_distance = distance
-                    closest_match = res_reference.name
-
-            if closest_match and min_distance <= 1:
-                mistake = to_lexic_mistake(
+        # Для IrregularEventRequest
+        if isinstance(template, IrregularEventRequest):
+            if not template.body.body.strip():
+                mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Ошибка в имени ресурса: {res.name} не найден, но {closest_match} является ближайшим.",
+                    tip="Тело в образце операций пустое.",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
                 )
                 mistakes.append(mistake)
-            else:
-                mistake = to_lexic_mistake(
+
+        # Для RuleRequest
+        elif isinstance(template, RuleRequest):
+            if not template.body.condition.strip():
+                mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Неизвестный ресурс: {res.name} не найден.",
+                    tip="Условие в образце операций пустое.",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="template",
+                )
+                mistakes.append(mistake)
+
+            if not template.body.body.strip():
+                mistake = to_logic_mistake(
+                    user_id=user_id,
+                    task_id=task_id,
+                    tip="Тело в образце операций пустое.",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="template",
+                )
+                mistakes.append(mistake)
+
+        # Для OperationRequest
+        elif isinstance(template, OperationRequest):
+            if not template.body.condition.strip():
+                mistake = to_logic_mistake(
+                    user_id=user_id,
+                    task_id=task_id,
+                    tip="Условие в образце операций пустое.",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="template",
+                )
+                mistakes.append(mistake)
+
+            if template.body.delay != template_reference.body.delay :
+                mistake = to_logic_mistake(
+                    user_id=user_id,
+                    task_id=task_id,
+                    tip="неправильное указание длительности в образце перации.",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="template",
+                )
+                mistakes.append(mistake)
+                
+
+            if not template.body.body_before.strip():
+                mistake = to_logic_mistake(
+                    user_id=user_id,
+                    task_id=task_id,
+                    tip="Тело body_before в образце операций пустое.",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="template",
+                )
+                mistakes.append(mistake)
+
+            if not template.body.body_after.strip():
+                mistake = to_logic_mistake(
+                    user_id=user_id,
+                    task_id=task_id,
+                    tip="Тело body_after в образце операций пустое.",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
                 )
                 mistakes.append(mistake)
 
         return mistakes
+    
+
+    def _relevant_resources_lexic_mistakes(
+        self,
+        resource_data: List[Dict[str, str]],
+        template: Union[IrregularEventRequest, RuleRequest, OperationRequest],
+        rel_resources_reference: List[RelevantResourceRequest],
+        user_id: int,
+        task_id: int,
+    ) -> List[CommonMistake]:
+        """
+        Проверка лексических ошибок в релевантных ресурсах
+        """
+        mistakes: List[CommonMistake] = []
+        match_attrs_count = 0
+
+        rel_resources = resource_data  # Список словарей
+        reference_dict = {res.name: res for res in rel_resources_reference}
+
+        for resource in rel_resources:
+            resource_name = resource.get("name")
+
+            if resource_name in reference_dict:
+                continue
+
+            closest_match = None
+            min_distance = float("inf")
+            for resource_reference in rel_resources_reference:
+                distance = self._levenshtein_distance(resource_name, resource_reference.name)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_match = resource_reference.name
+
+
+            if closest_match and min_distance <= 1: 
+                mistake = to_lexic_mistake(
+                    user_id=user_id,
+                    task_id=task_id,
+                    tip=f"Ошибка в имени ресурса: '{resource_name}' не найден, но '{closest_match}' является ближайшим.",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="template",
+                )
+                mistakes.append(mistake)
+
+
+        return mistakes
+
+
 
     @staticmethod
     def _levenshtein_distance(s1: str, s2: str) -> int:
