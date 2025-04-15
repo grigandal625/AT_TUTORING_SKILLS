@@ -9,6 +9,7 @@ from uvicorn import Server
 
 from at_tutoring_skills.absolute.django_init import django_application
 from at_tutoring_skills.absolute.django_init import get_args
+from at_tutoring_skills.apps.skills.management.commands import importkb
 from at_tutoring_skills.core.KBskills import ATTutoringKBSkills
 from at_tutoring_skills.core.service.simulation.dependencies import MistakeService
 from at_tutoring_skills.core.service.simulation.dependencies import TaskService

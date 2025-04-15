@@ -13,9 +13,8 @@ class Command(BaseCommand):
     help = "Загружает данные из JSON файлов в базу данных"
 
     def handle(self, *args, **options):
-        data_dir = Path(
-            "C:/Users/Milana/at_marks/AT_TUTORING_SKILLS/at_tutoring_skills/apps/skills/management/commands/data"
-        )
+        commands_dir = Path(__file__).resolve().parent
+        data_dir = commands_dir / "data"
 
         with transaction.atomic():
             # 1. Загрузка всех навыков из единого файла

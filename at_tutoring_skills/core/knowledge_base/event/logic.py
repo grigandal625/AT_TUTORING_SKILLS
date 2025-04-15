@@ -12,6 +12,7 @@ from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.core.errors.context import Context
 from at_tutoring_skills.core.errors.models import CommonMistake
+from at_tutoring_skills.core.knowledge_base.condition.lodiclexic_condition import ConditionComparisonService
 from at_tutoring_skills.core.task.service import TaskService
 
 if TYPE_CHECKING:
@@ -19,25 +20,18 @@ if TYPE_CHECKING:
 
 
 class KBEventServiceLogicLexic:
-    def estimate_occurance_condition(
-        self,
-        user_id: str,
-        task_id: int,
-        condition: Union[SimpleValue, SimpleReference, SimpleOperation],
-        et_condition: Union[SimpleValue, SimpleReference, SimpleOperation],
-        context: Context,
-    ):
-        errors = []
-        return errors
 
-    def estimate_event(self, user_id: str, task_id: int, etalon_event: KBEvent, event: KBEvent, context: Context):
+    async def estimate_event(self, user_id: str, task_id: int, event: KBEvent, etalon_event: KBEvent, context: Context):
         print("Estimate event")
-        errors_list = []
 
-        check = self.estimate_occurance_condition(
-            user_id, task_id, etalon_event.occurance_condition, event.occurance_condition, context
-        )
+        cond = ConditionComparisonService()
+        var = cond.get_various_references(etalon_event.occurance_condition, 3)
+        most_common, score = cond.find_most_similar(event.occurance_condition, var, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})
+        context = Context(parent=None, name=f"Объект {event.id}")
+        errors_list = await cond.compare_conditions_deep(user_id, task_id, event.occurance_condition, most_common, 'event', context, None)
+
         return errors_list
+        
 
     async def handle_logic_lexic_mistakes(
         self: "KBEventService", user: User, task: Task, event: KBEvent, event_et: KBEvent
@@ -47,7 +41,7 @@ class KBEventServiceLogicLexic:
         task_id = task.pk
         context = Context(parent=None, name=f"Событие {event_et.id}")
 
-        errors_list = self.estimate_event(user_id, task_id, event, event_et, context)
+        errors_list = await self.estimate_event(user_id, task_id, event, event_et, context)
 
         if errors_list:
             service = TaskService()

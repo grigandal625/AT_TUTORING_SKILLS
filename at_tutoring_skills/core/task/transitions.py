@@ -23,8 +23,8 @@ class TransitionsService:
             bool: True если все задания данного типа завершены и существуют, иначе False
         """
         # Проверяем корректность номера типа задания
-        if task_object_number not in {1, 2, 3, 4, 5}:
-            raise ValueError("Task object number must be between 1 and 5")
+        if task_object_number not in {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}:
+            raise ValueError("Task object number must be between 1 and 10")
 
         @sync_to_async
         def _check_completion():
