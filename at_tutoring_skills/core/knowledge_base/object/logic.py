@@ -1,3 +1,4 @@
+import json
 from typing import List
 from typing import Optional
 from typing import TYPE_CHECKING
@@ -8,7 +9,6 @@ from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.core.errors.consts import KNOWLEDGE_COEFFICIENTS
 from at_tutoring_skills.core.errors.context import Context
-from at_tutoring_skills.core.errors.conversions import to_lexic_mistake
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.task.service import TaskService
@@ -43,44 +43,66 @@ class KBObjectServiceLogicLexic:
         """Оценивает соответствие объекта эталону и возвращает список ошибок."""
         errors_list = []
 
+        # Проверка количества свойств
+        if len(obj.properties) < len(obj_et.properties):
+            place = json.dumps(context.full_path_list, ensure_ascii=False)
+            errors_list.append(
+                to_logic_mistake(
+                    user_id=user_id,
+                    task_id=task_id,
+                    tip=f"Введено меньше свойств, чем требуется, в объекте {obj.id}\nрасположение: {place}",
+                    coefficients=KNOWLEDGE_COEFFICIENTS,
+                    entity_type="object",
+                    skills=[301],
+                )
+            )
+
         for property_et in obj_et.properties:
-            min_distance = float("inf")
+            min_distance = 100
             found = False
 
             for prop in obj.properties:
                 distance = levenshtein_distance(prop.id, property_et.id)
-                min_distance = min(distance, min_distance)
+                if distance < min_distance:
+                    min_distance = distance
+
                 if distance == 0:
                     found = True
+                    # Проверка значения свойства
+                    if prop.type.id != property_et.type.id:
+                        child_context = context.create_child(f"Тип атрибута {property_et.type.id}")
+                        place = json.dumps(child_context.full_path_list, ensure_ascii=False)
+                        errors_list.append(
+                            to_logic_mistake(
+                                user_id=user_id,
+                                task_id=task_id,
+                                tip=f"Неверный тип атрибута '{property_et.id}'. Ожидалось: {property_et.type.id}, получено: {prop.type.id}\nрасположение: {place}",
+                                coefficients=KNOWLEDGE_COEFFICIENTS,
+                                entity_type="object",
+                                skills=[300, 302],
+                            )
+                        )
                     break
 
             if not found:
-                child_context = context.create_child(f"Свойство {property_et.id}")
-                place = child_context.full_path_list()
+                child_context = context.create_child(f"Атрибут {property_et.id} ")
+                place = json.dumps(child_context.full_path_list, ensure_ascii=False)
 
-                if min_distance <= 1:  # Порог для опечаток
-                    errors_list.append(
-                        to_lexic_mistake(
-                            user_id=user_id,
-                            task_id=task_id,
-                            tip=f"Возможная опечатка в атрибуте. Ожидалось: {property_et.value}",
-                            coefficients=KNOWLEDGE_COEFFICIENTS,
-                            entity_type="object",
-                        )
-                    )
-                else:
+                if min_distance >= 1:
                     errors_list.append(
                         to_logic_mistake(
                             user_id=user_id,
                             task_id=task_id,
-                            tip=f"Несоответствие свойства '{property_et.id}'. Ожидалось: {property_et.value}",
+                            tip=f"Отсутствует атрибут '{property_et.id}'\nрасположение: {place}",
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="object",
+                            skills=[300, 301],
                         )
                     )
+
         return errors_list
 
-    def handle_logic_lexic_mistakes(
+    async def handle_logic_lexic_mistakes(
         self: "KBObjectService", user: User, task: Task, obj: KBClass, obj_et: KBClass
     ) -> Optional[List[CommonMistake]]:
         """Обрабатывает логические и лексические ошибки в объекте."""
@@ -94,9 +116,9 @@ class KBObjectServiceLogicLexic:
             service = TaskService()
             for mistake in errors_list:
                 if isinstance(mistake, CommonMistake):
-                    service.append_mistake(mistake)
+                    await service.append_mistake(mistake)
 
-            service.increment_taskuser_attempts(task, user)
+            await service.increment_taskuser_attempts(task, user)
             return errors_list
 
         return None

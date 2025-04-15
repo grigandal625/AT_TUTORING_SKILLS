@@ -1,20 +1,17 @@
 from typing import List
 
-from at_tutoring_skills.apps.skills.models import Task
-from at_tutoring_skills.core.errors.models import CommonMistake
-
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-
 from at_tutoring_skills.core.errors.conversions import to_lexic_mistake
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
-
+from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import ITaskService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
     ResourceTypeAttributeRequest,
-    ResourceTypeRequest,
 )
+from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
 from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 from at_tutoring_skills.core.task.service import TaskService
 
@@ -32,11 +29,7 @@ class ResourceTypeService:
         self._task_service = task_service
         self.main_task_service = TaskService()
 
-    async def handle_syntax_mistakes(
-            self, 
-            user_id: int, 
-            data: dict
-        ) -> ResourceTypeRequest:
+    async def handle_syntax_mistakes(self, user_id: int, data: dict) -> ResourceTypeRequest:
         result = pydantic_mistakes(
             user_id=user_id,
             raw_request=data["args"]["resourceType"],
@@ -57,7 +50,6 @@ class ResourceTypeService:
 
         raise TypeError("Handle resource type: unexpected result")
 
-
     async def handle_logic_mistakes(
         self,
         user_id: int,
@@ -77,6 +69,8 @@ class ResourceTypeService:
             return
 
         mistakes = self._attributes_logic_mistakes(
+            resource_type,
+            object_reference,
             resource_type.attributes,
             object_reference.attributes,
             user_id,
@@ -89,6 +83,7 @@ class ResourceTypeService:
                 await self.main_task_service.append_mistake(mistake)
 
             return mistakes  # raise ValueError("Handle resource type: logic mistakes")
+
 
     async def handle_lexic_mistakes(
         self,
@@ -122,6 +117,8 @@ class ResourceTypeService:
 
     def _attributes_logic_mistakes(
         self,
+        resource_type: ResourceTypeRequest,
+        resource_type_reference: ResourceTypeRequest,
         attrs: List[ResourceTypeAttributeRequest],
         attrs_reference: List[ResourceTypeAttributeRequest],
         user_id: int,
@@ -129,6 +126,18 @@ class ResourceTypeService:
     ) -> List[CommonMistake]:
         mistakes = []
         match_attrs_count = 0
+
+        print(f"Comparing resource type: provided={resource_type.type}, reference={resource_type_reference.type}")
+        if resource_type.type != resource_type_reference.type:
+            mistake = to_logic_mistake(
+                user_id=user_id,
+                task_id=task_id,
+                tip="Указан неправильный тип типа ресурса.",
+                coefficients=SIMULATION_COEFFICIENTS,
+                entity_type="resource_type",
+            )
+            mistakes.append(mistake)
+            return mistakes
 
         print(f"Comparing number of attributes: provided={len(attrs)}, reference={len(attrs_reference)}")
         if len(attrs) != len(attrs_reference):
@@ -140,6 +149,7 @@ class ResourceTypeService:
                 entity_type="resource_type",
             )
             mistakes.append(mistake)
+
 
         attrs_reference_dict = {attr.name: attr for attr in attrs_reference}
         print(f"Reference attributes dictionary: {attrs_reference_dict}")
@@ -173,7 +183,7 @@ class ResourceTypeService:
                 print(
                     f"Default value mismatch for attribute '{attr.name}': provided={attr.default_value}, reference={attr_reference.default_value}"
                 )
-                tip = f"Недопустимое значение атрибута по умолчанию '{attr_name}'."
+                tip = f"Недопустимое значение атрибута по умолчанию '{attr.name}'."
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,

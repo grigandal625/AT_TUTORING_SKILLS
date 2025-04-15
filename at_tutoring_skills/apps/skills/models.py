@@ -24,6 +24,10 @@ class GROUP_CHOICES(models.IntegerChoices):
 class Skill(models.Model):
     name = models.CharField(max_length=255)  # Название умения
     group = models.IntegerField(choices=GROUP_CHOICES)
+    code = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Task(models.Model):
@@ -59,4 +63,5 @@ class TaskUser(models.Model):
 class UserSkill(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
+    mark = models.FloatField(default=100)
     is_completed = models.BooleanField(default=False)

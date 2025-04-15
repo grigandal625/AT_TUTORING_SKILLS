@@ -1,46 +1,55 @@
+from typing import List
+from typing import Optional
 from typing import TYPE_CHECKING
+from typing import Union
 
+from at_krl.core.simple.simple_operation import SimpleOperation
+from at_krl.core.simple.simple_reference import SimpleReference
+from at_krl.core.simple.simple_value import SimpleValue
 from at_krl.core.temporal.allen_event import KBEvent
 
-from at_tutoring_skills.core.data_serializers import KBEventDataSerializer
+from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.core.errors.context import Context
-from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
+from at_tutoring_skills.core.knowledge_base.condition.lodiclexic_condition import ConditionComparisonService
+from at_tutoring_skills.core.task.service import TaskService
 
 if TYPE_CHECKING:
     from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 
 
 class KBEventServiceLogicLexic:
-    def estimate_event(self, etalon_event: dict, event: KBEvent, context: Context):
+
+    async def estimate_event(self, user_id: str, task_id: int, event: KBEvent, etalon_event: KBEvent, context: Context):
         print("Estimate event")
 
-        event_et = KBEvent.from_dict(etalon_event)
-        if event_et.id == event.id:
-            self.estimate_condition(
-                event_et.occurance_condition, event.occurance_condition, context=context.create_child("open condition")
-            )
+        cond = ConditionComparisonService()
+        var = cond.get_various_references(etalon_event.occurance_condition, 3)
+        most_common, score = cond.find_most_similar(event.occurance_condition, var, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})
+        context = Context(parent=None, name=f"Объект {event.id}")
+        errors_list = await cond.compare_conditions_deep(user_id, task_id, event.occurance_condition, most_common, 'event', context, None)
 
-    def process_tip(self, exception: str) -> str:
-        ...
+        return errors_list
+        
 
-    def handle_logic_lexic_mistakes(self, service: KBEventService, user_id: int, data: dict) -> KBEvent:
-        serializer = KBEventDataSerializer(data=data["args"])
-        try:
-            serializer.IsValid(raise_exception=True)
-            return serializer.Save()
-        except BaseException as e:
-            syntax_mistakes: list[CommonMistake] = []
-            for exception in e.detail:
-                syntax_mistakes.append(
-                    to_logic_mistake(
-                        user_id,
-                        None,
-                        self.process_tip(exception),
-                    )
-                )
+    async def handle_logic_lexic_mistakes(
+        self: "KBEventService", user: User, task: Task, event: KBEvent, event_et: KBEvent
+    ) -> Optional[List[CommonMistake]]:
+        """Обрабатывает логические и лексические ошибки в событии."""
+        user_id = user.user_id
+        task_id = task.pk
+        context = Context(parent=None, name=f"Событие {event_et.id}")
 
-            for syntax_mistake in syntax_mistakes:
-                service.repository.create_mistake(syntax_mistake)
+        errors_list = await self.estimate_event(user_id, task_id, event, event_et, context)
 
-            raise e
+        if errors_list:
+            service = TaskService()
+            for mistake in errors_list:
+                if isinstance(mistake, CommonMistake):
+                    await service.append_mistake(mistake)
+
+            await service.increment_taskuser_attempts(task, user)
+            return errors_list
+
+        return None

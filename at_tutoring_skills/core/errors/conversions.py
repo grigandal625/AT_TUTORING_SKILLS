@@ -1,22 +1,11 @@
 from at_tutoring_skills.core.errors.consts import Coefficients
 from at_tutoring_skills.core.errors.models import CommonMistake
 
-# class CommonMistake(BaseModel):
-# user_id: int
-# type: str
-# task_id: Optional[int]
-# fine: float
-# coefficient: float
-# tip: str
-# is_tip_shown: bool
-
 
 def to_syntax_mistake(
-    user_id: int,
-    tip: str,
-    coefficients: Coefficients,
-    entity_type: str,
+    user_id: int, tip: str, coefficients: Coefficients, entity_type: str, skills: list[int] = None
 ) -> CommonMistake:
+    skills = skills or []
     return CommonMistake(
         user_id=user_id,
         type="syntax",
@@ -25,40 +14,37 @@ def to_syntax_mistake(
         coefficient=coefficients.entity_fines[entity_type],
         tip=tip,
         is_tip_shown=False,
+        skills=skills,
     )
 
 
 def to_logic_mistake(
-    user_id: int,
-    task_id: int,
-    tip: str,
-    coefficients: Coefficients,
-    entity_type: str,
+    user_id: int, task_id: int, tip: str, coefficients: Coefficients, entity_type: str, skills: list[int] = None
 ) -> CommonMistake:
+    skills = skills or []
     return CommonMistake(
         user_id=user_id,
         type="logic",
         task_id=task_id,
-        fine=coefficients.syntax_fine,
+        fine=coefficients.logic_fine,
         coefficient=coefficients.entity_fines[entity_type],
         tip=tip,
         is_tip_shown=False,
+        skills=skills,
     )
 
 
 def to_lexic_mistake(
-    user_id: int,
-    task_id: int,
-    tip: str,
-    coefficients: Coefficients,
-    entity_type: str,
+    user_id: int, task_id: int, tip: str, coefficients: Coefficients, entity_type: str, skills: list[int] = None
 ) -> CommonMistake:
+    skills = skills or []
     return CommonMistake(
         user_id=user_id,
         type="lexic",
         task_id=task_id,
-        fine=coefficients.syntax_fine,
+        fine=coefficients.lexic_fine,
         coefficient=coefficients.entity_fines[entity_type],
         tip=tip,
         is_tip_shown=False,
+        skills=skills,
     )
