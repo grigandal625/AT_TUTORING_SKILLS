@@ -26,7 +26,7 @@ class KBIntervalServiceLogicLexic:
 
         cond = ConditionComparisonService()
         var_open = cond.get_various_references(etalon_interval.open, 3)
-        var_close = cond.get_various_references(etalon_interval.open, 3)
+        var_close = cond.get_various_references(etalon_interval.close, 3)
 
         most_common_open, score = cond.find_most_similar(interval.open, var_open, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})
         most_common_close, score = cond.find_most_similar(interval.close, var_close, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})

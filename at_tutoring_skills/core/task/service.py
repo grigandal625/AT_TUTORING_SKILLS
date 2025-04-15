@@ -348,7 +348,8 @@ class TaskService(KBTaskService, KBIMServise):
 
     async def create_user(self, auth_token: str) -> tuple[User, bool]:
         """
-        Создает нового пользователя или возвращает существующего
+        Создает нового пользователя или возвращает существующего.
+        Для существующего пользователя вариант никогда не изменяется.
 
         Args:
             auth_token: Уникальный идентификатор пользователя
@@ -357,28 +358,27 @@ class TaskService(KBTaskService, KBIMServise):
             tuple[User, bool]: Кортеж (объект пользователя, флаг создания)
         """
         try:
-            # Получаем вариант по умолчанию (если нужен)
-            # default_variant = await Variant.objects.filter(name="1").afirst()
-
-            # Создаем или получаем пользователя
-            user, created = await User.objects.aget_or_create(
-                user_id=auth_token,
-                # defaults={
-                #     'variant': default_variant
-                # }
-            )
-
-            if created:
-                logger.info(f"Created new user: {auth_token}")
-            else:
+            # Пытаемся сначала найти существующего пользователя
+            existing_user = await User.objects.filter(user_id=auth_token).afirst()
+            
+            if existing_user:
                 logger.debug(f"User already exists: {auth_token}")
-
-            return user, created
+                return existing_user, False
+            
+            # Если пользователь не существует, создаем нового со случайным вариантом
+            random_variant = await Variant.objects.order_by('?').afirst()
+            
+            user = await User.objects.acreate(
+                user_id=auth_token,
+                variant=random_variant
+            )
+            
+            logger.info(f"Created new user: {auth_token} with variant: {random_variant.name if random_variant else 'None'}")
+            return user, True
 
         except Exception as e:
             logger.error(f"Error creating user {auth_token}: {str(e)}")
-            raise  # Можно заменить на возврат None или обработку ошибки
-    
+            raise
 
     async def asign_user_random_variant(self, auth_token: str) -> tuple[User, bool]:
         """
@@ -536,6 +536,7 @@ class TaskService(KBTaskService, KBIMServise):
         Raises:
             ValueError: Если у пользователя не назначен вариант
         """
+        user = await User.objects.select_related('variant').aget(user_id=user.user_id)
         if not user.variant:
             raise ValueError(f"User {user.user_id} has no variant assigned")
 
