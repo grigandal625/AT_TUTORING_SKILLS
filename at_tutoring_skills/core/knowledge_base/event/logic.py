@@ -28,7 +28,7 @@ class KBEventServiceLogicLexic:
         var = cond.get_various_references(etalon_event.occurance_condition, 3)
         most_common, score = cond.find_most_similar(event.occurance_condition, var, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})
         context = Context(parent=None, name=f"Объект {event.id}")
-        errors_list = await cond.compare_conditions_deep(user_id, task_id, event.occurance_condition, most_common, 'rule', context, None)
+        errors_list = await cond.compare_conditions_deep(user_id, task_id, event.occurance_condition, most_common, 'event', context, None)
 
         return errors_list
         
