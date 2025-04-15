@@ -1,5 +1,4 @@
-from typing import List
-from typing import Literal
+from typing import List, Literal
 from typing import Optional
 
 from pydantic import BaseModel
@@ -13,4 +12,4 @@ class CommonMistake(BaseModel):
     coefficient: float
     tip: str
     is_tip_shown: bool
-    skills: List[int]
+    skills : List[int]

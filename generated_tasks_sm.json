@@ -35,5 +35,122 @@
                 }
             ]
         }
+    },
+    {
+        "task_name": "Создать тип ресурса 'ЛПУ'",
+        "task_object": 6,
+        "object_name": "ЛПУ",
+        "description": "Задача по созданию типа ресурса 'ЛПУ' для модели simulation",
+        "object_reference": {
+            "id": 2,
+            "name": "ЛПУ",
+            "type": "CONSTANT",
+            "attributes": [
+                {
+                    "id": 1,
+                    "name": "Координата_X",
+                    "type": "DOUBLE",
+                    "enum_values_set": null,
+                    "default_value": "30"
+                },
+                {
+                    "id": 2,
+                    "name": "Координата_Y",
+                    "type": "DOUBLE",
+                    "enum_values_set": null,
+                    "default_value": "30"
+                },
+                {
+                    "id": 3,
+                    "name": "Количество_мест_в_нейрохирургии",
+                    "type": "INT",
+                    "enum_values_set": null,
+                    "default_value": "10"
+                },
+                {
+                    "id": 4,
+                    "name": "Количество_мест_в_хирургии",
+                    "type": "INT",
+                    "enum_values_set": null,
+                    "default_value": "10"
+                },
+                {
+                    "id": 5,
+                    "name": "Количество_мест_в_реанимации",
+                    "type": "INT",
+                    "enum_values_set": null,
+                    "default_value": "10"
+                },
+                {
+                    "id": 6,
+                    "name": "Количество_мест_в_ожоговом",
+                    "type": "INT",
+                    "enum_values_set": null,
+                    "default_value": "10"
+                }
+            ]
+        }
+    },
+    {
+        "task_name": "Создать ресурс 'Потерпевший_1'",
+        "task_object": 7,
+        "object_name": "Потерпевший_1",
+        "description": "Задача по обновлению ресурса 'Потерпевший_1' для модели simulation",
+        "object_reference": {
+            "id": 1217,
+            "name": "Потерпевший_1",
+            "resource_type_id_str": "Потерпевший",
+            "attributes": [
+                {
+                    "id": 9746,
+                    "name": "Приоритет_пострадавшего",
+                    "type": "INT",
+                    "enum_values_set": null,
+                    "value": "2"
+                },
+                {
+                    "id": null,
+                    "name": "Состояние",
+                    "type": "INT",
+                    "enum_values_set": null,
+                    "value": "2"
+                },
+                {
+                    "id": null,
+                    "name": "Степень_тяжести",
+                    "type": "ENUM",
+                    "enum_values_set": [
+                        "Легкая",
+                        "Средняя",
+                        "Тяжелая",
+                        "Очень_тяжелая"
+                    ],
+                    "value": "Средняя"
+                }
+            ]
+        }
+    },
+    {
+        "task_name": "Создать образец операции 'изменение_очереди'",
+        "task_object": 8,
+        "object_name": "изменение_очереди",
+        "description": "Задача по созданию образца операции 'изменение_очереди' для модели simulation",
+        "object_reference": {
+            "meta": {
+                "id": 6291,
+                "name": "изменение_очереди",
+                "type": "RULE",
+                "rel_resources": [
+                    {
+                        "resource_type_id_str": "Потерпевший",
+                        "name": "attr1"
+                    }
+                ]
+            },
+            "body": {
+                "condition": "attr1 = 2",
+                "body": "attr1 = attr1 - 1"
+            }
+        }
     }
 ]

@@ -1,6 +1,7 @@
 # import json
 import json
 import logging
+from typing import Union
 
 from asgiref.sync import sync_to_async
 from at_krl.models.kb_class import KBClassModel
@@ -18,7 +19,7 @@ from pydantic import RootModel
 
 from at_tutoring_skills.apps.mistakes.models import Mistake
 from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES
-from at_tutoring_skills.apps.skills.models import Skill
+from at_tutoring_skills.apps.skills.models import Skill, Variant
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
@@ -32,6 +33,7 @@ from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.
     ResourceTypeAttributeRequest,
 )
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventBody, IrregularEventGenerator, IrregularEventRequest, OperationBody, OperationRequest, RelevantResourceRequest, RuleBody, RuleRequest, TemplateMetaRequest
 
 logger = logging.getLogger(__name__)
 
@@ -106,11 +108,105 @@ class KBIMServise:
         attributes = [ResourceAttributeRequest(**attr_data) for attr_data in reference_data["attributes"]]
 
         return ResourceRequest(
-            id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
+            id=reference_data["id"], name=reference_data["name"], resource_type_id_str = reference_data["resource_type_id_str"], attributes=attributes
         )
 
-    async def get_template_reference(self, task: Task):
-        ...
+
+    async def get_template_reference(self, task: Task) -> Union[IrregularEventRequest, RuleRequest, OperationRequest]:
+        """
+        Получение эталонного шаблона (template reference) из task.object_reference.
+        """
+        # Проверяем тип task.object_reference и преобразуем его в словарь
+        if isinstance(task.object_reference, str):
+            try:
+                reference_data = json.loads(task.object_reference)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Неверный формат JSON в task.object_reference: {e}")
+        elif isinstance(task.object_reference, dict):
+            reference_data = task.object_reference
+        else:
+            raise ValueError("task.object_reference должен быть строкой JSON или словарём")
+
+        # Определяем тип шаблона
+        template_type = reference_data["meta"]["type"]
+        pydantic_class = self._get_template_class(template_type)
+
+        # Преобразуем данные в соответствующую Pydantic модель
+        if pydantic_class == IrregularEventRequest:
+            generator_data = reference_data["generator"]
+            body_data = reference_data["body"]
+
+            return IrregularEventRequest(
+                meta=TemplateMetaRequest(
+                    id=reference_data["meta"]["id"],
+                    name=reference_data["meta"]["name"],
+                    type=template_type,
+                    rel_resources=[
+                        RelevantResourceRequest(**res_data) for res_data in reference_data["meta"]["rel_resources"]
+                    ],
+                ),
+                generator=IrregularEventGenerator(
+                    type=generator_data["type"],
+                    value=generator_data["value"],
+                    dispersion=generator_data["dispersion"],
+                ),
+                body=IrregularEventBody(body=body_data["body"]),
+            )
+
+        elif pydantic_class == RuleRequest:
+            body_data = reference_data["body"]
+
+            return RuleRequest(
+                meta=TemplateMetaRequest(
+                    id=reference_data["meta"]["id"],
+                    name=reference_data["meta"]["name"],
+                    type=template_type,
+                    rel_resources=[
+                        RelevantResourceRequest(**res_data) for res_data in reference_data["meta"]["rel_resources"]
+                    ],
+                ),
+                body=RuleBody(
+                    condition=body_data["condition"],
+                    body=body_data["body"],
+                ),
+            )
+
+        elif pydantic_class == OperationRequest:
+            body_data = reference_data["body"]
+
+            return OperationRequest(
+                meta=TemplateMetaRequest(
+                    id=reference_data["meta"]["id"],
+                    name=reference_data["meta"]["name"],
+                    type=template_type,
+                    rel_resources=[
+                        RelevantResourceRequest(**res_data) for res_data in reference_data["meta"]["rel_resources"]
+                    ],
+                ),
+                body=OperationBody(
+                    condition=body_data["condition"],
+                    body_before=body_data["body_before"],
+                    delay=body_data["delay"],
+                    body_after=body_data["body_after"],
+                ),
+            )
+
+        else:
+            raise ValueError(f"Неизвестный тип шаблона: {template_type}")
+
+    def _get_template_class(self, template_type: str):
+        """
+        Возвращает соответствующий класс Pydantic на основе типа шаблона.
+        """
+        type_to_class = {
+            "IRREGULAR_EVENT": IrregularEventRequest,
+            "RULE": RuleRequest,
+            "OPERATION": OperationRequest,
+        }
+        pydantic_class = type_to_class.get(template_type)
+        if not pydantic_class:
+            raise ValueError(f"Неизвестный тип шаблона: {template_type}")
+        return pydantic_class
 
     async def get_template_usage_reference(self, task: Task):
         ...
@@ -251,7 +347,8 @@ class TaskService(KBTaskService, KBIMServise):
 
     async def create_user(self, auth_token: str) -> tuple[User, bool]:
         """
-        Создает нового пользователя или возвращает существующего
+        Создает нового пользователя или возвращает существующего.
+        Для существующего пользователя вариант никогда не изменяется.
 
         Args:
             auth_token: Уникальный идентификатор пользователя
@@ -260,27 +357,68 @@ class TaskService(KBTaskService, KBIMServise):
             tuple[User, bool]: Кортеж (объект пользователя, флаг создания)
         """
         try:
-            # Получаем вариант по умолчанию (если нужен)
-            # default_variant = await Variant.objects.filter(name="1").afirst()
+            # Пытаемся сначала найти существующего пользователя
+            existing_user = await User.objects.filter(user_id=auth_token).afirst()
+            
+            if existing_user:
+                logger.debug(f"User already exists: {auth_token}")
+                return existing_user, False
+            
+            # Если пользователь не существует, создаем нового со случайным вариантом
+            random_variant = await Variant.objects.order_by('?').afirst()
+            
+            user = await User.objects.acreate(
+                user_id=auth_token,
+                variant=random_variant
+            )
+            
+            logger.info(f"Created new user: {auth_token} with variant: {random_variant.name if random_variant else 'None'}")
+            return user, True
+
+        except Exception as e:
+            logger.error(f"Error creating user {auth_token}: {str(e)}")
+            raise
+
+    async def asign_user_random_variant(self, auth_token: str) -> tuple[User, bool]:
+        """
+        Создает нового пользователя или возвращает существующего с назначением случайного варианта.
+        Если у пользователя уже есть вариант - он не изменяется.
+
+        Args:
+            auth_token: Уникальный идентификатор пользователя
+
+        Returns:
+            tuple[User, bool]: Кортеж (объект пользователя, флаг создания)
+        """
+        try:
+            # Получаем случайный вариант
+            random_variant = await Variant.objects.order_by('?').afirst()
 
             # Создаем или получаем пользователя
             user, created = await User.objects.aget_or_create(
                 user_id=auth_token,
-                # defaults={
-                #     'variant': default_variant
-                # }
+                defaults={
+                    'variant': random_variant
+                }
             )
+            user = await User.objects.select_related('variant').aget(user_id=user.user_id)
 
             if created:
-                logger.info(f"Created new user: {auth_token}")
+                logger.info(f"Created new user with random variant ({random_variant.name if random_variant else 'None'}): {auth_token}")
             else:
                 logger.debug(f"User already exists: {auth_token}")
+                # Если пользователь уже существовал и у него нет варианта - назначаем случайный
+                if not user.variant and random_variant:
+                    user.variant = random_variant
+                    await user.asave()
+                    logger.info(f"Assigned random variant ({random_variant.name}) to existing user: {auth_token}")
+                elif user.variant:
+                    logger.debug(f"User already has variant ({user.variant.name}), keeping it")
 
             return user, created
-
         except Exception as e:
-            logger.error(f"Error creating user {auth_token}: {str(e)}")
-            raise  # Можно заменить на возврат None или обработку ошибки
+            logger.error(f"Error creating user with variant {auth_token}: {str(e)}")
+            raise
 
     async def get_task_by_name(self, name: str, task_object: int = None) -> Task | None:
         """
@@ -383,40 +521,56 @@ class TaskService(KBTaskService, KBIMServise):
             stats["errors"] = stats["total_pairs"]
             return stats
 
-    async def create_task_user_safe(self, task: Task, user: User) -> tuple[TaskUser, bool]:
+    async def create_task_user_entries(self, user: User) -> list[TaskUser]:
         """
-        Создает запись TaskUser, только если её не существует.
-        Если запись уже есть — возвращает её БЕЗ ИЗМЕНЕНИЙ (attempts и is_completed остаются как были).
-        Гарантирует, что дубликаты не будут созданы даже в условиях гонки.
+        Создает записи в таблице TaskUser для всех заданий, связанных с вариантом пользователя.
+        Если запись для пары (task, user) уже существует - она не изменяется.
+
+        Args:
+            user: Объект пользователя
 
         Returns:
-            tuple[TaskUser, bool]: (объект TaskUser, created: bool)
+            list[TaskUser]: Список созданных записей TaskUser
+
+        Raises:
+            ValueError: Если у пользователя не назначен вариант
         """
+        user = await User.objects.select_related('variant').aget(user_id=user.user_id)
+        if not user.variant:
+            raise ValueError(f"User {user.user_id} has no variant assigned")
 
-        @sync_to_async
-        def _create_or_get_task_user():
-            try:
-                # Сначала пробуем найти существующую запись
-                task_user = TaskUser.objects.filter(task=task, user=user).first()
-                if task_user:
-                    return task_user, False
+        try:
+            # Получаем все задания, связанные с вариантом пользователя через M2M связь
+            # Вариант 1: через прямое обращение к связанным задачам
+            tasks = []
+            async for task in user.variant.task.all():
+                tasks.append(task)
 
-                # Если записи нет - создаем новую
-                with transaction.atomic():
-                    # Двойная проверка для защиты от race condition
-                    if TaskUser.objects.filter(task=task, user=user).exists():
-                        return TaskUser.objects.get(task=task, user=user), False
+            # Или Вариант 2: через явный запрос
+            # tasks = []
+            # async for task in Task.objects.filter(variant__id=user.variant_id):
+            #     tasks.append(task)
 
-                    task_user = TaskUser.objects.create(task=task, user=user)
-                    return task_user, True
-            except Exception as e:
-                # В случае любой ошибки пытаемся вернуть существующую запись
-                existing = TaskUser.objects.filter(task=task, user=user).first()
-                if existing:
-                    return existing, False
-                raise ValueError(f"Failed to create or get TaskUser: {str(e)}")
+            created_entries = []
+            for task in tasks:
+                # Используем get_or_create чтобы не перезаписывать существующие записи
+                task_user, created = await TaskUser.objects.aget_or_create(
+                    task=task,
+                    user=user,
+                    defaults={
+                        'attempts': 0,
+                        'is_completed': False
+                    }
+                )
+                if created:
+                    created_entries.append(task_user)
+                    logger.debug(f"Created TaskUser entry for task {task.id} and user {user.user_id}")
+                else:
+                    logger.debug(f"TaskUser entry already exists for task {task.id} and user {user.user_id}")
 
-        return await _create_or_get_task_user()
+            logger.info(f"Created {len(created_entries)} new TaskUser entries for user {user.user_id}")
+            return created_entries
 
-    # @sync_to_async
-    #     def _create_or_get_task_user():
+        except Exception as e:
+            logger.error(f"Error creating TaskUser entries for user {user.user_id}: {str(e)}")
+            raise

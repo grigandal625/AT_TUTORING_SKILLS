@@ -15,17 +15,30 @@
 # from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 
 
-class TemplateUsageService:
-    ...
+from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import TemplateUsageRequest
+from at_tutoring_skills.core.task.service import TaskService
 
 
-#     def __init__(
-#         self,
-#         mistake_service: IMistakeService,
-#         task_service: ITaskService,
-#     ):
-#         self._mistake_service = mistake_service
-#         self._task_service = task_service
+class TemplateUsageService: ...
+    # mistake_service = None
+    # main_task_service = None
+
+    # def __init__(
+    #     self,
+    #     mistake_service: IMistakeService,
+    #     task_service: ITaskService,
+    # ):
+    #     self._mistake_service = mistake_service
+    #     self._task_service = task_service
+    #     self.main_task_service = TaskService()
+
+
+    # async def handle_syntax_mistakes(
+    #         self, 
+    #         user_id: int, 
+    #         data: dict
+    #     ) -> TemplateUsageRequest: 
+
 
 #     def handle_syntax_mistakes(
 #         self,
