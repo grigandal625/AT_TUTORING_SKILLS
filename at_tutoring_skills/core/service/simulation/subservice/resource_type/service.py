@@ -69,6 +69,8 @@ class ResourceTypeService:
             return
 
         mistakes = self._attributes_logic_mistakes(
+            resource_type,
+            object_reference,
             resource_type.attributes,
             object_reference.attributes,
             user_id,
@@ -81,6 +83,7 @@ class ResourceTypeService:
                 await self.main_task_service.append_mistake(mistake)
 
             return mistakes  # raise ValueError("Handle resource type: logic mistakes")
+
 
     async def handle_lexic_mistakes(
         self,
@@ -114,6 +117,8 @@ class ResourceTypeService:
 
     def _attributes_logic_mistakes(
         self,
+        resource_type: ResourceTypeRequest,
+        resource_type_reference: ResourceTypeRequest,
         attrs: List[ResourceTypeAttributeRequest],
         attrs_reference: List[ResourceTypeAttributeRequest],
         user_id: int,
@@ -121,6 +126,18 @@ class ResourceTypeService:
     ) -> List[CommonMistake]:
         mistakes = []
         match_attrs_count = 0
+
+        print(f"Comparing resource type: provided={resource_type.type}, reference={resource_type_reference.type}")
+        if resource_type.type != resource_type_reference.type:
+            mistake = to_logic_mistake(
+                user_id=user_id,
+                task_id=task_id,
+                tip="Указан неправильный тип типа ресурса.",
+                coefficients=SIMULATION_COEFFICIENTS,
+                entity_type="resource_type",
+            )
+            mistakes.append(mistake)
+            return mistakes
 
         print(f"Comparing number of attributes: provided={len(attrs)}, reference={len(attrs_reference)}")
         if len(attrs) != len(attrs_reference):
@@ -132,6 +149,7 @@ class ResourceTypeService:
                 entity_type="resource_type",
             )
             mistakes.append(mistake)
+
 
         attrs_reference_dict = {attr.name: attr for attr in attrs_reference}
         print(f"Reference attributes dictionary: {attrs_reference_dict}")
@@ -165,7 +183,7 @@ class ResourceTypeService:
                 print(
                     f"Default value mismatch for attribute '{attr.name}': provided={attr.default_value}, reference={attr_reference.default_value}"
                 )
-                tip = f"Недопустимое значение атрибута по умолчанию '{attr_name}'."
+                tip = f"Недопустимое значение атрибута по умолчанию '{attr.name}'."
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
