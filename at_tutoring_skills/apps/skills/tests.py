@@ -253,4 +253,4 @@ class SkillsTestCase(TestCase):
         
         print(kb_rule1.krl) 
 
-        
+ 
