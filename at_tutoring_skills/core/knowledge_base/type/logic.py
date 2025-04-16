@@ -53,7 +53,7 @@ class KBTypeServiceLogicLexic:
                     to_lexic_mistake(
                         user_id=user_id,
                         task_id=task_id,
-                        tip=f"Введено неверное значение в атрибуте типа {type.id}: {check[i]}\n расположение: {place}",
+                        tip=f"Ошибка в атрибуте типа {type.id}, ожидалось: арибут {check_et[j]}\n расположение: {place}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type="type",
                         skills=[220],

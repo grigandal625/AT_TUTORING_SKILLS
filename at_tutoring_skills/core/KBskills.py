@@ -354,7 +354,7 @@ class ATTutoringKBSkills(ATComponent):
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
-                    "url": encoded_text,
+                    "url": errors_message,
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -459,7 +459,7 @@ class ATTutoringKBSkills(ATComponent):
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
-                    "url": encoded_text,
+                    "url": errors_message,
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -524,7 +524,7 @@ class ATTutoringKBSkills(ATComponent):
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
-                    "url": encoded_text,
+                    "url": errors_message,
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -602,7 +602,7 @@ class ATTutoringKBSkills(ATComponent):
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
-                    "url": encoded_text,
+                    "url": errors_message,
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -681,7 +681,7 @@ class ATTutoringKBSkills(ATComponent):
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
-                    "url": encoded_text,
+                    "url": errors_message,
                 }
             else:
                 await self.task_service.complete_task(task, user)
