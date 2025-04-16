@@ -19,11 +19,12 @@ from pydantic import RootModel
 
 from at_tutoring_skills.apps.mistakes.models import Mistake
 from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES
-from at_tutoring_skills.apps.skills.models import Skill, Variant
+from at_tutoring_skills.apps.skills.models import Skill
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.apps.skills.models import UserSkill
+from at_tutoring_skills.apps.skills.models import Variant
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest
 from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionRequest
@@ -33,7 +34,15 @@ from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.
     ResourceTypeAttributeRequest,
 )
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
-from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventBody, IrregularEventGenerator, IrregularEventRequest, OperationBody, OperationRequest, RelevantResourceRequest, RuleBody, RuleRequest, TemplateMetaRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventBody
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventGenerator
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import OperationBody
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import OperationRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RelevantResourceRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleBody
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import TemplateMetaRequest
 
 logger = logging.getLogger(__name__)
 
@@ -108,9 +117,11 @@ class KBIMServise:
         attributes = [ResourceAttributeRequest(**attr_data) for attr_data in reference_data["attributes"]]
 
         return ResourceRequest(
-            id=reference_data["id"], name=reference_data["name"], resource_type_id_str = reference_data["resource_type_id_str"], attributes=attributes
+            id=reference_data["id"],
+            name=reference_data["name"],
+            resource_type_id_str=reference_data["resource_type_id_str"],
+            attributes=attributes,
         )
-
 
     async def get_template_reference(self, task: Task) -> Union[IrregularEventRequest, RuleRequest, OperationRequest]:
         """
@@ -234,6 +245,16 @@ class TaskService(KBTaskService, KBIMServise):
     def __init__(self):
         # self.repository = repository
         self.kb_service = KBTaskService()
+
+    async def get_all_tasks(self, variant_id: int = None) -> models.QuerySet[Task]:
+        """
+        Получает все задания для заданного варианта (variant).
+        """
+        if variant_id is None:
+            return Task.objects.all()
+        else:
+            variant = await Variant.objects.aget(pk=variant_id)
+            return variant.task.all()
 
     async def increment_taskuser_attempts(self, task: Task, user: User) -> bool:
         """
@@ -359,20 +380,19 @@ class TaskService(KBTaskService, KBIMServise):
         try:
             # Пытаемся сначала найти существующего пользователя
             existing_user = await User.objects.filter(user_id=auth_token).afirst()
-            
+
             if existing_user:
                 logger.debug(f"User already exists: {auth_token}")
                 return existing_user, False
-            
+
             # Если пользователь не существует, создаем нового со случайным вариантом
-            random_variant = await Variant.objects.order_by('?').afirst()
-            
-            user = await User.objects.acreate(
-                user_id=auth_token,
-                variant=random_variant
+            random_variant = await Variant.objects.order_by("?").afirst()
+
+            user = await User.objects.acreate(user_id=auth_token, variant=random_variant)
+
+            logger.info(
+                f"Created new user: {auth_token} with variant: {random_variant.name if random_variant else 'None'}"
             )
-            
-            logger.info(f"Created new user: {auth_token} with variant: {random_variant.name if random_variant else 'None'}")
             return user, True
 
         except Exception as e:
@@ -392,19 +412,16 @@ class TaskService(KBTaskService, KBIMServise):
         """
         try:
             # Получаем случайный вариант
-            random_variant = await Variant.objects.order_by('?').afirst()
+            random_variant = await Variant.objects.order_by("?").afirst()
 
             # Создаем или получаем пользователя
-            user, created = await User.objects.aget_or_create(
-                user_id=auth_token,
-                defaults={
-                    'variant': random_variant
-                }
-            )
-            user = await User.objects.select_related('variant').aget(user_id=user.user_id)
+            user, created = await User.objects.aget_or_create(user_id=auth_token, defaults={"variant": random_variant})
+            user = await User.objects.select_related("variant").aget(user_id=user.user_id)
 
             if created:
-                logger.info(f"Created new user with random variant ({random_variant.name if random_variant else 'None'}): {auth_token}")
+                logger.info(
+                    f"Created new user with random variant ({random_variant.name if random_variant else 'None'}): {auth_token}"
+                )
             else:
                 logger.debug(f"User already exists: {auth_token}")
                 # Если пользователь уже существовал и у него нет варианта - назначаем случайный
@@ -535,7 +552,7 @@ class TaskService(KBTaskService, KBIMServise):
         Raises:
             ValueError: Если у пользователя не назначен вариант
         """
-        user = await User.objects.select_related('variant').aget(user_id=user.user_id)
+        user = await User.objects.select_related("variant").aget(user_id=user.user_id)
         if not user.variant:
             raise ValueError(f"User {user.user_id} has no variant assigned")
 
@@ -555,12 +572,7 @@ class TaskService(KBTaskService, KBIMServise):
             for task in tasks:
                 # Используем get_or_create чтобы не перезаписывать существующие записи
                 task_user, created = await TaskUser.objects.aget_or_create(
-                    task=task,
-                    user=user,
-                    defaults={
-                        'attempts': 0,
-                        'is_completed': False
-                    }
+                    task=task, user=user, defaults={"attempts": 0, "is_completed": False}
                 )
                 if created:
                     created_entries.append(task_user)

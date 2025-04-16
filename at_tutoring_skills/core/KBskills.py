@@ -1,3 +1,5 @@
+from urllib.parse import quote_plus
+
 from asgiref.sync import sync_to_async
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
@@ -13,7 +15,7 @@ from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
 from at_tutoring_skills.core.task.service import TaskService
 from at_tutoring_skills.core.task.transitions import TransitionsService
-from urllib.parse import quote_plus
+
 
 class ATTutoringKBSkills(ATComponent):
     skills: dict = None
@@ -239,6 +241,14 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_knowledge_base_created(self, event: str, data: dict, auth_token: str):
         user_id = await self.get_user_id_or_token(auth_token)
         self.init_cash(user_id)
+        all_tasks = await self.task_service.get_all_tasks()
+        msg = "#### Задания:"
+        async for task in all_tasks:
+            msg += f"\n\n- {task.task_name}"
+            if task.description:
+                msg += ": " + task.description
+
+        return {"msg": msg, "hint": msg, "kb_id": data["result"]["knowledgeBase"]["id"]}
 
     @authorized_method
     async def handle_knowledge_base_updated(self, event: str, data: dict, auth_token: str):
@@ -317,7 +327,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        user, created= await self.task_service.asign_user_random_variant(user)
+        user, created = await self.task_service.asign_user_random_variant(user)
         await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
@@ -327,11 +337,10 @@ class ATTutoringKBSkills(ATComponent):
             raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
 
         task: Task = await self.task_service.get_task_by_name(kb_type.id, 1)
-        
 
-        et_type = await self.task_service.get_type_reference(task)
-        print(et_type)
         if task:
+            et_type = await self.task_service.get_type_reference(task)
+            print(et_type)
             errors_list = None
             errors_list = await self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
             if errors_list:
@@ -341,7 +350,12 @@ class ATTutoringKBSkills(ATComponent):
                 )
                 encoded_text = quote_plus(errors_message)
 
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False, 'url': encoded_text}
+                return {
+                    "status": "error",
+                    "message": f"Обнаружены ошибки: {errors_message}",
+                    "stage_done": False,
+                    "url": encoded_text,
+                }
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 1)
@@ -441,7 +455,12 @@ class ATTutoringKBSkills(ATComponent):
                 )
                 encoded_text = quote_plus(errors_message)
 
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False, 'url': encoded_text}
+                return {
+                    "status": "error",
+                    "message": f"Обнаружены ошибки: {errors_message}",
+                    "stage_done": False,
+                    "url": encoded_text,
+                }
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 2)
@@ -501,7 +520,12 @@ class ATTutoringKBSkills(ATComponent):
                 )
                 encoded_text = quote_plus(errors_message)
 
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False, 'url': encoded_text}
+                return {
+                    "status": "error",
+                    "message": f"Обнаружены ошибки: {errors_message}",
+                    "stage_done": False,
+                    "url": encoded_text,
+                }
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 3)
@@ -574,7 +598,12 @@ class ATTutoringKBSkills(ATComponent):
                 )
                 encoded_text = quote_plus(errors_message)
 
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False, 'url': encoded_text}
+                return {
+                    "status": "error",
+                    "message": f"Обнаружены ошибки: {errors_message}",
+                    "stage_done": False,
+                    "url": encoded_text,
+                }
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 4)
@@ -648,7 +677,12 @@ class ATTutoringKBSkills(ATComponent):
                 )
                 encoded_text = quote_plus(errors_message)
 
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False, 'url': encoded_text}
+                return {
+                    "status": "error",
+                    "message": f"Обнаружены ошибки: {errors_message}",
+                    "stage_done": False,
+                    "url": encoded_text,
+                }
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 5)

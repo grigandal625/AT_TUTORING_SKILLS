@@ -1,23 +1,22 @@
 # Create your tests here.
-from django.test import TestCase
-from at_tutoring_skills.core.knowledge_base.condition.lodiclexic_condition import ConditionComparisonService
-from at_tutoring_skills.core.knowledge_base.rule.syntax import KBRuleServiceSyntax
-from at_krl.models.kb_rule import KBRuleModel
-
-from at_krl.utils.context import Context as ATKRLContext
 import json
-from json import loads
+
+from at_krl.models.kb_rule import KBRuleModel
+from at_krl.utils.context import Context as ATKRLContext
+from django.test import TestCase
+
+from at_tutoring_skills.core.knowledge_base.condition.lodiclexic_condition import ConditionComparisonService
 
 
 class SkillsTestCase(TestCase):
-
     def setUp(self):
         return super().setUp()
-    
+
     def test_conditions(self):
         service = ConditionComparisonService()
 
-        text = json.loads("""
+        text = json.loads(
+            """
             {
                     "tag": "rule",
                     "id": "Смена_статуса_средняя_низкая_ЛПУ2_Х",
@@ -236,21 +235,20 @@ class SkillsTestCase(TestCase):
                     "period": null,
                     "desc": "Смена_статуса_средняя_низкая_ЛПУ2_Х"
                 }
-                """)
+                """
+        )
         context = ATKRLContext(name="1")
         d = text
         kb_rule = KBRuleModel(**d)
-        kb_rule1 =kb_rule.to_internal(context)
+        kb_rule1 = kb_rule.to_internal(context)
 
         array = service.get_various_references(
-            condition = kb_rule1.condition,
-            max_depth = 5,
-        ) 
+            condition=kb_rule1.condition,
+            max_depth=5,
+        )
         kb_rule1.condition = array[0]
-        
-        print(kb_rule1.krl) 
-        kb_rule1.condition = array[1]
-        
-        print(kb_rule1.krl) 
 
- 
+        print(kb_rule1.krl)
+        kb_rule1.condition = array[1]
+
+        print(kb_rule1.krl)

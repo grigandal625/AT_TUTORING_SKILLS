@@ -1,8 +1,8 @@
-from at_tutoring_skills.core.knowledge_base.condition.lodiclexic_condition import ConditionComparisonService
-from at_tutoring_skills.core.knowledge_base.rule.syntax import KBRuleServiceSyntax
 from at_krl.models.kb_rule import KBRuleModel
-
 from at_krl.utils.context import Context as ATKRLContext
+
+from at_tutoring_skills.core.knowledge_base.condition.lodiclexic_condition import ConditionComparisonService
+
 
 async def test():
     service = ConditionComparisonService()
@@ -233,13 +233,15 @@ async def test():
     kb_rule.to_internal(context)
 
     array = service.get_various_references(
-        condition = kb_rule.condition,
-        max_depth = 5,
-    ) 
-    print (array)
+        condition=kb_rule.condition,
+        max_depth=5,
+    )
+    print(array)
+
 
 def main():
     test()
+
 
 if __name__ == "__main__":
     main()

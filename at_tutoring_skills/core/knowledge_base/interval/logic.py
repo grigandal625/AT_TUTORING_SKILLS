@@ -1,11 +1,7 @@
 from typing import List
 from typing import Optional
 from typing import TYPE_CHECKING
-from typing import Union
 
-from at_krl.core.simple.simple_operation import SimpleOperation
-from at_krl.core.simple.simple_reference import SimpleReference
-from at_krl.core.simple.simple_value import SimpleValue
 from at_krl.core.temporal.allen_interval import KBInterval
 
 from at_tutoring_skills.apps.skills.models import Task
@@ -20,25 +16,33 @@ if TYPE_CHECKING:
 
 
 class KBIntervalServiceLogicLexic:
-
-    async def estimate_interval(self, user_id: str, task_id: int, interval: KBInterval, etalon_interval: KBInterval, context: Context):
+    async def estimate_interval(
+        self, user_id: str, task_id: int, interval: KBInterval, etalon_interval: KBInterval, context: Context
+    ):
         print("Estimate interval")
 
         cond = ConditionComparisonService()
         var_open = cond.get_various_references(etalon_interval.open, 3)
         var_close = cond.get_various_references(etalon_interval.close, 3)
 
-        most_common_open, score = cond.find_most_similar(interval.open, var_open, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})
-        most_common_close, score = cond.find_most_similar(interval.close, var_close, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})
-        
+        most_common_open, score = cond.find_most_similar(
+            interval.open, var_open, {"structure": 0.6, "variables": 0.3, "constants": 0.1}
+        )
+        most_common_close, score = cond.find_most_similar(
+            interval.close, var_close, {"structure": 0.6, "variables": 0.3, "constants": 0.1}
+        )
+
         context = Context(parent=None, name=f"Объект {interval.id}")
-        
-        errors_list_open = await cond.compare_conditions_deep(user_id, task_id, interval.open, most_common_open, 'interval', context, None)
-        errors_list_close =  await cond.compare_conditions_deep(user_id, task_id, interval.close, most_common_close, 'interval', context, None)
+
+        errors_list_open = await cond.compare_conditions_deep(
+            user_id, task_id, interval.open, most_common_open, "interval", context, None
+        )
+        errors_list_close = await cond.compare_conditions_deep(
+            user_id, task_id, interval.close, most_common_close, "interval", context, None
+        )
 
         errors_list_open.extend(errors_list_close)
         return errors_list_open
-        
 
     async def handle_logic_lexic_mistakes(
         self: "KBIntervalService", user: User, task: Task, interval: KBInterval, interval_et: KBInterval

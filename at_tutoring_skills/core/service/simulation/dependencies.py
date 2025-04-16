@@ -1,7 +1,5 @@
-from functools import cache
-from typing import Optional, Protocol
+from typing import Protocol
 
-from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeResponse
 
 
 class IMistakeService(Protocol):

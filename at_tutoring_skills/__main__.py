@@ -9,7 +9,6 @@ from uvicorn import Server
 
 from at_tutoring_skills.absolute.django_init import django_application
 from at_tutoring_skills.absolute.django_init import get_args
-from at_tutoring_skills.apps.skills.management.commands import importkb
 from at_tutoring_skills.core.KBskills import ATTutoringKBSkills
 from at_tutoring_skills.core.service.simulation.dependencies import MistakeService
 from at_tutoring_skills.core.service.simulation.dependencies import TaskService
@@ -18,7 +17,6 @@ from at_tutoring_skills.core.service.simulation.subservice.function.service impo
 from at_tutoring_skills.core.service.simulation.subservice.resource.service import ResourceService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.service import ResourceTypeService
 from at_tutoring_skills.core.service.simulation.subservice.template.service import TemplateService
-from at_tutoring_skills.core.service.simulation.subservice.template_usage.service import TemplateUsageService
 
 
 def get_skills():
@@ -42,7 +40,7 @@ def get_skills():
     resource_type_service = ResourceTypeService(mistake_service, task_service)
     resource_service = ResourceService(mistake_service, task_service)
     template_service = TemplateService(mistake_service, task_service)
-    template_usage_service =  TemplateService(mistake_service, task_service)
+    template_usage_service = TemplateService(mistake_service, task_service)
     # template_usage_service = TemplateUsageService(mistake_service, task_service)
     function_service = FunctionService(mistake_service, task_service)
 
