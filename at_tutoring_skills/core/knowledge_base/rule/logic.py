@@ -75,9 +75,10 @@ class KBRuleServiceLogicLexic:
                             if_instr.value, var, {"structure": 0.6, "variables": 0.3, "constants": 0.1}
                         )
                         context = Context(parent=None, name=f"Правило {rule.id}")
-                        errors_list = await cond.compare_conditions_deep(
+                        errors_list1 = await cond.compare_conditions_deep(
                             user_id, task_id, if_instr.value, most_common, "rule", context, None
                         )
+                        errors_list.extend(errors_list1)
             else:
                 errors_list.append(
                     to_logic_mistake(
@@ -134,9 +135,10 @@ class KBRuleServiceLogicLexic:
                             else_instr.value, var, {"structure": 0.6, "variables": 0.3, "constants": 0.1}
                         )
                         context = Context(parent=None, name=f"Правило {rule.id}")
-                        errors_list = await cond.compare_conditions_deep(
+                        errors_list2 = await cond.compare_conditions_deep(
                             user_id, task_id, else_instr.value, most_common, "rule", context, None
                         )
+                        errors_list.extend(errors_list2)
             else:
                 errors_list.append(
                     to_logic_mistake(
