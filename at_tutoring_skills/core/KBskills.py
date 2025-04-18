@@ -20,13 +20,13 @@ from at_tutoring_skills.core.task.transitions import TransitionsService
 class ATTutoringKBSkills(ATComponent):
     skills: dict = None
     cash: dict = None
-    task_service = None
-    type_service = None
-    object_service = None
-    event_service = None
-    interval_service = None
-    rule_service = None
-    transition_service = None
+    task_service: TaskService
+    type_service: KBTypeService
+    object_service: KBObjectService
+    event_service: KBEventService
+    interval_service: KBIntervalService
+    rule_service: KBRuleService
+    transition_service: TransitionsService
 
     def __init__(self, connection_parameters: ConnectionParameters, *args, **kwargs):
         super().__init__(connection_parameters, *args, **kwargs)
@@ -240,7 +240,7 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_knowledge_base_created(self, event: str, data: dict, auth_token: str):
         user_id = await self.get_user_id_or_token(auth_token)
-        user, created = await self.task_service.create_user(user_id)
+        user, _ = await self.task_service.create_user(user_id)
         msg = await self.task_service.get_variant_tasks_description(user, scip_completed=True)
 
         return {"msg": msg, "hint": msg, "kb_id": data["result"]["knowledgeBase"]["id"]}

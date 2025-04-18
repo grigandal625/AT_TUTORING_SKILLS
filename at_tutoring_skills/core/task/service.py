@@ -17,6 +17,8 @@ from django.db import models
 from django.db import transaction
 from pydantic import RootModel
 
+from at_tutoring_skills.core.task.descriptions import DescriptionsService
+
 from at_tutoring_skills.apps.mistakes.models import Mistake
 from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES
 from at_tutoring_skills.apps.skills.models import Skill
@@ -286,11 +288,12 @@ class TaskService(KBTaskService, KBIMServise):
         """
         Возвращает описание задания в виде строки.
         """
-        result = task.task_name
+        result = "**" + task.task_name 
         if task.description:
             result += f" - {task.description}."
+        result += "**"
         
-        result += f" Попыток выполнения: {task_user.attempts if task_user else 0}"
+        result += f" (Попыток выполнения: {task_user.attempts if task_user else 0})"
         if not short:
             object_description = await self.get_task_object_descritpion(task)
             result += '\n' + object_description
@@ -298,9 +301,8 @@ class TaskService(KBTaskService, KBIMServise):
 
     
     async def get_task_object_descritpion(self, task: Task) -> str:
-        pass
-
-
+        if task.task_object in DescriptionsService.KB_SUBJECT_TO_MODEL:
+            return DescriptionsService().get_kb_task_description(task)
 
     async def increment_taskuser_attempts(self, task: Task, user: User) -> bool:
         """
