@@ -240,13 +240,8 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_knowledge_base_created(self, event: str, data: dict, auth_token: str):
         user_id = await self.get_user_id_or_token(auth_token)
-        self.init_cash(user_id)
-        all_tasks = await self.task_service.get_all_tasks()
-        msg = "#### Задания:"
-        async for task in all_tasks:
-            msg += f"\n\n- {task.task_name}"
-            if task.description:
-                msg += ": " + task.description
+        user, created = await self.task_service.create_user(user_id)
+        msg = await self.task_service.get_variant_tasks_description(user, scip_completed=True)
 
         return {"msg": msg, "hint": msg, "kb_id": data["result"]["knowledgeBase"]["id"]}
 

@@ -255,6 +255,52 @@ class TaskService(KBTaskService, KBIMServise):
         else:
             variant = await Variant.objects.aget(pk=variant_id)
             return variant.task.all()
+        
+    async def get_variant_tasks_description(self, user: User, skip_completed=True) -> str:
+        """
+        Возвращает описание заданий для указанного пользователя.
+        """
+        tasks = await self.get_all_tasks(user.variant_id)
+
+        if not await tasks.aexists():
+            return "### Все задания выполнены!"
+        
+        result = "### На текуий момент необходимо выполнить следующие задания: \n" 
+        completed_result = ""
+        async for task in tasks:
+            task_user = await TaskUser.objects.filter(user=user, task=task).afirst()
+
+            if not task_user or not task_user.is_completed:
+                result += '\n- [ ] ' + await self.get_task_description(task, task_user)
+            elif task_user and task_user.is_completed:
+                completed_result += '\n- [x] ' + await self.get_task_description(task, task_user, short=True)
+
+
+        if not skip_completed:
+            if completed_result:
+                return result + "### Выполнено: \n" + completed_result
+        
+        return result
+        
+    async def get_task_description(self, task: Task, task_user: TaskUser | None, short=False) -> str:
+        """
+        Возвращает описание задания в виде строки.
+        """
+        result = task.task_name
+        if task.description:
+            result += f" - {task.description}."
+        
+        result += f" Попыток выполнения: {task_user.attempts if task_user else 0}"
+        if not short:
+            object_description = await self.get_task_object_descritpion(task)
+            result += '\n' + object_description
+        return result
+
+    
+    async def get_task_object_descritpion(self, task: Task) -> str:
+        pass
+
+
 
     async def increment_taskuser_attempts(self, task: Task, user: User) -> bool:
         """
