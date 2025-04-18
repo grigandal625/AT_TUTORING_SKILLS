@@ -399,44 +399,6 @@ class TaskService(KBTaskService, KBIMServise):
             logger.error(f"Error creating user {auth_token}: {str(e)}")
             raise
 
-    async def asign_user_random_variant(self, auth_token: str) -> tuple[User, bool]:
-        """
-        Создает нового пользователя или возвращает существующего с назначением случайного варианта.
-        Если у пользователя уже есть вариант - он не изменяется.
-
-        Args:
-            auth_token: Уникальный идентификатор пользователя
-
-        Returns:
-            tuple[User, bool]: Кортеж (объект пользователя, флаг создания)
-        """
-        try:
-            # Получаем случайный вариант
-            random_variant = await Variant.objects.order_by("?").afirst()
-
-            # Создаем или получаем пользователя
-            user, created = await User.objects.aget_or_create(user_id=auth_token, defaults={"variant": random_variant})
-            user = await User.objects.select_related("variant").aget(user_id=user.user_id)
-
-            if created:
-                logger.info(
-                    f"Created new user with random variant ({random_variant.name if random_variant else 'None'}): {auth_token}"
-                )
-            else:
-                logger.debug(f"User already exists: {auth_token}")
-                # Если пользователь уже существовал и у него нет варианта - назначаем случайный
-                if not user.variant and random_variant:
-                    user.variant = random_variant
-                    await user.asave()
-                    logger.info(f"Assigned random variant ({random_variant.name}) to existing user: {auth_token}")
-                elif user.variant:
-                    logger.debug(f"User already has variant ({user.variant.name}), keeping it")
-
-            return user, created
-        except Exception as e:
-            logger.error(f"Error creating user with variant {auth_token}: {str(e)}")
-            raise
-
     async def get_task_by_name(self, name: str, task_object: int = None) -> Task | None:
         """
         Получает задание по имени и типу объекта

@@ -6,7 +6,7 @@ from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 from rest_framework import exceptions
 
-from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import Skill, Task
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService
@@ -14,6 +14,7 @@ from at_tutoring_skills.core.knowledge_base.object.service import KBObjectServic
 from at_tutoring_skills.core.knowledge_base.rule.service import KBRuleService
 from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
 from at_tutoring_skills.core.task.service import TaskService
+from at_tutoring_skills.core.task.skill_service import SkillService
 from at_tutoring_skills.core.task.transitions import TransitionsService
 
 
@@ -94,7 +95,6 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        user, created = await self.task_service.asign_user_random_variant(user)
         await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
@@ -113,15 +113,18 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
-                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                    [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
                 )
-                encoded_text = quote_plus(errors_message)
+                # encoded_text = quote_plus(errors_message)
+                skill_service = SkillService()
+                skills  = await skill_service.process_and_get_skills_string(user, task)
 
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
+                    "skills": skills
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -136,7 +139,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         try:
@@ -156,7 +159,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         type_dict_raw = data.get("result")
@@ -175,7 +178,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         try:
@@ -197,7 +200,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
@@ -218,15 +221,17 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
-                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                    [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
                 )
                 encoded_text = quote_plus(errors_message)
-
+                skill_service = SkillService()
+                skills  = await skill_service.process_and_get_skills_string(user, task)
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
+                    "skill": skills
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -240,7 +245,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         object_dict_raw = data.get("result")
@@ -260,7 +265,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         user_id = user.pk
@@ -283,15 +288,18 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
-                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                    [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
                 )
                 encoded_text = quote_plus(errors_message)
 
+                skill_service = SkillService()
+                skills  = await skill_service.process_and_get_skills_string(user, task)
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
+                    "skill": skills
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -305,7 +313,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         try:
@@ -320,7 +328,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         event_dict_raw = data.get("result")
@@ -342,7 +350,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
@@ -362,15 +370,17 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
-                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                    [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
                 )
                 encoded_text = quote_plus(errors_message)
-
+                skill_service = SkillService()
+                skills  = await skill_service.process_and_get_skills_string(user, task)
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
+                    "skill": skills
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -384,7 +394,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         try:
@@ -400,7 +410,7 @@ class ATTutoringKBSkills(ATComponent):
 
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         interval_raw = data.get("result")
@@ -420,7 +430,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
@@ -441,15 +451,18 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
-                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
+                    [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
                 )
                 encoded_text = quote_plus(errors_message)
 
+                skill_service = SkillService()
+                skills  = await skill_service.process_and_get_skills_string(user, task)
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
+                    "skill": skills
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -463,7 +476,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         try:
@@ -478,7 +491,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
-        await self.task_service.asign_user_random_variant(user)
+
         await self.task_service.create_task_user_entries(user)
 
         rule_dict_raw = data.get("result")

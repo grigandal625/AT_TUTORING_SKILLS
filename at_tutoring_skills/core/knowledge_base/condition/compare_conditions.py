@@ -134,12 +134,17 @@ class CompareConditionsService(ReferenceVariationsService):
         vars2 = self._extract_variables(expr2)
 
         if not vars1 and not vars2:
-            return 1.0
+            return 0.0
+        lenght = len(vars1)
+        sum =0
+        for i in range(lenght):
+            if vars1[i] == vars2[i]:
+                sum +=1
+        if sum != 0:
+            return sum/lenght
+        else:
+            return 0
 
-        common = vars1 & vars2
-        total = vars1 | vars2
-
-        return len(common) / len(total) if total else 1.0
 
     def _constants_similarity(
         self,
@@ -170,13 +175,15 @@ class CompareConditionsService(ReferenceVariationsService):
         self, expr: Union[SimpleValue, SimpleReference, SimpleOperation, AllenOperation, KBOperation]
     ) -> Set[str]:
         """Извлекает все переменные из выражения"""
-        variables = set()
+        variables = []
 
         if isinstance(expr, (SimpleReference, AllenReference)):
-            variables.add(expr.id)
+            variables.append(expr.id)
+        elif isinstance(expr, SimpleValue):
+            variables.append(expr.content)
         elif isinstance(expr, (SimpleOperation, AllenOperation, KBOperation)):
-            variables.update(self._extract_variables(expr.left))
-            variables.update(self._extract_variables(expr.right))
+            variables.extend(self._extract_variables(expr.left))
+            variables.extend(self._extract_variables(expr.right))
 
         return variables
 

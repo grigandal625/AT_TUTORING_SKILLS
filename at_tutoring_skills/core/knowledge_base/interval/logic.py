@@ -26,10 +26,10 @@ class KBIntervalServiceLogicLexic:
         var_close = cond.get_various_references(etalon_interval.close, 3)
 
         most_common_open, score = cond.find_most_similar(
-            interval.open, var_open, {"structure": 0.6, "variables": 0.3, "constants": 0.1}
+            interval.open, var_open, {"structure": 0.3, "variables": 0.7, "constants": 0.5}
         )
         most_common_close, score = cond.find_most_similar(
-            interval.close, var_close, {"structure": 0.6, "variables": 0.3, "constants": 0.1}
+            interval.close, var_close, {"structure": 0.3, "variables": 0.6, "constants": 0.5}
         )
 
         context = Context(parent=None, name=f"Объект {interval.id}")

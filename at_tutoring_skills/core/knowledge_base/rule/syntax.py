@@ -26,9 +26,10 @@ class KBRuleServiceSyntax:
                 )
 
             for syntax_mistake in syntax_mistakes:
-                TaskService.append_mistake(syntax_mistake)
+                task_servise = TaskService()
+                task_servise.append_mistake(syntax_mistake)
 
             raise e
-
-    def process_tip(self, exception: str) -> str:
+    def process_tip(exception: str) -> str:
         ...
+        return str(exception)

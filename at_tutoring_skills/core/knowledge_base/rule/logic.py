@@ -55,10 +55,9 @@ class KBRuleServiceLogicLexic:
                             break
 
                     if not found:
-                        place = json.dumps(
-                            context.create_child(f"else instruction {if_instr_et.ref.id}").full_path_list,
-                            ensure_ascii=False,
-                        )
+
+                        context = context.create_child(f"else instruction {if_instr_et.ref.id}").full_path_list,
+
                         errors_list.append(
                             to_logic_mistake(
                                 user_id=user_id,
@@ -115,10 +114,9 @@ class KBRuleServiceLogicLexic:
                             break
 
                     if not found:
-                        place = json.dumps(
-                            context.create_child(f"else instruction {else_instr.ref.id}").full_path_list,
-                            ensure_ascii=False,
-                        )
+                        
+                        context = context.create_child(f"else instruction {else_instr.ref.id}").full_path_list,
+
                         errors_list.append(
                             to_logic_mistake(
                                 user_id=user_id,

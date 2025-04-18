@@ -12,8 +12,10 @@ class Context:
         return Context(parent=self, name=name)
 
     @property
-    def full_path_list(self) -> List[str]:
-        return self.parent.full_path_list + [self.name] if self.parent else [self.name]
+    def full_path_list(self) -> str:
+        parts = []; current = self
+        while current: parts.append(current.name); current = current.parent
+        return '.'.join(reversed(parts))
 
 
 class StudentMistakeException(Exception):

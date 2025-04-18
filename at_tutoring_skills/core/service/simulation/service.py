@@ -165,7 +165,7 @@ class SimulationService(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.main_task_service.create_user(user_id)
         await self.main_task_service.create_user_skill_connection(user)
-        await self.main_task_service.asign_user_random_variant(user)
+
         await self.main_task_service.create_task_user_entries(user)
         user_id = user.pk
 
@@ -217,7 +217,7 @@ class SimulationService(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.main_task_service.create_user(user_id)
         await self.main_task_service.create_user_skill_connection(user)
-        await self.main_task_service.asign_user_random_variant(user)
+
         await self.main_task_service.create_task_user_entries(user)
         user_id = user.pk
 
@@ -265,7 +265,7 @@ class SimulationService(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.main_task_service.create_user(user_id)
         await self.main_task_service.create_user_skill_connection(user)
-        await self.main_task_service.asign_user_random_variant(user)
+
         await self.main_task_service.create_task_user_entries(user)
         user_id = user.pk
 
@@ -317,7 +317,7 @@ class SimulationService(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.main_task_service.create_user(user_id)
         await self.main_task_service.create_user_skill_connection(user)
-        await self.main_task_service.asign_user_random_variant(user)
+
         await self.main_task_service.create_task_user_entries(user)
         user_id = user.pk
 
@@ -370,7 +370,7 @@ class SimulationService(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.main_task_service.create_user(user_id)
         await self.main_task_service.create_user_skill_connection(user)
-        await self.main_task_service.asign_user_random_variant(user)
+
         await self.main_task_service.create_task_user_entries(user)
         user_id = user.pk
 
