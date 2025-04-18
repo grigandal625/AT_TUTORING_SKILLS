@@ -2,6 +2,47 @@
     "variant_name": "Управление медицинскими силами и средствами при крупных дорожно-транспортных происшествиях",
     "tasks":[
         {
+            "task_name": "",
+            "task_object": 6,
+            "object_name": "type1",
+            "description": "",
+            "object_reference": {
+                "id": 211,
+                "name": "type1",
+                "type": "CONSTANT",
+                "attributes": [
+                    {
+                        "id": 1,
+                        "name": "attr1",
+                        "type": "INT",
+                        "enum_values_set": null,
+                        "default_value": 5
+                    },
+                    {
+                        "id": 2,
+                        "name": "attr2",
+                        "type": "FLOAT",
+                        "enum_values_set": null,
+                        "default_value": 5
+                    },
+                    {
+                        "id": 3,
+                        "name": "attr3",
+                        "type": "BOOL",
+                        "enum_values_set": null,
+                        "default_value": true
+                    },
+                    {
+                        "id": 4,
+                        "name": "attr4",
+                        "type": "ENUM",
+                        "enum_values_set": ["hello", "world"],
+                        "default_value": "hello"
+                    }
+                ]
+            }
+        },
+        {
         "task_name": "Создать тип ресурса 'Машина'",
         "task_object": 6,
         "object_name": "Машина",
@@ -140,6 +181,48 @@
             ]
         }
     },
+    
+    {
+        "task_name": "",
+        "task_object": 7,
+        "object_name": "type1",
+        "description": "",
+        "object_reference": {
+            "id": 211,
+            "name": "type1",
+            "type": "CONSTANT",
+            "attributes": [
+                {
+                    "id": 1,
+                    "name": "attr1",
+                    "type": "INT",
+                    "enum_values_set": null,
+                    "default_value": 5
+                },
+                {
+                    "id": 2,
+                    "name": "attr2",
+                    "type": "FLOAT",
+                    "enum_values_set": null,
+                    "default_value": 6.3
+                },
+                {
+                    "id": 3,
+                    "name": "attr3",
+                    "type": "BOOL",
+                    "enum_values_set": null,
+                    "default_value": true
+                },
+                {
+                    "id": 4,
+                    "name": "attr4",
+                    "type": "ENUM",
+                    "enum_values_set": ["hello", "world"],
+                    "default_value": "hello"
+                }
+            ]
+        }
+    },
     {
         "task_name": "Создать ресурс 'Пострадавший_1'",
         "task_object": 7,
@@ -263,6 +346,63 @@
         }
     },
     {
+        "task_name": "",
+        "task_object": 8,
+        "object_name": "event1",
+        "description": "",
+        "object_reference": {
+            "id": 231,
+            "name": "event1",
+            "type": "IRREGULAR_EVENT",
+            "rel_resources": [
+                {
+                    "id": 2,
+                    "name": "rel_res1",
+                    "resource_type_id_str": "type1"
+                }
+            ],
+            "generator": [
+                {
+                    "type": "normal",
+                    "value": "2",
+                    "dispersion": "0"
+                }
+            ],
+            "body": {
+                "body": "rel_res1.attr1 = 5"
+            }
+        }
+    },
+    {
+        "task_name": "Создать образец операции 'Машина_прибыла_на_место_ДТП'",
+        "task_object": 8,
+        "object_name": "Машина_прибыла_на_место_ДТП",
+        "description": "",
+        "object_reference": {
+            "id": 231,
+            "name": "Машина_прибыла_на_место_ДТП",
+            "type": "RULE",
+            "rel_resources": [
+                {
+                    "id": 2,
+                    "name": "Текущая_Машина",
+                    "resource_type_id_str": "Машина"
+                }
+            ],
+            "body": {
+                "condition": "(Текущая_Машина.Координата_X_Цели - Текущая_Машина.Координата_X > -0.6) and (Текущая_Машина.Координата_Y_Цели - Текущая_Машина.Координата_Y > -0.6) and (Текущая_Машина.Координата_X_Цели - Текущая_Машина.Координата_X < 0.6) and (Текущая_Машина.Координата_Y_Цели - Текущая_Машина.Координата_Y < 0.6) and (Текущая_Машина.Состояние == 'Занята')",
+                "body": "Текущая_Машина.Состояние = 'Прибыла'; Текущая_Машина.Координата_X = Текущая_Машина.Координата_X_Цели; Текущая_Машина.Координата_Y = Текущая_Машина.Координата_Y_Цели;"
+            },
+            "trace": true,
+            "time": {
+                "type": "PRECISE",
+                "value": 1,
+                "interval_start": null,
+                "interval_end": null
+            }
+        }
+    },
+    {
         "task_name": "Создать образец операции 'Машина_прибыла_на_место_ДТП'",
         "task_object": 8,
         "object_name": "Машина_прибыла_на_место_ДТП",
@@ -310,19 +450,12 @@
             "body": {
                 "condition": "1 == 1",
                 "body": "Текущий_такт.Количество = Текущий_такт.Количество + 1;"
-            },
-            "trace": true,
-            "time": {
-                "type": "PRECISE",
-                "value": 1,
-                "interval_start": null,
-                "interval_end": null
             }
         }
     },
     {
         "task_name": "Создать операцию 'Машина_прибыла_на_место_ДТП_1'",
-        "task_object": 10,
+        "task_object": 9,
         "object_name": "Операция1",
         "description": "",
         "object_reference": {
@@ -341,17 +474,16 @@
     }, 
     {
         "task_name": "Создать операцию 'Подсчет_тактов_1'",
-        "task_object": 10,
-        "object_name": "Операция2",
+        "task_object": 9,
+        "object_name": "Подсчет_тактов_1",
         "description": "",
         "object_reference": {
             "id": 242,
-            "name": "Операция2",
-            "template_id": 501,
+            "name": "Подсчет_тактов_1",
+            "template_id_str": "Подсчет_тактов",
             "arguments": [
                 {
                     "id": 1,
-                    "relevant_resource_id_str": "Такт",
                     "resource_id_str": "Такт_1"
                 }
             ]

@@ -33,7 +33,8 @@ from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.
     ResourceTypeAttributeRequest,
 )
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
-from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventBody, IrregularEventGenerator, IrregularEventRequest, OperationBody, OperationRequest, RelevantResourceRequest, RuleBody, RuleRequest, TemplateMetaRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import GeneratorTypeEnum, IrregularEventBody, IrregularEventGenerator, IrregularEventRequest, OperationBody, OperationRequest, RelevantResourceRequest, RuleBody, RuleRequest, TemplateMetaRequest, TemplateTypeEnum
+from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import TemplateUsageArgumentRequest, TemplateUsageRequest
 
 logger = logging.getLogger(__name__)
 
@@ -128,28 +129,33 @@ class KBIMServise:
         else:
             raise ValueError("task.object_reference должен быть строкой JSON или словарём")
 
-        # Определяем тип шаблона
-        template_type = reference_data["meta"]["type"]
+        # Преобразуем тип шаблона в TemplateTypeEnum
+        try:
+            template_type = TemplateTypeEnum(reference_data['type'])
+        except ValueError:
+            raise ValueError(f"Неизвестный тип шаблона: {reference_data['type']}")
+
+        # Определяем класс Pydantic на основе типа шаблона
         pydantic_class = self._get_template_class(template_type)
 
         # Преобразуем данные в соответствующую Pydantic модель
         if pydantic_class == IrregularEventRequest:
-            generator_data = reference_data["generator"]
-            body_data = reference_data["body"]
+            generator_data = reference_data['generator']
+            body_data = reference_data['body']
 
             return IrregularEventRequest(
                 meta=TemplateMetaRequest(
-                    id=reference_data["meta"]["id"],
-                    name=reference_data["meta"]["name"],
+                    id=reference_data['id'],
+                    name=reference_data['name'],
                     type=template_type,
                     rel_resources=[
-                        RelevantResourceRequest(**res_data) for res_data in reference_data["meta"]["rel_resources"]
+                        RelevantResourceRequest(**res_data) for res_data in reference_data['rel_resources']
                     ],
                 ),
                 generator=IrregularEventGenerator(
-                    type=generator_data["type"],
-                    value=generator_data["value"],
-                    dispersion=generator_data["dispersion"],
+                    type=GeneratorTypeEnum(generator_data['type']),
+                    value=generator_data['value'],
+                    dispersion=generator_data['dispersion'],
                 ),
                 body=IrregularEventBody(body=body_data["body"]),
             )
@@ -159,11 +165,11 @@ class KBIMServise:
 
             return RuleRequest(
                 meta=TemplateMetaRequest(
-                    id=reference_data["meta"]["id"],
-                    name=reference_data["meta"]["name"],
+                    id=reference_data["id"],
+                    name=reference_data["name"],
                     type=template_type,
                     rel_resources=[
-                        RelevantResourceRequest(**res_data) for res_data in reference_data["meta"]["rel_resources"]
+                        RelevantResourceRequest(**res_data) for res_data in reference_data["rel_resources"]
                     ],
                 ),
                 body=RuleBody(
@@ -177,11 +183,11 @@ class KBIMServise:
 
             return OperationRequest(
                 meta=TemplateMetaRequest(
-                    id=reference_data["meta"]["id"],
-                    name=reference_data["meta"]["name"],
+                    id=reference_data["id"],
+                    name=reference_data["name"],
                     type=template_type,
                     rel_resources=[
-                        RelevantResourceRequest(**res_data) for res_data in reference_data["meta"]["rel_resources"]
+                        RelevantResourceRequest(**res_data) for res_data in reference_data["rel_resources"]
                     ],
                 ),
                 body=OperationBody(
@@ -195,6 +201,7 @@ class KBIMServise:
         else:
             raise ValueError(f"Неизвестный тип шаблона: {template_type}")
 
+        
     def _get_template_class(self, template_type: str):
         """
         Возвращает соответствующий класс Pydantic на основе типа шаблона.
@@ -209,8 +216,41 @@ class KBIMServise:
             raise ValueError(f"Неизвестный тип шаблона: {template_type}")
         return pydantic_class
 
-    async def get_template_usage_reference(self, task: Task):
-        ...
+    
+    async def get_template_usage_reference(self, task: Task) -> TemplateUsageRequest:
+        """
+        Преобразует task.object_reference в объект TemplateUsageRequest.
+        """
+        # Проверяем тип object_reference и преобразуем его в словарь
+        if isinstance(task.object_reference, str):
+            try:
+                reference_data = json.loads(task.object_reference)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Ошибка декодирования JSON в task.object_reference: {e}")
+        elif isinstance(task.object_reference, dict):
+            reference_data = task.object_reference
+        else:
+            raise ValueError("task.object_reference должен быть строкой JSON или словарём")
+
+        # Проверяем наличие обязательных полей в reference_data
+        required_fields = {"id", "name", "template_id_str", "arguments"}
+        if not required_fields.issubset(reference_data.keys()):
+            missing_fields = required_fields - reference_data.keys()
+            raise ValueError(f"Отсутствуют обязательные поля в object_reference: {missing_fields}")
+
+        # Создаем список аргументов
+        arguments = [
+            TemplateUsageArgumentRequest(**arg_data) for arg_data in reference_data["arguments"]
+        ]
+
+        # Возвращаем объект TemplateUsageRequest
+        return TemplateUsageRequest(
+            id=reference_data["id"],
+            name=reference_data["name"],
+            template_id_str=reference_data["template_id_str"],
+            arguments=arguments,
+        )
+
 
     async def get_function_reference(self, task: Task):
         if isinstance(task.object_reference, str):

@@ -13,11 +13,13 @@ from at_queue.utils.decorators import authorized_method
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES, Task, User
 from at_tutoring_skills.core.service.simulation.dependencies import ITaskService
 from at_tutoring_skills.core.service.simulation.subservice.function.service import FunctionService
+from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceRequest
 from at_tutoring_skills.core.service.simulation.subservice.resource.service import ResourceService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.service import ResourceTypeService
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RelevantResourceRequest
 from at_tutoring_skills.core.service.simulation.subservice.template.service import TemplateService
+from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import TemplateUsageArgumentRequest
 from at_tutoring_skills.core.service.simulation.subservice.template_usage.service import TemplateUsageService
 from at_tutoring_skills.core.task.service import TaskService
 from at_tutoring_skills.core.task.transitions import TransitionsService
@@ -166,14 +168,106 @@ class SimulationService(ATComponent):
     def get_im_resource_from_cash(self, resource_id: int):
         cached_data = self.cash.get(resource_id)
         
-        if not cached_data:
+        if cached_data:
+            print(f"Запись с ID {resource_id} найдена в кэше.")
+            return cached_data['data']
+        else:
             print(f"Запись с ID {resource_id} не найдена в кэше.")
             return None
 
 
-# ============================================ Cash Template =====================================================
-   
+    def get_resource_names_from_cache(self, arguments: List[TemplateUsageArgumentRequest]) -> List[dict]:
+        """
+        Получает имена ресурсов из кэша и возвращает их вместе с типами.
+        """
+        resource_data = []
 
+        for argument in arguments:
+            if argument.resource_id is not None:
+                # Получаем данные из кэша
+                cached_data = self.get_im_resource_from_cash(argument.resource_id)
+
+                if cached_data:
+                    try:
+                        # Преобразуем cached_data в словарь
+                        if isinstance(cached_data, str):
+                            # Если cached_data — строка, пытаемся разобрать её как JSON
+                            resources_data = json.loads(cached_data)
+                        elif isinstance(cached_data, dict):
+                            # Если cached_data уже словарь, используем его напрямую
+                            resources_data = cached_data
+                        else:
+                            raise ValueError("Некорректный тип данных для cached_data. Ожидалась строка или словарь.")
+
+                        # Создаем объект ResourceTypeRequest
+                        resource_type_obj = ResourceRequest(**resources_data)
+
+                        # Добавляем данные в результат
+                        resource_data.append({
+                            "name": resource_type_obj.name,
+                        })
+
+                    except (json.JSONDecodeError, ValidationError) as e:
+                        print(f"Ошибка при преобразовании cached_data для resource ID {argument.resource_id}: {e}")
+                        continue  # Пропускаем текущий элемент и продолжаем обработку
+
+                else:
+                    print(f"Resource с ID {argument.resource_id} не найден в кэше.")
+            else:
+                print(f"Resource ID отсутствует для ресурса с именем {argument.resource_id_str}.")
+
+        return resource_data
+
+# ============================================ Cash Template =====================================================
+    def add_im_template_to_cash(self, template: BaseModel, auth_token: int):
+        # Получение уникального идентификатора из модели
+        template_id = getattr(template, "id", None)
+        
+        if not template_id:
+            raise ValueError("Поле 'id' отсутствует в данных. Невозможно добавить в кэш.")
+        
+        # Сохранение данных в кэш
+        self.cash[template_id] = {
+            "data": template.dict(),  # Преобразуем Pydantic модель в словарь для хранения
+            "auth_token": auth_token
+        }
+
+    def get_im_template_from_cash(self, template_id: int):
+        cached_data = self.cash.get(template_id)
+
+        if cached_data:
+            print(f"Запись с ID {template_id} найдена в кэше.")
+            return cached_data['data']
+        else:
+            print(f"Запись с ID {template_id} не найдена в кэше.")
+            return None
+
+    def get_template_name_from_cache(self, template_id: int) -> Optional[str]:
+
+        cached_data = self.get_im_template_from_cash(template_id)
+
+        if not cached_data:
+            return None
+
+        try:
+            if isinstance(cached_data, str):
+                resources_data = json.loads(cached_data)
+                
+            elif isinstance(cached_data, dict):
+                resources_data = cached_data
+            else:
+                raise ValueError("Некорректный тип данных для cached_data. Ожидалась строка или словарь.")
+
+            # Извлекаем имя шаблона
+            template_name = resources_data.get("name")
+            if template_name is None:
+                raise KeyError("Поле 'name' отсутствует в данных шаблона.")
+
+            return template_name
+
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            print(f"Ошибка при обработке данных шаблона с ID {template_id}: {e}")
+            return None
 
 #   ============================= Resource Types ====================================
     @authorized_method
@@ -298,6 +392,8 @@ class SimulationService(ATComponent):
             return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
         
         else:
+            self.add_im_template_to_cash(template.meta, auth_token)
+
             print(task.object_name, task.object_reference, template)
 
             resource_type_name = self.get_resource_type_names_from_cache(template.meta.rel_resources)
@@ -315,7 +411,7 @@ class SimulationService(ATComponent):
 
             if not errors_list:
                 await self.main_task_service.complete_task(task, user)
-                stage = await self.transition_service.check_stage_tasks_completed(user, 7)
+                stage = await self.transition_service.check_stage_tasks_completed(user, 8)
                 return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
             
             else: # Преобразуем объекты CommonMistake в словари
@@ -346,37 +442,32 @@ class SimulationService(ATComponent):
         task : Task = await self.main_task_service.get_task_by_name(template_usage.name, SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES)
         
         if not task:
-            skill_result = "Задание не найдено, продолжайте выполнение работы"
-            return skill_result
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
+        
         else:
             print(task.object_name, task.object_reference, template_usage)
-            # await self.task_service.create_task_user_safe(task, user)
 
-            # resource_type_name = self.get_im_resource_from_cash(template_usage.resource_type_id, auth_token)
-            # template_name = self.get_im_template_from_cash(template_usage.resource_type_id, auth_token)
+            resource_type_name = self.get_resource_names_from_cache(template_usage.arguments)
+            template_name = self.get_template_name_from_cache(template_usage.template_id)
 
             errors_list = []
-            errors_list_logic = await self.template_usage_service.handle_logic_mistakes(user_id, template_usage)
-            errors_list_lexic = await self.template_usage_service.handle_lexic_mistakes(user_id, template_usage)
-            
+            errors_list_logic = await self.template_usage_service.handle_logic_mistakes(user_id, template_usage,  resource_type_name,  template_name)
             if errors_list_logic:
                 errors_list.extend(errors_list_logic) 
-            if errors_list_lexic:
-                errors_list.extend(errors_list_lexic) 
-  
+                
             print(f"Результат: {errors_list}")
 
             if not errors_list:
                 await self.main_task_service.complete_task(task, user)
-                return {"status": "success", "message": "Обучаемый успешно выполнил задание"}
-                
-            else: 
+                stage = await self.transition_service.check_stage_tasks_completed(user, 9)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
+            
+            else: # Преобразуем объекты CommonMistake в словари
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
-            
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
 
 
 #   =============================== Function =====================================
@@ -418,14 +509,15 @@ class SimulationService(ATComponent):
 
             if not errors_list:
                 await self.main_task_service.complete_task(task, user)
-                return {"status": "success", "message": "Обучаемый успешно выполнил задание"}
-                
-            else: 
+                stage = await self.transition_service.check_stage_tasks_completed(user, 7)
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
+            
+            else: # Преобразуем объекты CommonMistake в словари
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
                     f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
                 )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
+                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
 
 
         # user_id = await self.get_user_id_or_token(auth_token)

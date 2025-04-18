@@ -42,8 +42,7 @@ def get_skills():
     resource_type_service = ResourceTypeService(mistake_service, task_service)
     resource_service = ResourceService(mistake_service, task_service)
     template_service = TemplateService(mistake_service, task_service)
-    template_usage_service =  TemplateService(mistake_service, task_service)
-    # template_usage_service = TemplateUsageService(mistake_service, task_service)
+    template_usage_service = TemplateUsageService(mistake_service, task_service)
     function_service = FunctionService(mistake_service, task_service)
 
     # Инициализация навыков
