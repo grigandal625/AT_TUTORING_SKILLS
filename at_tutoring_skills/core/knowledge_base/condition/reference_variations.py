@@ -1,9 +1,11 @@
-from typing import List, Union
+from typing import List
+from typing import Union
+
+from at_krl.core.kb_operation import KBOperation
 from at_krl.core.simple.simple_operation import SimpleOperation
 from at_krl.core.simple.simple_reference import SimpleReference
 from at_krl.core.simple.simple_value import SimpleValue
 from at_krl.core.temporal.allen_operation import AllenOperation
-from at_krl.core.kb_operation import KBOperation
 
 
 class ReferenceVariationsService:
@@ -17,7 +19,7 @@ class ReferenceVariationsService:
             return []
 
         if isinstance(condition, AllenOperation):
-            array =  self._handle_allen_operation(condition, max_depth)
+            array = self._handle_allen_operation(condition, max_depth)
             array.append(condition)
         elif isinstance(condition, (SimpleOperation, KBOperation)):
             array = self._handle_simple_operation(condition, max_depth)
@@ -26,20 +28,14 @@ class ReferenceVariationsService:
             array = [condition]
 
         return array
-    def _handle_allen_operation(
-        self,
-        condition: AllenOperation,
-        max_depth: int
-    ) -> List[AllenOperation]:
+
+    def _handle_allen_operation(self, condition: AllenOperation, max_depth: int) -> List[AllenOperation]:
         """Обрабатывает временные операции Аллена"""
         variations = []
         variations.extend(self._generate_allen_variations(condition))
         return self._remove_duplicates(variations)
 
-    def _generate_allen_variations(
-        self,
-        op: AllenOperation
-    ) -> List[AllenOperation]:
+    def _generate_allen_variations(self, op: AllenOperation) -> List[AllenOperation]:
         """Генерирует варианты для операций Аллена"""
         variations = []
         sign = op.sign
@@ -51,14 +47,20 @@ class ReferenceVariationsService:
 
         # Маппинг инверсий операций Аллена
         inversion_map = {
-            "b": "bi", "bi": "b",
-            "m": "mi", "mi": "m",
-            "s": "si", "si": "s",
-            "f": "fi", "fi": "f",
-            "d": "di", "di": "d",
-            "o": "oi", "oi": "o",
+            "b": "bi",
+            "bi": "b",
+            "m": "mi",
+            "mi": "m",
+            "s": "si",
+            "si": "s",
+            "f": "fi",
+            "fi": "f",
+            "d": "di",
+            "di": "d",
+            "o": "oi",
+            "oi": "o",
             "e": "e",
-            "a": "b"
+            "a": "b",
         }
 
         # Добавляем инвертированную операцию
@@ -77,9 +79,7 @@ class ReferenceVariationsService:
         return variations
 
     def _handle_simple_operation(
-        self,
-        condition: Union[SimpleOperation, KBOperation],
-        max_depth: int
+        self, condition: Union[SimpleOperation, KBOperation], max_depth: int
     ) -> List[Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference]]:
         """Обрабатывает простые операции"""
         variations = []
@@ -88,12 +88,12 @@ class ReferenceVariationsService:
 
         for var in variations[:]:
             if isinstance(var, (SimpleOperation, KBOperation)):
-                for left_var in self.get_various_references(var.left, max_depth-1):
+                for left_var in self.get_various_references(var.left, max_depth - 1):
                     new_op = type(var)(sign=var.sign, left=left_var, right=var.right)
                     if not self._contains_operation(variations, new_op):
                         variations.append(new_op)
 
-                for right_var in self.get_various_references(var.right, max_depth-1):
+                for right_var in self.get_various_references(var.right, max_depth - 1):
                     new_op = type(var)(sign=var.sign, left=var.left, right=right_var)
                     if not self._contains_operation(variations, new_op):
                         variations.append(new_op)
@@ -101,8 +101,7 @@ class ReferenceVariationsService:
         return self._remove_duplicates(variations)
 
     def _generate_basic_variations(
-        self,
-        op: Union[SimpleOperation, KBOperation]
+        self, op: Union[SimpleOperation, KBOperation]
     ) -> List[Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference]]:
         variations = []
         sign, left, right = op.sign, op.left, op.right
@@ -124,8 +123,7 @@ class ReferenceVariationsService:
         return variations
 
     def _handle_associativity(
-        self,
-        op: Union[SimpleOperation, KBOperation]
+        self, op: Union[SimpleOperation, KBOperation]
     ) -> List[Union[SimpleOperation, KBOperation]]:
         """Обрабатывает ассоциативные преобразования"""
         variations = []
@@ -158,13 +156,11 @@ class ReferenceVariationsService:
             new_op = type(op)(sign=sign, left=right.left, right=new_right)
             if not self._contains_operation(variations, new_op):
                 variations.append(new_op)
-            
 
         return variations
 
     def _apply_algebraic_rules(
-        self,
-        op: Union[SimpleOperation, KBOperation]
+        self, op: Union[SimpleOperation, KBOperation]
     ) -> List[Union[SimpleOperation, SimpleValue, SimpleReference, KBOperation]]:
         """Применяет алгебраические правила преобразований"""
         variations = []
@@ -187,8 +183,7 @@ class ReferenceVariationsService:
         return variations
 
     def _handle_distributivity(
-        self,
-        op: Union[SimpleOperation, KBOperation]
+        self, op: Union[SimpleOperation, KBOperation]
     ) -> List[Union[SimpleOperation, KBOperation]]:
         """Обрабатывает дистрибутивность"""
         variations = []
@@ -201,7 +196,7 @@ class ReferenceVariationsService:
                 new_op = type(op)(
                     sign="add",
                     left=type(op.left)(sign="mul", left=left.left, right=right),
-                    right=type(op.right)(sign="mul", left=left.right, right=right)
+                    right=type(op.right)(sign="mul", left=left.right, right=right),
                 )
                 if not self._contains_operation(variations, new_op):
                     variations.append(new_op)
@@ -211,7 +206,7 @@ class ReferenceVariationsService:
                 new_op = type(op)(
                     sign="add",
                     left=type(op.left)(sign="mul", left=left, right=right.left),
-                    right=type(op.right)(sign="mul", left=left, right=right.right)
+                    right=type(op.right)(sign="mul", left=left, right=right.right),
                 )
                 if not self._contains_operation(variations, new_op):
                     variations.append(new_op)
@@ -219,8 +214,7 @@ class ReferenceVariationsService:
         return variations
 
     def _handle_constants(
-        self,
-        op: Union[SimpleOperation, KBOperation]
+        self, op: Union[SimpleOperation, KBOperation]
     ) -> List[Union[SimpleOperation, SimpleValue, SimpleReference, KBOperation]]:
         """Упрощает выражения с константами"""
         variations = []
@@ -266,10 +260,7 @@ class ReferenceVariationsService:
 
         return variations
 
-    def _apply_de_morgan(
-        self,
-        op: Union[SimpleOperation, KBOperation]
-    ) -> List[Union[SimpleOperation, KBOperation]]:
+    def _apply_de_morgan(self, op: Union[SimpleOperation, KBOperation]) -> List[Union[SimpleOperation, KBOperation]]:
         """Применяет законы де Моргана"""
         variations = []
         sign, left, right = op.sign, op.left, op.right
@@ -278,11 +269,7 @@ class ReferenceVariationsService:
             # ¬(A ∧ B) → ¬A ∨ ¬B
             if isinstance(left, (SimpleOperation, KBOperation)) and left.sign == "not":
                 if isinstance(right, (SimpleOperation, KBOperation)) and right.sign == "not":
-                    new_op = type(op)(
-                        sign="or",
-                        left=left.left,
-                        right=right.left
-                    )
+                    new_op = type(op)(sign="or", left=left.left, right=right.left)
                     if not self._contains_operation(variations, new_op):
                         variations.append(new_op)
 
@@ -290,19 +277,14 @@ class ReferenceVariationsService:
             # ¬(A ∨ B) → ¬A ∧ ¬B
             if isinstance(left, (SimpleOperation, KBOperation)) and left.sign == "not":
                 if isinstance(right, (SimpleOperation, KBOperation)) and right.sign == "not":
-                    new_op = type(op)(
-                        sign="and",
-                        left=left.left,
-                        right=right.left
-                    )
+                    new_op = type(op)(sign="and", left=left.left, right=right.left)
                     if not self._contains_operation(variations, new_op):
                         variations.append(new_op)
 
         return variations
 
     def _handle_double_negation(
-        self,
-        op: SimpleOperation
+        self, op: SimpleOperation
     ) -> List[Union[SimpleOperation, SimpleValue, SimpleReference, KBOperation]]:
         """Упрощает двойное отрицание"""
         variations = []
@@ -312,19 +294,21 @@ class ReferenceVariationsService:
                 variations.append(op.left.left)
 
         return variations
+
     def _is_same_operation_type(
         self,
         op1: Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation],
-        op2: Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation]
+        op2: Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation],
     ) -> bool:
         """Проверяет, являются ли операции одного типа (учитывая SimpleOperation и KBOperation как одинаковые)"""
         if isinstance(op1, (SimpleOperation, KBOperation)) and isinstance(op2, (SimpleOperation, KBOperation)):
             return True
         return type(op1) == type(op2)
+
     def _contains_operation(
-        self, 
-        variations: List[Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation]], 
-        new_op: Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation]
+        self,
+        variations: List[Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation]],
+        new_op: Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation],
     ) -> bool:
         """Проверяет, содержит ли список вариаций данную операцию"""
         for var in variations:
@@ -333,29 +317,32 @@ class ReferenceVariationsService:
         return False
 
     def _are_operations_equal(
-        self, 
-        op1: Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation], 
-        op2: Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation]
+        self,
+        op1: Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation],
+        op2: Union[SimpleOperation, KBOperation, SimpleValue, SimpleReference, AllenOperation],
     ) -> bool:
         """Сравнивает две операции на структурное равенство"""
         if not self._is_same_operation_type(op1, op2):
             return False
 
         if isinstance(op1, (SimpleOperation, KBOperation)):
-            return (op1.sign == op2.sign and 
-                    self._are_operations_equal(op1.left, op2.left) and 
-                    self._are_operations_equal(op1.right, op2.right))
+            return (
+                op1.sign == op2.sign
+                and self._are_operations_equal(op1.left, op2.left)
+                and self._are_operations_equal(op1.right, op2.right)
+            )
         elif isinstance(op1, AllenOperation):
-            return (op1.sign == op2.sign and 
-                    self._are_operations_equal(op1.left, op2.left) and 
-                    self._are_operations_equal(op1.right, op2.right))
+            return (
+                op1.sign == op2.sign
+                and self._are_operations_equal(op1.left, op2.left)
+                and self._are_operations_equal(op1.right, op2.right)
+            )
         elif isinstance(op1, (SimpleValue, SimpleReference)):
             return str(op1) == str(op2)
         return False
 
     def _remove_duplicates(
-        self,
-        variations: List[Union[SimpleOperation, SimpleValue, SimpleReference, AllenOperation, KBOperation]]
+        self, variations: List[Union[SimpleOperation, SimpleValue, SimpleReference, AllenOperation, KBOperation]]
     ) -> List[Union[SimpleOperation, SimpleValue, SimpleReference, AllenOperation, KBOperation]]:
         """Удаляет дубликаты на основе структурного сравнения"""
         unique = []
@@ -370,8 +357,7 @@ class ReferenceVariationsService:
         return unique
 
     def _expression_fingerprint(
-        self,
-        expr: Union[SimpleOperation, SimpleValue, SimpleReference, AllenOperation, KBOperation]
+        self, expr: Union[SimpleOperation, SimpleValue, SimpleReference, AllenOperation, KBOperation]
     ) -> str:
         """Создает уникальный ключ для выражения"""
         if isinstance(expr, SimpleValue):

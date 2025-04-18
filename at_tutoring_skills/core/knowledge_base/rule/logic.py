@@ -11,7 +11,6 @@ from at_tutoring_skills.core.errors.consts import KNOWLEDGE_COEFFICIENTS
 from at_tutoring_skills.core.errors.context import Context
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
-from at_tutoring_skills.core.task.service import TaskService
 from at_tutoring_skills.core.knowledge_base.condition.lodiclexic_condition import ConditionComparisonService
 
 if TYPE_CHECKING:
@@ -19,19 +18,22 @@ if TYPE_CHECKING:
 
 
 class KBRuleServiceLogicLexic:
-
     async def estimate_rule(self, user_id: int, task_id: int, rule: KBRule, rule_et: KBRule):
         cond = ConditionComparisonService()
         var = cond.get_various_references(rule_et.condition, 5)
         for v in var:
             print("\n", v.krl)
-        most_common, score = cond.find_most_similar(rule.condition, var, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})
+        most_common, score = cond.find_most_similar(
+            rule.condition, var, {"structure": 0.6, "variables": 0.3, "constants": 0.1}
+        )
         context = Context(parent=None, name=f"Объект {rule.id}")
-        errors_list = await cond.compare_conditions_deep(user_id, task_id, rule.condition, most_common, 'rule', context, None)
-        
+        errors_list = await cond.compare_conditions_deep(
+            user_id, task_id, rule.condition, most_common, "rule", context, None
+        )
+
         if rule.instructions:
             if rule_et.instructions:
-                if len(rule.instructions)< len(rule_et.instructions):
+                if len(rule.instructions) < len(rule_et.instructions):
                     place = json.dumps(context.full_path_list, ensure_ascii=False)
                     errors_list.append(
                         to_logic_mistake(
@@ -53,8 +55,9 @@ class KBRuleServiceLogicLexic:
                             break
 
                     if not found:
-                        place = json.dumps(context.create_child(f"else instruction {if_instr_et.ref.id}").full_path_list, 
-                                        ensure_ascii=False)
+
+                        context = context.create_child(f"else instruction {if_instr_et.ref.id}").full_path_list,
+
                         errors_list.append(
                             to_logic_mistake(
                                 user_id=user_id,
@@ -67,22 +70,29 @@ class KBRuleServiceLogicLexic:
                         )
                     if found:
                         var = cond.get_various_references(if_instr_et.value, 5)
-                        most_common, score = cond.find_most_similar(if_instr.value, var, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})
+                        most_common, score = cond.find_most_similar(
+                            if_instr.value, var, {"structure": 0.6, "variables": 0.3, "constants": 0.1}
+                        )
                         context = Context(parent=None, name=f"Правило {rule.id}")
-                        errors_list = await cond.compare_conditions_deep(user_id, task_id, if_instr.value, most_common, 'rule', context, None)
+                        errors_list1 = await cond.compare_conditions_deep(
+                            user_id, task_id, if_instr.value, most_common, "rule", context, None
+                        )
+                        errors_list.extend(errors_list1)
             else:
-                errors_list.append(to_logic_mistake(
-                                user_id=user_id,
-                                task_id=task_id,
-                                tip=f"Созданы лишние условия ТО в правиле {rule.id}\nрасположение: {context.full_path_list}",
-                                coefficients=KNOWLEDGE_COEFFICIENTS,
-                                entity_type="object",
-                                skills=[],
-                            ))
-            
+                errors_list.append(
+                    to_logic_mistake(
+                        user_id=user_id,
+                        task_id=task_id,
+                        tip=f"Созданы лишние условия ТО в правиле {rule.id}\nрасположение: {context.full_path_list}",
+                        coefficients=KNOWLEDGE_COEFFICIENTS,
+                        entity_type="object",
+                        skills=[],
+                    )
+                )
+
         if rule.else_instructions:
             if rule_et.else_instructions:
-                if len(rule.else_instructions)< len(rule_et.else_instructions):
+                if len(rule.else_instructions) < len(rule_et.else_instructions):
                     place = json.dumps(context.full_path_list, ensure_ascii=False)
                     errors_list.append(
                         to_logic_mistake(
@@ -104,8 +114,9 @@ class KBRuleServiceLogicLexic:
                             break
 
                     if not found:
-                        place = json.dumps(context.create_child(f"else instruction {else_instr.ref.id}").full_path_list, 
-                                        ensure_ascii=False)
+                        
+                        context = context.create_child(f"else instruction {else_instr.ref.id}").full_path_list,
+
                         errors_list.append(
                             to_logic_mistake(
                                 user_id=user_id,
@@ -118,22 +129,27 @@ class KBRuleServiceLogicLexic:
                         )
                     if found:
                         var = cond.get_various_references(else_instr_et.value, 5)
-                        most_common, score = cond.find_most_similar(else_instr.value, var, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})
+                        most_common, score = cond.find_most_similar(
+                            else_instr.value, var, {"structure": 0.6, "variables": 0.3, "constants": 0.1}
+                        )
                         context = Context(parent=None, name=f"Правило {rule.id}")
-                        errors_list = await cond.compare_conditions_deep(user_id, task_id, else_instr.value, most_common, 'rule', context, None)
+                        errors_list2 = await cond.compare_conditions_deep(
+                            user_id, task_id, else_instr.value, most_common, "rule", context, None
+                        )
+                        errors_list.extend(errors_list2)
             else:
                 errors_list.append(
                     to_logic_mistake(
-                                    user_id=user_id,
-                                    task_id=task_id,
-                                    tip=f"Созданы лишние условия ИНАЧЕ в правиле {rule.id}\nрасположение: {context.full_path_list}",
-                                    coefficients=KNOWLEDGE_COEFFICIENTS,
-                                    entity_type="object",
-                                    skills=[],
-                                )
+                        user_id=user_id,
+                        task_id=task_id,
+                        tip=f"Созданы лишние условия ИНАЧЕ в правиле {rule.id}\nрасположение: {context.full_path_list}",
+                        coefficients=KNOWLEDGE_COEFFICIENTS,
+                        entity_type="object",
+                        skills=[],
+                    )
                 )
         return errors_list
-    
+
     async def handle_logic_lexic_mistakes(
         self: "KBRuleService", user: User, task: Task, rule: KBRule, rule_et: KBRule
     ) -> Optional[List[CommonMistake]]:

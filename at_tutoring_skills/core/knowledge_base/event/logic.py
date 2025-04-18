@@ -1,11 +1,7 @@
 from typing import List
 from typing import Optional
 from typing import TYPE_CHECKING
-from typing import Union
 
-from at_krl.core.simple.simple_operation import SimpleOperation
-from at_krl.core.simple.simple_reference import SimpleReference
-from at_krl.core.simple.simple_value import SimpleValue
 from at_krl.core.temporal.allen_event import KBEvent
 
 from at_tutoring_skills.apps.skills.models import Task
@@ -20,18 +16,20 @@ if TYPE_CHECKING:
 
 
 class KBEventServiceLogicLexic:
-
     async def estimate_event(self, user_id: str, task_id: int, event: KBEvent, etalon_event: KBEvent, context: Context):
         print("Estimate event")
 
         cond = ConditionComparisonService()
         var = cond.get_various_references(etalon_event.occurance_condition, 3)
-        most_common, score = cond.find_most_similar(event.occurance_condition, var, {'structure': 0.6, 'variables': 0.3, 'constants': 0.1})
+        most_common, score = cond.find_most_similar(
+            event.occurance_condition, var, {"structure": 0.6, "variables": 0.3, "constants": 0.1}
+        )
         context = Context(parent=None, name=f"Объект {event.id}")
-        errors_list = await cond.compare_conditions_deep(user_id, task_id, event.occurance_condition, most_common, 'event', context, None)
+        errors_list = await cond.compare_conditions_deep(
+            user_id, task_id, event.occurance_condition, most_common, "event", context, None
+        )
 
         return errors_list
-        
 
     async def handle_logic_lexic_mistakes(
         self: "KBEventService", user: User, task: Task, event: KBEvent, event_et: KBEvent

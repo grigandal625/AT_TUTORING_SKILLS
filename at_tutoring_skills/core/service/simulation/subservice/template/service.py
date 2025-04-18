@@ -1,22 +1,20 @@
-import asyncio
-import json
-from typing import Dict, List, Union
+from typing import Dict
+from typing import List
+from typing import Union
 
-from jsonschema import ValidationError
-
-from at_tutoring_skills.apps.skills.models import Task
-from at_tutoring_skills.core.errors.models import CommonMistake
 
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-
 from at_tutoring_skills.core.errors.conversions import to_lexic_mistake
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
-
+from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.dependencies import ITaskService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import IMistakeService
-from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
-from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventRequest, OperationRequest, RelevantResourceRequest, RuleRequest, TemplateMetaRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import OperationRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RelevantResourceRequest
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleRequest
 from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 from at_tutoring_skills.core.task.service import TaskService
 
@@ -34,7 +32,6 @@ class TemplateService:
         self._task_service = task_service
         self.main_task_service = TaskService()
 
-    
     def _get_template_class(self, template_type: str):
         type_to_class = {
             "IRREGULAR_EVENT": IrregularEventRequest,
@@ -43,15 +40,12 @@ class TemplateService:
         }
         return type_to_class.get(template_type)
 
-
     async def handle_syntax_mistakes(
-            self, 
-            user_id: int, 
-            data: dict
-        ) -> Union[IrregularEventRequest, RuleRequest, OperationRequest]:
+        self, user_id: int, data: dict
+    ) -> Union[IrregularEventRequest, RuleRequest, OperationRequest]:
         template_type = data["args"]["template"]["meta"]["type"]
         pydantic_class = self._get_template_class(template_type)
-        
+
         result = pydantic_mistakes(
             user_id=user_id,
             raw_request=data["args"]["template"],
@@ -69,7 +63,6 @@ class TemplateService:
             raise ValueError("Handle template: syntax mistakes")
         raise TypeError("Handle template: unexpected result")
 
-
     async def handle_logic_mistakes(
         self,
         user_id: int,
@@ -82,9 +75,9 @@ class TemplateService:
             )
             task_id = task.pk
             object_reference = await self.main_task_service.get_template_reference(task)
-            
+
             print("Данные object reference, полученные для сравнения: ", object_reference)
-        
+
         except ValueError:  # NotFoundError
             print("Создан образец операции, не касающийся задания")
             return
@@ -96,7 +89,8 @@ class TemplateService:
             template,
             object_reference.meta.rel_resources,
             user_id,
-            task_id,)
+            task_id,
+        )
         if mistake:  # Добавляем только непустые ошибки
             mistakes.extend(mistake)
 
@@ -105,8 +99,9 @@ class TemplateService:
                 template,
                 object_reference,
                 user_id,
-                task_id,)
-            
+                task_id,
+            )
+
             if mistake:  # Добавляем только непустые ошибки
                 mistakes.extend(mistake)
 
@@ -114,8 +109,9 @@ class TemplateService:
             template,
             object_reference,
             user_id,
-            task_id,)
-        
+            task_id,
+        )
+
         if mistake:  # Добавляем только непустые ошибки
             mistakes.extend(mistake)
 
@@ -124,9 +120,8 @@ class TemplateService:
         if len(mistakes) != 0:
             for mistake in mistakes:
                 await self.main_task_service.append_mistake(mistake)
-                
-            return mistakes  # raise ValueError("Handle template: logic mistakes")
 
+            return mistakes  # raise ValueError("Handle template: logic mistakes")
 
     async def handle_lexic_mistakes(
         self,
@@ -143,9 +138,9 @@ class TemplateService:
             )
             task_id = task.pk
             object_reference = await self.main_task_service.get_template_reference(task)
-            
+
             print("Данные object reference, полученные для сравнения: ", object_reference)
-        
+
         except ValueError:  # NotFoundError
             print("Создан образец операции, не касающийся задания")
             return
@@ -163,9 +158,8 @@ class TemplateService:
         if len(mistakes) != 0:
             for mistake in mistakes:
                 await self.main_task_service.append_mistake(mistake)
-            
-            return mistakes  # raise ValueError("Handle template: lexic mistakes")
 
+            return mistakes  # raise ValueError("Handle template: lexic mistakes")
 
     def _relevant_resources_logic_mistakes(
         self,
@@ -194,7 +188,7 @@ class TemplateService:
             )
             mistakes.append(mistake)
             return mistakes
-    
+
         if len(rel_resources) != len(rel_resources_reference):
             mistake = to_logic_mistake(
                 user_id=user_id,
@@ -225,7 +219,7 @@ class TemplateService:
                     )
                     mistakes.append(mistake)
                     continue
-                
+
                 if resource_name == resource_name_reference:
                     # Сравниваем типы ресурсов
                     if str(resource_type) != str(resource_type_reference):  # Преобразуем оба значения в строки
@@ -240,7 +234,6 @@ class TemplateService:
 
         return mistakes
 
-    
     def _generator_logic_mistakes(
         self,
         template: IrregularEventRequest,
@@ -286,7 +279,6 @@ class TemplateService:
 
         return mistakes
 
-
     def _body_logic_mistakes(
         self,
         template: Union[IrregularEventRequest, RuleRequest, OperationRequest],
@@ -295,7 +287,7 @@ class TemplateService:
         task_id: int,
     ) -> List[CommonMistake]:
         """
-        Проверка логических ошибок 
+        Проверка логических ошибок
         """
         mistakes: List[CommonMistake] = []
         match_attrs_count = 0
@@ -346,7 +338,7 @@ class TemplateService:
                 )
                 mistakes.append(mistake)
 
-            if template.body.delay != template_reference.body.delay :
+            if template.body.delay != template_reference.body.delay:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
@@ -355,7 +347,6 @@ class TemplateService:
                     entity_type="template",
                 )
                 mistakes.append(mistake)
-                
 
             if not template.body.body_before.strip():
                 mistake = to_logic_mistake(
@@ -378,7 +369,6 @@ class TemplateService:
                 mistakes.append(mistake)
 
         return mistakes
-    
 
     def _relevant_resources_lexic_mistakes(
         self,
@@ -411,8 +401,7 @@ class TemplateService:
                     min_distance = distance
                     closest_match = resource_reference.name
 
-
-            if closest_match and min_distance <= 1: 
+            if closest_match and min_distance <= 1:
                 mistake = to_lexic_mistake(
                     user_id=user_id,
                     task_id=task_id,
@@ -422,10 +411,7 @@ class TemplateService:
                 )
                 mistakes.append(mistake)
 
-
         return mistakes
-
-
 
     @staticmethod
     def _levenshtein_distance(s1: str, s2: str) -> int:

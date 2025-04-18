@@ -45,55 +45,74 @@ class KBObjectServiceLogicLexic:
 
         # Проверка количества свойств
         if len(obj.properties) < len(obj_et.properties):
-            place = json.dumps(context.full_path_list, ensure_ascii=False)
+            place = context.full_path_list
             errors_list.append(
                 to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Введено меньше свойств, чем требуется, в объекте {obj.id}\nрасположение: {place}",
+                    tip=f'Введено меньше атрибутов, чем требуется, в объекте "{obj.id}"\nрасположение: {place}',
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="object",
                     skills=[301],
                 )
             )
+        else:
+            found = obj_et.properties
+            search = obj.properties
+            i = 0
+            for property_et in obj_et.properties:
+                min_distance = 100
+                j=0
 
-        for property_et in obj_et.properties:
-            min_distance = 100
-            found = False
+                for prop in obj.properties:
+                    if prop:
+                        distance = levenshtein_distance(prop.id, property_et.id)
+                    if distance < min_distance:
+                        min_distance = distance
+                    
 
-            for prop in obj.properties:
-                distance = levenshtein_distance(prop.id, property_et.id)
-                if distance < min_distance:
-                    min_distance = distance
-
-                if distance == 0:
-                    found = True
-                    # Проверка значения свойства
-                    if prop.type.id != property_et.type.id:
-                        child_context = context.create_child(f"Тип атрибута {property_et.type.id}")
-                        place = json.dumps(child_context.full_path_list, ensure_ascii=False)
-                        errors_list.append(
-                            to_logic_mistake(
-                                user_id=user_id,
-                                task_id=task_id,
-                                tip=f"Неверный тип атрибута '{property_et.id}'. Ожидалось: {property_et.type.id}, получено: {prop.type.id}\nрасположение: {place}",
-                                coefficients=KNOWLEDGE_COEFFICIENTS,
-                                entity_type="object",
-                                skills=[300, 302],
+                    if min_distance == 0:
+                        found[i] = None
+                        search[j] = None
+                        # Проверка значения свойства
+                        if prop.type.id != property_et.type.id:
+                            child_context = context.create_child(f"Тип атрибута {property_et.type.id}")
+                            place = child_context.full_path_list
+                            errors_list.append(
+                                to_logic_mistake(
+                                    user_id=user_id,
+                                    task_id=task_id,
+                                    tip=f"Неверный тип атрибута '{property_et.id}'  \nОжидался атрибут: {property_et.type.id}  \Получено: {prop.type.id}\nрасположение: {place}",
+                                    # Ошибка в типе "{type.id}", ожидалось значение "{check_et[j]}",  \nЗначения, которые написаны некорректно или являются лишними: {" ".join(check_failed)}  \nРасположение: {place}\n\n',
+                                    coefficients=KNOWLEDGE_COEFFICIENTS,
+                                    entity_type="object",
+                                    skills=[300, 302],
+                                )
                             )
-                        )
-                    break
+                        break
+                    
+                    j+=1
+                i += 1
 
-            if not found:
-                child_context = context.create_child(f"Атрибут {property_et.id} ")
-                place = json.dumps(child_context.full_path_list, ensure_ascii=False)
+            found_failed = [x for x in found if x is not None]
+            search_failed = [x for x in search if x is not None]
+            found_array = []
+            search_array = []
+            for i in found_failed:
+                found_array.append(f"Атрибут {i.id}, тип атрибута {i.type.id}")
+            for i in search_failed:
+                search_array.append(f"Атрибут {i.id}, тип атрибута {i.type.id}")
+            for f in found:
+                if f:
+                    child_context = context.create_child(f'Атрибут "{f.id}"')
+                    place = child_context.full_path_list
 
-                if min_distance >= 1:
+                    
                     errors_list.append(
                         to_logic_mistake(
                             user_id=user_id,
                             task_id=task_id,
-                            tip=f"Отсутствует атрибут '{property_et.id}'\nрасположение: {place}",
+                            tip=f'Отсутствует атрибут "{f.id}"  \nАтрибуты, которые написаны некорректно или являются лишними: {" ".join(search_array)}  \nрасположение: {place}',
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="object",
                             skills=[300, 301],
@@ -122,3 +141,4 @@ class KBObjectServiceLogicLexic:
             return errors_list
 
         return None
+        

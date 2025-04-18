@@ -3,12 +3,12 @@ from typing import List
 
 from jsonschema import ValidationError
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES, Task
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import IMistakeService
-from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import IResourceTypeComponent
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import ITaskService
 from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceAttributeRequest
 from at_tutoring_skills.core.service.simulation.subservice.resource.models.models import ResourceRequest
@@ -29,7 +29,7 @@ class ResourceService:
         self._mistake_service = mistake_service
         self._task_service = task_service
         self.main_task_service = TaskService()
-       
+
     async def handle_syntax_mistakes(
         self,
         user_id: int,
@@ -54,7 +54,6 @@ class ResourceService:
 
         raise TypeError("Handle resource: unexpected result")
 
-
     async def handle_logic_mistakes(
         self,
         user_id: int,
@@ -77,7 +76,7 @@ class ResourceService:
             except (json.JSONDecodeError, ValidationError) as e:
                 print(f"Ошибка при преобразовании resource_type: {e}")
                 return
-            task : Task = await self.main_task_service.get_task_by_name(
+            task: Task = await self.main_task_service.get_task_by_name(
                 resource.name, SUBJECT_CHOICES.SIMULATION_RESOURCES
             )
             task_id = task.pk
@@ -104,7 +103,6 @@ class ResourceService:
                 await self.main_task_service.append_mistake(mistake)
 
             return mistakes  # raise ValueError("Handle resource type: logic mistakes")
-
 
     def handle_lexic_mistakes(
         self,
@@ -149,11 +147,11 @@ class ResourceService:
 
         if resource_type.name != resource_reference.resource_type_id_str:  # type_id_attrs_reference:
             mistake = to_logic_mistake(
-                    user_id=user_id,
-                    task_id=task_id,
-                    tip="Указан неправильный типа ресурса.",
-                    coefficients=SIMULATION_COEFFICIENTS,
-                    entity_type="resource_type",
+                user_id=user_id,
+                task_id=task_id,
+                tip="Указан неправильный типа ресурса.",
+                coefficients=SIMULATION_COEFFICIENTS,
+                entity_type="resource_type",
             )
             mistakes.append(mistake)
             return mistakes
@@ -185,7 +183,6 @@ class ResourceService:
                 continue
 
         return mistakes
-
 
     def _attributes_lexic_mistakes(
         self,

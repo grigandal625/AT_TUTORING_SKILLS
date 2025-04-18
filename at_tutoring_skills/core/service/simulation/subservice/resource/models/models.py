@@ -19,10 +19,10 @@ class ResourceAttributeResponse(ResourceAttributeRequest):
 class ResourceRequest(BaseModel):
     id: Optional[int] = None
     name: str
-    to_be_traced: bool = False  
+    to_be_traced: bool = False
     attributes: List[ResourceAttributeRequest]
     resource_type_id: Optional[int] = None
-    resource_type_id_str: Optional[str] = None 
+    resource_type_id_str: Optional[str] = None
 
 
 class ResourceResponse(ResourceRequest):

@@ -84,7 +84,6 @@ class ResourceTypeService:
 
             return mistakes  # raise ValueError("Handle resource type: logic mistakes")
 
-
     async def handle_lexic_mistakes(
         self,
         user_id: int,
@@ -149,7 +148,6 @@ class ResourceTypeService:
                 entity_type="resource_type",
             )
             mistakes.append(mistake)
-
 
         attrs_reference_dict = {attr.name: attr for attr in attrs_reference}
         print(f"Reference attributes dictionary: {attrs_reference_dict}")

@@ -1,7 +1,5 @@
-from typing import List, Sequence
-
-from at_tutoring_skills.apps.skills.models import Task
-from at_tutoring_skills.core.errors.models import CommonMistake
+from typing import List
+from typing import Sequence
 
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
@@ -133,7 +131,7 @@ class FunctionService:
             )
             mistakes.append(mistake)
             return mistakes
-        
+
         print(f"Comparing function body: provided={function.body}, reference={function_reference.body}")
 
         # Проверка, является ли body пустой строкой или строкой с пробелами

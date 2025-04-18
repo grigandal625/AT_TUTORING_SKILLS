@@ -45,7 +45,8 @@ class KBObjectServiceSyntax:  # Изменено
                 )
 
             for syntax_mistake in syntax_mistakes:
-                TaskService.append_mistake(syntax_mistake)
+                task_service = TaskService()
+                task_service.append_mistake(syntax_mistake)
 
             raise e
 
