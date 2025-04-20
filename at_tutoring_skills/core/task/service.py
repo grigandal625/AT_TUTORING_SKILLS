@@ -20,7 +20,7 @@ from pydantic import RootModel
 from at_tutoring_skills.apps.mistakes.models import Mistake
 from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES
 from at_tutoring_skills.apps.skills.models import Skill
-from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import Task, SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.apps.skills.models import UserSkill
@@ -247,21 +247,25 @@ class TaskService(KBTaskService, KBIMServise):
         # self.repository = repository
         self.kb_service = KBTaskService()
 
-    async def get_all_tasks(self, variant_id: int = None) -> models.QuerySet[Task]:
+    async def get_all_tasks(self, variant_id: int = None, task_object: int | SUBJECT_CHOICES = None) -> models.QuerySet[Task]:
         """
         Получает все задания для заданного варианта (variant).
         """
         if variant_id is None:
-            return Task.objects.all()
+            result = Task.objects.all()
         else:
             variant = await Variant.objects.aget(pk=variant_id)
-            return variant.task.all()
+            result = variant.task.all()
+        
+        if task_object:
+            result = result.filter(task_object=task_object)
+        return result
 
-    async def get_variant_tasks_description(self, user: User, skip_completed=True) -> str:
+    async def get_variant_tasks_description(self, user: User, skip_completed=True, task_object: int | SUBJECT_CHOICES = None) -> str:
         """
         Возвращает описание заданий для указанного пользователя.
         """
-        tasks = await self.get_all_tasks(user.variant_id)
+        tasks = await self.get_all_tasks(user.variant_id, task_object=task_object)
 
         if not await tasks.aexists():
             return "### Для текущего этапа все задания выполнены"
