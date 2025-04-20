@@ -149,7 +149,9 @@ class ATTutoringKBSkills(ATComponent):
                 return await self.get_errors_result(errors_list, user, task, task_object)
             else:
                 await self.task_service.complete_task(task, user)
-                stage = await self.transition_service.check_stage_tasks_completed(user, 1)
+                stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
+                if stage:
+                    await self.task_service.complete_skills_stage_done(user, task_object=task_object)   
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
@@ -283,7 +285,9 @@ class ATTutoringKBSkills(ATComponent):
                 return await self.get_errors_result(errors_list, user, task, task_object)
             else:
                 await self.task_service.complete_task(task, user)
-                stage = await self.transition_service.check_stage_tasks_completed(user, 2)
+                stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
+                if stage:
+                    await self.task_service.complete_skills_stage_done(user, task_object=task_object)   
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
@@ -356,7 +360,9 @@ class ATTutoringKBSkills(ATComponent):
                 return await self.get_errors_result(errors_list, user, task, task_object)
             else:
                 await self.task_service.complete_task(task, user)
-                stage = await self.transition_service.check_stage_tasks_completed(user, 3)
+                stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
+                if stage:
+                    await self.task_service.complete_skills_stage_done(user, task_object=task_object)   
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
@@ -449,7 +455,9 @@ class ATTutoringKBSkills(ATComponent):
                 return await self.get_errors_result(errors_list, user, task, task_object)
             else:
                 await self.task_service.complete_task(task, user)
-                stage = await self.transition_service.check_stage_tasks_completed(user, 4)
+                stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
+                if stage:
+                    await self.task_service.complete_skills_stage_done(user, task_object=task_object)   
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
@@ -557,7 +565,9 @@ class ATTutoringKBSkills(ATComponent):
                 return await self.get_errors_result(errors_list, user, task, task_object)
             else:
                 await self.task_service.complete_task(task, user)
-                stage = await self.transition_service.check_stage_tasks_completed(user, 5)
+                stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
+                if stage:
+                    await self.task_service.complete_skills_stage_done(user, task_object=task_object)   
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
