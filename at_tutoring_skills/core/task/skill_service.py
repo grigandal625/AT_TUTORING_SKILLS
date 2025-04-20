@@ -28,7 +28,7 @@ class SkillService:
         total_fine = sum(mistake.fine for mistake in mistakes)
 
         # Update the UserSkill mark
-        user_skill.mark = max(0, user_skill.mark - total_fine)  # Ensure mark doesn't go below 0
+        user_skill.mark = max(0, 100 - total_fine)  # Ensure mark doesn't go below 0
 
         # Save the updated UserSkill
         await sync_to_async(user_skill.save)()
