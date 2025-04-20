@@ -90,4 +90,4 @@ class SkillService:
         updated_skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))
 
         # 4. Формируем итоговую строку
-        return "\n".join(f"{us.skill.name} : {us.mark}" for us in updated_skills)
+        return "\n\n".join(f"{us.skill.name} : {us.mark}" for us in updated_skills)
