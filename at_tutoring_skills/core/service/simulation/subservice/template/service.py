@@ -2,7 +2,6 @@ from typing import Dict
 from typing import List
 from typing import Union
 
-
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS

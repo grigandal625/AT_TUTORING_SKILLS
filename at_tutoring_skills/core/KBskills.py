@@ -6,7 +6,7 @@ from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 from rest_framework import exceptions
 
-from at_tutoring_skills.apps.skills.models import Skill, Task
+from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService
@@ -51,7 +51,6 @@ class ATTutoringKBSkills(ATComponent):
             return user_id
         return auth_token
 
-
     # =================================== kb ========================================
 
     @authorized_method
@@ -67,7 +66,6 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         # self.init_cash(user_id)
 
-    
     # ============================= type ===================
 
     @authorized_method
@@ -108,18 +106,21 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
-                    [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
+                    [
+                        f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}"
+                        for i, error in enumerate(serialized_errors)
+                    ]
                 )
                 # encoded_text = quote_plus(errors_message)
                 skill_service = SkillService()
-                skills  = await skill_service.process_and_get_skills_string(user, task)
+                skills = await skill_service.process_and_get_skills_string(user, task)
 
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
-                    "skills": skills
+                    "skills": skills,
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -216,17 +217,20 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
-                    [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
+                    [
+                        f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}"
+                        for i, error in enumerate(serialized_errors)
+                    ]
                 )
                 encoded_text = quote_plus(errors_message)
                 skill_service = SkillService()
-                skills  = await skill_service.process_and_get_skills_string(user, task)
+                skills = await skill_service.process_and_get_skills_string(user, task)
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
-                    "skill": skills
+                    "skill": skills,
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -283,18 +287,21 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
-                    [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
+                    [
+                        f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}"
+                        for i, error in enumerate(serialized_errors)
+                    ]
                 )
                 encoded_text = quote_plus(errors_message)
 
                 skill_service = SkillService()
-                skills  = await skill_service.process_and_get_skills_string(user, task)
+                skills = await skill_service.process_and_get_skills_string(user, task)
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
-                    "skill": skills
+                    "skill": skills,
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -339,7 +346,6 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_interval_updated(self, event: str, data: dict, auth_token: str):
-        
         print("Обучаемый отредактировал интервал (БЗ): ", data)
 
         user_id = await self.get_user_id_or_token(auth_token)
@@ -365,17 +371,20 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
-                    [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
+                    [
+                        f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}"
+                        for i, error in enumerate(serialized_errors)
+                    ]
                 )
                 encoded_text = quote_plus(errors_message)
                 skill_service = SkillService()
-                skills  = await skill_service.process_and_get_skills_string(user, task)
+                skills = await skill_service.process_and_get_skills_string(user, task)
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
-                    "skill": skills
+                    "skill": skills,
                 }
             else:
                 await self.task_service.complete_task(task, user)
@@ -446,18 +455,21 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 serialized_errors = [error.model_dump() for error in errors_list]
                 errors_message = " ".join(
-                    [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
+                    [
+                        f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}"
+                        for i, error in enumerate(serialized_errors)
+                    ]
                 )
                 encoded_text = quote_plus(errors_message)
 
                 skill_service = SkillService()
-                skills  = await skill_service.process_and_get_skills_string(user, task)
+                skills = await skill_service.process_and_get_skills_string(user, task)
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
-                    "skill": skills
+                    "skill": skills,
                 }
             else:
                 await self.task_service.complete_task(task, user)

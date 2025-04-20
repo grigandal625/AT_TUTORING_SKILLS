@@ -28,7 +28,7 @@
 {{ whitespace }}- {{ tree(expression.left, whitespace + "    ") }}
     {%- if expression.is_binary %}
 {{ whitespace }}- {{ tree(expression.right, whitespace + "    ") }}
-{%- endif -%}    
+{%- endif -%}
 {%- endif -%}
 
 {%- endmacro -%}

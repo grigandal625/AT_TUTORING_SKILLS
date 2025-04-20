@@ -6,7 +6,7 @@
 Символьный тип **`{{ type.id }}`**, определяющий набор символьных значений:
 
 {% for value in type.values %}
-    {{ loop.index }}. {{ value }}    
+    {{ loop.index }}. {{ value }}
 {% endfor %}
 {% endmacro %}
 
@@ -14,7 +14,7 @@
 Нечеткий тип, определяющий лингвистическую переменную **`{{type.id}}`**, характеризуемую набором следующих функций принадлежности:
 
 {% for mf in type.membership_functions %}
-    {{ loop.index }}. {{ mf.name }}    
+    {{ loop.index }}. {{ mf.name }}
 {% endfor %}
 {% endmacro %}
 

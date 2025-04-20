@@ -1,4 +1,3 @@
-import json
 from typing import List
 from typing import Optional
 from typing import TYPE_CHECKING
@@ -62,14 +61,13 @@ class KBObjectServiceLogicLexic:
             i = 0
             for property_et in obj_et.properties:
                 min_distance = 100
-                j=0
+                j = 0
 
                 for prop in obj.properties:
                     if prop:
                         distance = levenshtein_distance(prop.id, property_et.id)
                     if distance < min_distance:
                         min_distance = distance
-                    
 
                     if min_distance == 0:
                         found[i] = None
@@ -90,8 +88,8 @@ class KBObjectServiceLogicLexic:
                                 )
                             )
                         break
-                    
-                    j+=1
+
+                    j += 1
                 i += 1
 
             found_failed = [x for x in found if x is not None]
@@ -107,7 +105,6 @@ class KBObjectServiceLogicLexic:
                     child_context = context.create_child(f'Атрибут "{f.id}"')
                     place = child_context.full_path_list
 
-                    
                     errors_list.append(
                         to_logic_mistake(
                             user_id=user_id,
@@ -141,4 +138,3 @@ class KBObjectServiceLogicLexic:
             return errors_list
 
         return None
-        

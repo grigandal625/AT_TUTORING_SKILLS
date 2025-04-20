@@ -17,8 +17,6 @@ from django.db import models
 from django.db import transaction
 from pydantic import RootModel
 
-from at_tutoring_skills.core.task.descriptions import DescriptionsService
-
 from at_tutoring_skills.apps.mistakes.models import Mistake
 from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES
 from at_tutoring_skills.apps.skills.models import Skill
@@ -45,6 +43,7 @@ from at_tutoring_skills.core.service.simulation.subservice.template.models.model
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleBody
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleRequest
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import TemplateMetaRequest
+from at_tutoring_skills.core.task.descriptions import DescriptionsService
 
 logger = logging.getLogger(__name__)
 
@@ -257,7 +256,7 @@ class TaskService(KBTaskService, KBIMServise):
         else:
             variant = await Variant.objects.aget(pk=variant_id)
             return variant.task.all()
-        
+
     async def get_variant_tasks_description(self, user: User, skip_completed=True) -> str:
         """
         Возвращает описание заданий для указанного пользователя.
@@ -266,8 +265,8 @@ class TaskService(KBTaskService, KBIMServise):
 
         if not await tasks.aexists():
             return "### Для текущего этапа все задания выполнены"
-        
-        result = "" 
+
+        result = ""
         completed_result = ""
         async for task in tasks:
             task_user = await TaskUser.objects.filter(user=user, task=task).afirst()
@@ -279,22 +278,22 @@ class TaskService(KBTaskService, KBIMServise):
 
         if not result:
             return "### Для текущего этапа все задания выполнены \n\n" + completed_result
-            
+
         result = "### На текуий момент необходимо выполнить следующие задания: \n\n" + result
 
         if not skip_completed:
             if completed_result:
                 return result + "### Выполнено: \n\n" + completed_result
-        
+
         return result
-        
+
     async def get_task_description(self, task: Task, user: User | None, short=False) -> str:
         """
         Возвращает описание задания в виде строки.
         """
         if task.task_object in DescriptionsService.KB_SUBJECT_TO_MODEL:
             return await DescriptionsService().get_kb_task_description(task, user)
-        
+
     async def increment_taskuser_attempts(self, task: Task, user: User) -> bool:
         """
         Увеличивает счетчик попыток только для существующих записей (Django <5.0)
