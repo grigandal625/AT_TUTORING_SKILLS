@@ -62,12 +62,19 @@ class ATTutoringKBSkills(ATComponent):
             user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
         )
 
-        return {"msg": msg, "hint": msg, "kb_id": data["result"]["knowledgeBase"]["id"]}
+        if event == "knowledgeBase/create":
+            return {"msg": msg, "hint": msg, "kb_id": data["result"]["knowledgeBase"]["id"]}
+        elif event == "knowledgeBase/update":
+            return {"msg": msg, "hint": msg, "kb_id": data["result"]["id"]}
 
     @authorized_method
     async def handle_knowledge_base_updated(self, event: str, data: dict, auth_token: str):
         user_id = await self.get_user_id_or_token(auth_token)
-        # self.init_cash(user_id)
+        user, _ = await self.task_service.create_user(user_id)
+        msg = await self.task_service.get_variant_tasks_description(
+            user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
+        )
+        return {"msg": msg, "hint": msg, "kb_id": data["result"]["id"]}
 
     # ============================= type ===================
 
@@ -118,19 +125,30 @@ class ATTutoringKBSkills(ATComponent):
                 skill_service = SkillService()
                 skills = await skill_service.process_and_get_skills_string(user, task)
 
+                tasks = await self.task_service.get_variant_tasks_description(
+                    user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
+                )
+
                 return {
                     "status": "error",
                     "message": f"Обнаружены ошибки: {errors_message}",
                     "stage_done": False,
                     "url": errors_message,
+                    'hint': tasks,
                     "skills": skills,
                 }
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 1)
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
+                tasks = await self.task_service.get_variant_tasks_description(
+                    user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
+                )
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage, 'hint': tasks}
         else:
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
+            tasks = await self.task_service.get_variant_tasks_description(
+                user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
+            )
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False, "hint": tasks}
 
     @authorized_method
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):

@@ -276,23 +276,16 @@ class TaskService(KBTaskService, KBIMServise):
             return "### Для текущего этапа все задания выполнены"
 
         result = ""
-        completed_result = ""
         async for task in tasks:
             task_user = await TaskUser.objects.filter(user=user, task=task).afirst()
-
-            if not task_user or not task_user.is_completed:
-                result += await self.get_task_description(task, user)
-            elif task_user and task_user.is_completed:
-                completed_result += await self.get_task_description(task, user, short=True)
-
+            if task_user and task_user.is_completed and skip_completed:
+                continue
+            result += await self.get_task_description(task, user)
+            
         if not result:
-            return "### Для текущего этапа все задания выполнены \n\n" + completed_result
+            return "### Для текущего этапа все задания выполнены \n\n"
 
         result = "### На текуий момент необходимо выполнить следующие задания: \n\n" + result
-
-        if not skip_completed:
-            if completed_result:
-                return result + "### Выполнено: \n\n" + completed_result
 
         return result
 

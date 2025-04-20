@@ -6,16 +6,16 @@
 
 {%- macro kb_entity(entity) -%}
 
-{%- if entity.tag == 'type' -%}
+{%- if entity.tag == 'type' %}
 {{ kb_types.kb_type(entity) -}}
 
-{%- elif entity.tag == 'class' -%}
+{%- elif entity.tag == 'class' %}
 {{ kb_class.kb_class(entity) -}}
-{%- elif entity.tag == 'event' -%}
+{%- elif entity.tag == 'event' %}
 {{ kb_event.kb_event(entity) -}}
-{%- elif entity.tag == 'interval' -%}
+{%- elif entity.tag == 'interval' %}
 {{ kb_interval.kb_interval(entity) -}}
-{% elif entity.tag == 'rule' -%}
+{% elif entity.tag == 'rule' %}
 {{ kb_rule.kb_rule(entity) -}}
 {%- endif -%}
 
@@ -23,7 +23,7 @@
 
 {%- block task_description -%}
 
-#### {% if task_user.is_completed | default(false) -%}{{'[x]'}}{% else -%}{{'[ ]'}}{% endif %} {{ task.task_name }}
+#### <input type="checkbox" {% if task_user.is_completed | default(false) -%}checked{% endif %} disabled /> {{ task.task_name }}
 
 {%- if task.description -%}
 
@@ -33,10 +33,10 @@
 
 **Попыток выполнения: {{task_user.attempts | default(0)}}**
 
-{% if not short-%}
+{% if not short -%}
 <details>
 <summary>Описание задания</summary>
-<div>
+<div style="padding: 5px; border: 1px solid silver; boredr-radius: 2px;">
 {{ kb_entity(service.get_kb_task_entity(task)) }}
 </div>
 </details>
