@@ -1,4 +1,3 @@
-
 from asgiref.sync import sync_to_async
 
 from at_tutoring_skills.apps.mistakes.models import Mistake
