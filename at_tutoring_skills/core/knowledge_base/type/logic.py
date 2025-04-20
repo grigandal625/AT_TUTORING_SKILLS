@@ -43,7 +43,7 @@ class KBTypeServiceLogicLexic:
         for j in range(len(check_et)):
             for i in range(len(check)):
                 if check_et[j] == check[i]:
-                    check[j] = None
+                    check[i] = None
                     check_et[j] = None
         for j in range(len(check_et)):
             if check_et[j] is not None:
