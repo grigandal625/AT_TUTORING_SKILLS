@@ -80,14 +80,14 @@ class SkillService:
         for subject in task_object:
             codes |= set(SUBJECT_CHOICES.get_first_codes(subject=subject))
 
-        skills = await self.get_user_task_skills_for_first_codes(user, codes=list(codes))
+        skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))
 
         # 2. Пересчитываем оценку для каждого навыка
         for skill in skills:
             await self.calc_skill(user, skill.skill)
 
         # 3. Получаем обновленные навыки после пересчета
-        updated_skills = await self.get_user_task_skills_for_first_codes(user, codes=list(codes))
+        updated_skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))
 
         # 4. Формируем итоговую строку
         return "\n".join(f"{us.skill.name} : {us.mark}" for us in updated_skills)
