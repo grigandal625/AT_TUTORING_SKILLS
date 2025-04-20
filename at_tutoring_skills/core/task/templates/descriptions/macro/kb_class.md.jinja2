@@ -1,0 +1,7 @@
+{% macro kb_class(cls) %}
+Объект **`{{ cls.id }}`**, содержащий набор атрибутов:
+
+{% for attr in cls.properties %}
+{{ loop.index }}. Атрибут **`{{ attr.id }}`**, имеющий тип **`{{ attr.type.id }}`**
+{% endfor %}
+{% endmacro %}

@@ -1,0 +1,27 @@
+{% import "descriptions/macro/evaluatable.md.jinja2" as evaluatable %}
+
+{%- macro kb_rule(rule) %}
+Правило **`{{ rule.id }}`** с условием:
+```
+{{ evaluatable.tree(rule.condition) }}
+```
+и набором действий в случае **истинности** условия
+
+{%- for instruction in rule.instructions %}
+{{ loop.index }}. Присвоить атрибуту **`{{ instruction.ref.ref.id }}`** объекта **`{{ instruction.ref.id }}`** значение:
+```
+{{ evaluatable.tree(instruction.value) }}
+```
+{%- endfor -%}
+
+{%- if rule.else_instructions %}
+и набором действий в случае **ложности** условия
+{% for instruction in rule.else_instructions %}
+{{ loop.index }}. Присвоить атрибуту **`{{ instruction.ref.ref.id }}`** объекта **`{{ instruction.ref.id }}`** значение:
+```
+{{ evaluatable.tree(instruction.value) }}
+```
+{% endfor -%}
+{%- endif -%}
+
+{%- endmacro %}
