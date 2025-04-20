@@ -242,11 +242,6 @@ class KBIMServise:
 
 
 class TaskService(KBTaskService, KBIMServise):
-    kb_service: KBTaskService
-
-    def __init__(self):
-        # self.repository = repository
-        self.kb_service = KBTaskService()
 
     async def get_all_tasks(self, variant_id: int = None) -> models.QuerySet[Task]:
         """
