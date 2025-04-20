@@ -83,38 +83,44 @@ class SimulationService(ATComponent):
     # временное решение для обработки
     def init_cash(self, auth_token: str):
         if auth_token not in self.cash:
-            self.cash[auth_token] = {"im_resourceTypes": [], "im_resources": [], "im_templates": []}
+            self.cash[auth_token] = {
+                "resource_types": {},  # Словарь для типов ресурсов
+                "resources": {},       # Словарь для ресурсов
+                "templates": {}        # Словарь для шаблонов
+            }
+
 
     # ============================================ Cash Resource Types =====================================================
     def add_im_resource_type_to_cash(self, resource_type: BaseModel, auth_token: int):
-        # Получение уникального идентификатора из модели
+        self.init_cash(auth_token)
         resource_type_id = getattr(resource_type, "id", None)
 
         if not resource_type_id:
             raise ValueError("Поле 'id' отсутствует в данных. Невозможно добавить в кэш.")
-
-        # Сохранение данных в кэш
-        self.cash[resource_type_id] = {
-            "data": resource_type.dict(),  # Преобразуем Pydantic модель в словарь для хранения
+        
+        self.cash[auth_token]["resource_types"][resource_type_id] = {
+            "data": resource_type.dict(),
             "auth_token": auth_token,
         }
 
-    def get_im_resource_type_from_cash(self, resource_type_id: int):
-        cached_data = self.cash.get(resource_type_id)
 
+    def get_im_resource_type_from_cash(self, resource_type_id: int, auth_token: int):
+        self.init_cash(auth_token)
+        cached_data = self.cash[auth_token]["resource_types"].get(resource_type_id)
         if cached_data:
-            print(f"Запись с ID {resource_type_id} найдена в кэше.")
+            print(f"Запись типа ресурса с ID {resource_type_id} найдена в кэше.")
             return cached_data["data"]
         else:
-            print(f"Запись с ID {resource_type_id} не найдена в кэше.")
+            print(f"Запись типа ресурса с ID {resource_type_id} не найдена в кэше.")
             return None
 
-    def get_resource_type_names_from_cache(self, rel_resources: List[RelevantResourceRequest]) -> List[Dict[str, str]]:
+
+    def get_resource_type_names_from_cache(self, rel_resources: List[RelevantResourceRequest], auth_token: int) -> List[Dict[str, str]]:
         resource_data = []
 
         for resource in rel_resources:
             if resource.resource_type_id is not None:
-                cached_data = self.get_im_resource_type_from_cash(resource.resource_type_id)
+                cached_data = self.get_im_resource_type_from_cash(resource.resource_type_id, auth_token)
 
                 if cached_data:
                     try:
@@ -143,30 +149,30 @@ class SimulationService(ATComponent):
 
     # ============================================ Cash Resource =====================================================
     def add_im_resource_to_cash(self, resource: BaseModel, auth_token: int):
-        # Получение уникального идентификатора из модели
+        self.init_cash(auth_token)
         resource_id = getattr(resource, "id", None)
 
         if not resource_id:
             raise ValueError("Поле 'id' отсутствует в данных. Невозможно добавить в кэш.")
-
-        # Сохранение данных в кэш
-        self.cash[resource_id] = {
-            "data": resource.dict(),  # Преобразуем Pydantic модель в словарь для хранения
+        
+        self.cash[auth_token]["resources"][resource_id] = {
+            "data": resource.dict(),
             "auth_token": auth_token,
         }
 
-    def get_im_resource_from_cash(self, resource_id: int):
-        cached_data = self.cash.get(resource_id)
-        
+
+    def get_im_resource_from_cash(self, resource_id: int, auth_token: int):
+        self.init_cash(auth_token)
+        cached_data = self.cash[auth_token]["resources"].get(resource_id)
         if cached_data:
-            print(f"Запись с ID {resource_id} найдена в кэше.")
+            print(f"Запись ресурса с ID {resource_id} найдена в кэше.")
             return cached_data['data']
         else:
-            print(f"Запись с ID {resource_id} не найдена в кэше.")
+            print(f"Запись ресурса с ID {resource_id} не найдена в кэше.")
             return None
 
 
-    def get_resource_names_from_cache(self, arguments: List[TemplateUsageArgumentRequest]) -> List[dict]:
+    def get_resource_names_from_cache(self, arguments: List[TemplateUsageArgumentRequest], auth_token: int) -> List[dict]:
         """
         Получает имена ресурсов из кэша и возвращает их вместе с типами.
         """
@@ -175,7 +181,7 @@ class SimulationService(ATComponent):
         for argument in arguments:
             if argument.resource_id is not None:
                 # Получаем данные из кэша
-                cached_data = self.get_im_resource_from_cash(argument.resource_id)
+                cached_data = self.get_im_resource_from_cash(argument.resource_id, auth_token)
 
                 if cached_data:
                     try:
@@ -210,31 +216,30 @@ class SimulationService(ATComponent):
 
 # ============================================ Cash Template =====================================================
     def add_im_template_to_cash(self, template: BaseModel, auth_token: int):
-        # Получение уникального идентификатора из модели
+        self.init_cash(auth_token)
         template_id = getattr(template, "id", None)
-        
+
         if not template_id:
             raise ValueError("Поле 'id' отсутствует в данных. Невозможно добавить в кэш.")
         
-        # Сохранение данных в кэш
-        self.cash[template_id] = {
-            "data": template.dict(),  # Преобразуем Pydantic модель в словарь для хранения
-            "auth_token": auth_token
+        self.cash[auth_token]["templates"][template_id] = {
+            "data": template.dict(),
+            "auth_token": auth_token,
         }
 
-    def get_im_template_from_cash(self, template_id: int):
-        cached_data = self.cash.get(template_id)
-
+    def get_im_template_from_cash(self, template_id: int, auth_token: int):
+        self.init_cash(auth_token)
+        cached_data = self.cash[auth_token]["templates"].get(template_id)
         if cached_data:
-            print(f"Запись с ID {template_id} найдена в кэше.")
+            print(f"Запись шаблона с ID {template_id} найдена в кэше.")
             return cached_data['data']
         else:
-            print(f"Запись с ID {template_id} не найдена в кэше.")
+            print(f"Запись шаблона с ID {template_id} не найдена в кэше.")
             return None
 
-    def get_template_name_from_cache(self, template_id: int) -> Optional[str]:
+    def get_template_name_from_cache(self, template_id: int, auth_token: int) -> Optional[str]:
 
-        cached_data = self.get_im_template_from_cash(template_id)
+        cached_data = self.get_im_template_from_cash(template_id, auth_token)
 
         if not cached_data:
             return None
@@ -259,6 +264,23 @@ class SimulationService(ATComponent):
             print(f"Ошибка при обработке данных шаблона с ID {template_id}: {e}")
             return None
 
+
+    #   =========================== Simulation model ===================================
+    @authorized_method
+    async def handle_simulation_model_created(self, event: str, data: dict, auth_token: str):
+        user_id = await self.get_user_id_or_token(auth_token)
+        user, _ = await self.task_service.create_user(user_id)
+        msg = await self.task_service.get_variant_tasks_description(user, scip_completed=True)
+
+        return {"msg": msg, "hint": msg} # , "kb_id": data["result"]["knowledgeBase"]["id"]}
+
+
+    @authorized_method
+    async def handle_simulation_model_updated(self, event: str, data: dict, auth_token: str):
+        user_id = await self.get_user_id_or_token(auth_token)
+        # self.init_cash(user_id)
+        
+        
     #   ============================= Resource Types ====================================
     @authorized_method
     async def handle_resource_type(self, event: str, data: dict, auth_token: int):
@@ -338,7 +360,9 @@ class SimulationService(ATComponent):
 
             print(task.object_name, task.object_reference, resource)
 
-            resource_type_name = self.get_im_resource_type_from_cash(resource.resource_type_id)
+            resource_type_name = self.get_im_resource_type_from_cash(resource.resource_type_id, auth_token)
+            print(f"Строка, полученная для сравнения: {resource_type_name}")
+
 
             errors_list = []
             errors_list_logic = await self.resource_service.handle_logic_mistakes(user_id, resource, resource_type_name)
@@ -386,9 +410,10 @@ class SimulationService(ATComponent):
         else:
             self.add_im_template_to_cash(template.meta, auth_token)
 
-            print(task.object_name, task.object_reference, template)
+            # print(task.object_name, task.object_reference, template)
+            print(f"Данные, которые передаются для поиска ресурса: {template.meta.rel_resources}")
 
-            resource_type_name = self.get_resource_type_names_from_cache(template.meta.rel_resources)
+            resource_type_name = self.get_resource_type_names_from_cache(template.meta.rel_resources, auth_token)
 
             errors_list = []
             errors_list_logic = await self.template_service.handle_logic_mistakes(user_id, template, resource_type_name)
@@ -440,8 +465,8 @@ class SimulationService(ATComponent):
         else:
             print(task.object_name, task.object_reference, template_usage)
 
-            resource_type_name = self.get_resource_names_from_cache(template_usage.arguments)
-            template_name = self.get_template_name_from_cache(template_usage.template_id)
+            resource_type_name = self.get_resource_names_from_cache(template_usage.arguments, auth_token)
+            template_name = self.get_template_name_from_cache(template_usage.template_id, auth_token)
 
             errors_list = []
             errors_list_logic = await self.template_usage_service.handle_logic_mistakes(user_id, template_usage,  resource_type_name,  template_name)

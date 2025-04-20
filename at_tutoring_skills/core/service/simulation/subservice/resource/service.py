@@ -149,7 +149,7 @@ class ResourceService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip="Указан неправильный типа ресурса.",
+                tip="Указан неправильный тип ресурса.",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="resource_type",
             )

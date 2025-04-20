@@ -33,7 +33,7 @@ class ResourceTypeTypesEnum(Enum):
 class ResourceTypeRequest(BaseModel):
     id: Optional[int] = None
     name: str
-    type: ResourceTypeTypesEnum
+    type: Optional[ResourceTypeTypesEnum] = ResourceTypeTypesEnum.CONSTANT
     attributes: List[ResourceTypeAttributeRequest]
 
 

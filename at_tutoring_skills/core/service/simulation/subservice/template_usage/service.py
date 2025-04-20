@@ -79,8 +79,8 @@ class TemplateUsageService:
         mistakes.extend(
             self._arguments_logic_mistakes(
                 user_id=user_id,
-                arguments=template_usage.arguments,
-                resource_reference=resource_reference,
+                arguments=resource_reference,
+                resource_reference=object_reference.arguments,
             )
         )
 
@@ -89,8 +89,6 @@ class TemplateUsageService:
             await self.main_task_service.append_mistake(mistake)
             self._mistake_service.create_mistake(mistake, user_id, "logic")
 
-        if mistakes:
-            raise ValueError("Handle template usage: logic mistakes")
 
     async def handle_lexic_mistakes(
         self,
@@ -123,12 +121,11 @@ class TemplateUsageService:
 
         return mistakes
 
-
     def _arguments_logic_mistakes(
             self,
             user_id: int,
-            arguments: List[TemplateUsageArgumentRequest],
-            resource_reference: List[str],  # Список строк
+            arguments: List[str],  # Список строк
+            resource_reference: List[TemplateUsageArgumentRequest],  # Список объектов TemplateUsageArgumentRequest
     ) -> List[CommonMistake]:
         """
         Проверяет логические ошибки в аргументах шаблона.
@@ -138,23 +135,32 @@ class TemplateUsageService:
         if not resource_reference:
             raise ValueError("Параметр resource_reference не должен быть пустым.")
 
-        print(f"Reference names: {resource_reference}")
+        print(f"Reference names: {[ref.relevant_resource_id for ref in resource_reference]}")
+
+        # Создаем множество допустимых relevant_resource_id для быстрого поиска
+        valid_resource_ids = {ref.resource_id_str for ref in resource_reference}
 
         for arg in arguments:
-            print(f"\nProcessing argument: relevant_resource_id={arg.relevant_resource_id}, resource_id_str={arg.resource_id_str}")
+            print(f"\nProcessing argument: {arg}")
+            resource_name = arg.get("name")
 
-            if arg.relevant_resource_id not in resource_reference:
-                print(f"No reference found for relevant_resource_id={arg.relevant_resource_id}")
+            if not resource_name:
+                print(f"Argument missing 'name' field: {arg}")
+                continue
+
+            # Проверяем, существует ли resource_name в valid_resource_ids
+            if resource_name not in valid_resource_ids:
+                print(f"No reference found for relevant_resource_id={arg}")
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=None,
-                    tip=f"Ресурс с идентификатором {arg.relevant_resource_id} отсутствует в списке допустимых ресурсов.",
+                    tip=f"Ресурс с идентификатором {arg} отсутствует в списке допустимых ресурсов.",
                     coefficients=SIMULATION_COEFFICIENTS,
-                    entity_type="template_usage_argument",
+                    entity_type="template_usage",
                 )
                 mistakes.append(mistake)
                 continue
 
-            print(f"Found reference for relevant_resource_id={arg.relevant_resource_id}")
+            print(f"Found reference for relevant_resource_id={arg}")
 
         return mistakes

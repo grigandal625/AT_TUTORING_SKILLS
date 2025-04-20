@@ -97,7 +97,10 @@ class KBIMServise:
         attributes = [ResourceTypeAttributeRequest(**attr_data) for attr_data in reference_data["attributes"]]
 
         return ResourceTypeRequest(
-            id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
+            id=reference_data["id"], 
+            name=reference_data["name"], 
+            type=reference_data["type"], 
+            attributes=attributes
         )
 
     async def get_resource_reference(self, task: Task):
@@ -122,7 +125,7 @@ class KBIMServise:
     async def get_template_reference(self, task: Task) -> Union[IrregularEventRequest, RuleRequest, OperationRequest]:
         """
         Получение эталонного шаблона (template reference) из task.object_reference.
-        """
+        """ 
         # Проверяем тип task.object_reference и преобразуем его в словарь
         if isinstance(task.object_reference, str):
             try:
@@ -148,6 +151,14 @@ class KBIMServise:
             generator_data = reference_data['generator']
             body_data = reference_data['body']
 
+            # Проверяем, является ли generator_data списком
+            if isinstance(generator_data, list):
+                if len(generator_data) == 0:
+                    raise ValueError("Generator data is an empty list. No data to process.")
+                # Берем первый элемент списка
+                generator_data = generator_data[0]
+
+            # Теперь можно безопасно обращаться к элементам как к словарю
             return IrregularEventRequest(
                 meta=TemplateMetaRequest(
                     id=reference_data['id'],
@@ -159,8 +170,8 @@ class KBIMServise:
                 ),
                 generator=IrregularEventGenerator(
                     type=GeneratorTypeEnum(generator_data['type']),
-                    value=generator_data['value'],
-                    dispersion=generator_data['dispersion'],
+                    value=float(generator_data["value"]),  # Преобразуем в float
+                    dispersion=float(generator_data["dispersion"]),  # Преобразуем в float
                 ),
                 body=IrregularEventBody(body=body_data["body"]),
             )
@@ -267,10 +278,10 @@ class KBIMServise:
         else:
             raise ValueError("task.object_reference должен быть строкой JSON или словарём")
 
-        attributes = [FunctionParameterRequest(**attr_data) for attr_data in reference_data["attributes"]]
+        attributes = [FunctionParameterRequest(**attr_data) for attr_data in reference_data["params"]]
 
         return FunctionRequest(
-            id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
+            id=reference_data["id"], name=reference_data["name"], ret_type=reference_data["ret_type"], attributes=attributes
         )
 
 
