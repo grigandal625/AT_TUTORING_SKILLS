@@ -31,6 +31,6 @@ class KBRuleServiceSyntax:
 
             raise e
 
-    def process_tip(exception: str) -> str:
+    def process_tip(self, exception: str) -> str:
         ...
         return str(exception)

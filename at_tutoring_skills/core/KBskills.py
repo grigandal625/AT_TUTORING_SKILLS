@@ -5,6 +5,7 @@ from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 from rest_framework import exceptions
+from at_tutoring_skills.core.errors.models import CommonMistake
 
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
@@ -90,9 +91,37 @@ class ATTutoringKBSkills(ATComponent):
         for task in tasks:
             print(f"\n ID: {task.pk}\n")
 
+    async def get_errors_result(self, errors_list, user, task, task_object):
+        serialized_errors = [error.model_dump() for error in errors_list]
+        errors_message = " ".join(
+            [
+                f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}"
+                for i, error in enumerate(serialized_errors)
+            ]
+        )
+        # encoded_text = quote_plus(errors_message)
+        skill_service = SkillService()
+        skills = await skill_service.process_and_get_skills_string(user, task)
+
+        tasks = await self.task_service.get_variant_tasks_description(
+            user, skip_completed=False, task_object=task_object
+        )
+
+        return {
+            "status": "error",
+            "message": f"Обнаружены ошибки: {errors_message}",
+            "stage_done": False,
+            "url": errors_message,
+            'hint': tasks,
+            "skills": skills,
+        }
+
     @authorized_method
     async def handle_kb_type_updated(self, event: str, data: dict, auth_token: str):
+        task_object = SUBJECT_CHOICES.KB_TYPE
         print("Обучаемый отредактировал тип (БЗ): ", data)
+
+        errors_list = []
 
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
@@ -103,39 +132,20 @@ class ATTutoringKBSkills(ATComponent):
         try:
             kb_type = await self.type_service.handle_syntax_mistakes(user_id, data)
         except exceptions.ValidationError as e:
-            raise ValueError(f"Handle KB Type Created: Syntax Mistakes: {e}") from e
+            errors_list.append(CommonMistake(user_id=user_id, type="syntax", task_id=None, fine=1, coefficient=0, tip=str(e.detail), is_tip_shown=False, skills=[]))
 
-        task: Task = await self.task_service.get_task_by_name(kb_type.id, 1)
+        if errors_list:
+            return await self.get_errors_result(errors_list, user, None, task_object)
+
+        task: Task = await self.task_service.get_task_by_name(kb_type.id, task_object)
 
         if task:
             et_type = await self.task_service.get_type_reference(task)
             print(et_type)
-            errors_list = None
+            
             errors_list = await self.type_service.handle_logic_lexic_mistakes(user, task, kb_type, et_type)
             if errors_list:
-                serialized_errors = [error.model_dump() for error in errors_list]
-                errors_message = " ".join(
-                    [
-                        f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}"
-                        for i, error in enumerate(serialized_errors)
-                    ]
-                )
-                # encoded_text = quote_plus(errors_message)
-                skill_service = SkillService()
-                skills = await skill_service.process_and_get_skills_string(user, task)
-
-                tasks = await self.task_service.get_variant_tasks_description(
-                    user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
-                )
-
-                return {
-                    "status": "error",
-                    "message": f"Обнаружены ошибки: {errors_message}",
-                    "stage_done": False,
-                    "url": errors_message,
-                    'hint': tasks,
-                    "skills": skills,
-                }
+                return await self.get_errors_result(errors_list, user, task, task_object)
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 1)

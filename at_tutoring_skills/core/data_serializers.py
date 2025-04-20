@@ -126,10 +126,16 @@ class KBNumericTypeDataSerializer(FieldMappedSerializer):
     to_ = fields.SerializerMethodField(read_only=True)
 
     def get_from_(self, obj):
-        return obj["kt_values"][0]["data"]
+        try:
+            return obj["kt_values"][0]["data"]
+        except Exception as e:
+            raise exceptions.ValidationError(str(e))
 
     def get_to_(self, obj):
-        return obj["kt_values"][1]["data"]
+        try:
+            return obj["kt_values"][1]["data"]
+        except Exception as e:
+            raise exceptions.ValidationError(str(e))
 
     def save(self, **kwargs):
         self.is_valid(raise_exception=True)
