@@ -242,7 +242,6 @@ class KBIMServise:
 
 
 class TaskService(KBTaskService, KBIMServise):
-
     async def get_all_tasks(
         self, variant_id: int = None, task_object: int | SUBJECT_CHOICES = None
     ) -> models.QuerySet[Task]:
@@ -276,7 +275,7 @@ class TaskService(KBTaskService, KBIMServise):
             if task_user and task_user.is_completed and skip_completed:
                 continue
             result += await self.get_task_description(task, user)
-            
+
         if not result:
             return "### Для текущего этапа все задания выполнены \n\n"
 

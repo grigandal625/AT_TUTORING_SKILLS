@@ -189,7 +189,6 @@ class KBTypeServiceLogicLexic:
         errors_list = []
 
         if type.id == etalon_type.id:
-
             if isinstance(etalon_type, KBSymbolicType):
                 if isinstance(type, KBSymbolicType):
                     errors_list = self.estimate_string_type(user_id, task_id, type, etalon_type, context=context)
@@ -208,11 +207,11 @@ class KBTypeServiceLogicLexic:
                         to_logic_mistake(
                             user_id=user_id,
                             task_id=task_id,
-                            tip = f'Несовпадение базового типа в типе "{type.id}", ожидалось: символьный,  \nполучено: нечеткий\n\n',
+                            tip=f'Несовпадение базового типа в типе "{type.id}", ожидалось: символьный,  \nполучено: нечеткий\n\n',
                         )
                     )
 
-            if isinstance(etalon_type, KBNumericType): 
+            if isinstance(etalon_type, KBNumericType):
                 if isinstance(type, KBNumericType):
                     errors_list = self.estimate_number_type(user_id, task_id, type, etalon_type, context=context)
                 if isinstance(type, KBSymbolicType):
@@ -228,10 +227,9 @@ class KBTypeServiceLogicLexic:
                 if isinstance(type, KBFuzzyType):
                     errors_list.append(
                         to_logic_mistake(
-                            
                             user_id=user_id,
                             task_id=task_id,
-                            tip = f'Несовпадение базового типа в типе "{type.id}", ожидалось: числовой,  \nполучено: нечеткий\n\n',
+                            tip=f'Несовпадение базового типа в типе "{type.id}", ожидалось: числовой,  \nполучено: нечеткий\n\n',
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="type",
                         )

@@ -26,7 +26,12 @@ class KBIntervalServiceSyntax:
             syntax_mistakes: list[CommonMistake] = []
             for exception in e.detail:
                 syntax_mistakes.append(
-                    to_syntax_mistake(user_id, tip=self.process_tip(exception), coefficients=KNOWLEDGE_COEFFICIENTS, entity_type="interval")
+                    to_syntax_mistake(
+                        user_id,
+                        tip=self.process_tip(exception),
+                        coefficients=KNOWLEDGE_COEFFICIENTS,
+                        entity_type="interval",
+                    )
                 )
 
             for syntax_mistake in syntax_mistakes:
@@ -34,6 +39,7 @@ class KBIntervalServiceSyntax:
                 task_servise.append_mistake(syntax_mistake)
 
             raise e
+
     def process_tip(self, exception: str) -> str:
         ...
         return str(exception)
