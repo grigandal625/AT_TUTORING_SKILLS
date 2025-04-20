@@ -39,6 +39,7 @@ class ATTutoringKBSkills(ATComponent):
         self.interval_service = KBIntervalService()
         self.rule_service = KBRuleService()
         self.transition_service = TransitionsService()
+        self.skill_service = SkillService()
 
     async def get_user_id_or_token(self, auth_token: str) -> int | str:
         if await self.check_external_registered("AuthWorker"):
@@ -93,8 +94,8 @@ class ATTutoringKBSkills(ATComponent):
         errors_message = " ".join(
             [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
         )
-        skill_service = SkillService()
-        skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+
+        skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
 
         tasks = await self.task_service.get_variant_tasks_description(
             user, skip_completed=False, task_object=task_object
@@ -153,17 +154,13 @@ class ATTutoringKBSkills(ATComponent):
                 stage = await self.transition_service.check_stage_tasks_completed(user, 1)
 
                 if stage:
-                    tasks = await self.task_service.get_variant_tasks_description(
-                        user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_OBJECT
-                    )
-                    skill_service = SkillService()
-                    skills = await skill_service.process_and_get_skills_string(user, task_object=SUBJECT_CHOICES.KB_OBJECT)
-                else:
-                    tasks = await self.task_service.get_variant_tasks_description(
-                        user, skip_completed=False, task_object=task_object
-                    )
-                    skill_service = SkillService()
-                    skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
+                    task_object=SUBJECT_CHOICES.KB_OBJECT
+               
+                tasks = await self.task_service.get_variant_tasks_description(
+                    user, skip_completed=False, task_object=task_object
+                )
+                skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
                 
                 return {
                     "msg": "обучаемый успешно выполнил задание",
@@ -175,8 +172,7 @@ class ATTutoringKBSkills(ATComponent):
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
-            skill_service = SkillService()
-            skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+            skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
             return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False, "hint": tasks}
 
     @authorized_method
@@ -296,17 +292,14 @@ class ATTutoringKBSkills(ATComponent):
                 stage = await self.transition_service.check_stage_tasks_completed(user, 2)
 
                 if stage:
-                    tasks = await self.task_service.get_variant_tasks_description(
-                        user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_OBJECT
-                    )
-                    skill_service = SkillService()
-                    skills = await skill_service.process_and_get_skills_string(user, task_object=SUBJECT_CHOICES.KB_OBJECT)
-                else:
-                    tasks = await self.task_service.get_variant_tasks_description(
-                        user, skip_completed=False, task_object=task_object
-                    )
-                    skill_service = SkillService()
-                    skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
+                    task_object=SUBJECT_CHOICES.KB_EVENT
+               
+                tasks = await self.task_service.get_variant_tasks_description(
+                    user, skip_completed=False, task_object=task_object
+                )
+                skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+                
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
@@ -317,8 +310,7 @@ class ATTutoringKBSkills(ATComponent):
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
-            skill_service = SkillService()
-            skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+            skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
             return {"msg": "обучаемый успешно выполнил задание", "hint": tasks, "skills": skills}
 
     @authorized_method
@@ -376,17 +368,14 @@ class ATTutoringKBSkills(ATComponent):
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 3)
                 if stage:
-                    tasks = await self.task_service.get_variant_tasks_description(
-                        user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_INTERVAL
-                    )
-                    skill_service = SkillService()
-                    skills = await skill_service.process_and_get_skills_string(user, task_object=SUBJECT_CHOICES.KB_INTERVAL)
-                else:
-                    tasks = await self.task_service.get_variant_tasks_description(
-                        user, skip_completed=False, task_object=task_object
-                    )
-                    skill_service = SkillService()
-                    skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
+                    task_object=SUBJECT_CHOICES.KB_INTERVAL
+               
+                tasks = await self.task_service.get_variant_tasks_description(
+                    user, skip_completed=False, task_object=task_object
+                )
+                skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+                
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
@@ -397,8 +386,7 @@ class ATTutoringKBSkills(ATComponent):
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
-            skill_service = SkillService()
-            skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+            skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
             return {
                 "msg": "Задание не найдено,  продолжайте выполнение работы",
                 "stage_done": False,
@@ -475,18 +463,16 @@ class ATTutoringKBSkills(ATComponent):
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 4)
+                
                 if stage:
-                    tasks = await self.task_service.get_variant_tasks_description(
-                        user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_RULE
-                    )
-                    skill_service = SkillService()
-                    skills = await skill_service.process_and_get_skills_string(user, task_object=SUBJECT_CHOICES.KB_RULE)
-                else:
-                    tasks = await self.task_service.get_variant_tasks_description(
-                        user, skip_completed=False, task_object=task_object
-                    )
-                    skill_service = SkillService()
-                    skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
+                    task_object=SUBJECT_CHOICES.KB_RULE
+               
+                tasks = await self.task_service.get_variant_tasks_description(
+                    user, skip_completed=False, task_object=task_object
+                )
+                skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+                
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
@@ -497,8 +483,7 @@ class ATTutoringKBSkills(ATComponent):
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
-            skill_service = SkillService()
-            skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+            skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
             return {
                 "msg": "Задание не найдено,  продолжайте выполнение работы",
                 "stage_done": False,
@@ -589,7 +574,9 @@ class ATTutoringKBSkills(ATComponent):
                 return await self.get_errors_result(errors_list, user, task, task_object)
             else:
                 await self.task_service.complete_task(task, user)
-                stage = await self.transition_service.check_stage_tasks_completed(user, 5)
+                stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
+                if stage:
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)   
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )

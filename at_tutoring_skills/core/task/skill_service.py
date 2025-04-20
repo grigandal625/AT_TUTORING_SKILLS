@@ -28,7 +28,7 @@ class SkillService:
         total_fine = sum(mistake.fine for mistake in mistakes)
 
         # Update the UserSkill mark
-        user_skill.mark = max(0, user_skill.mark - total_fine)  # Ensure mark doesn't go below 0
+        user_skill.mark = max(0, 100 - total_fine)  # Ensure mark doesn't go below 0
 
         # Save the updated UserSkill
         await sync_to_async(user_skill.save)()
@@ -85,6 +85,34 @@ class SkillService:
         # 2. Пересчитываем оценку для каждого навыка
         for skill in skills:
             await self.calc_skill(user, skill.skill)
+
+        # 3. Получаем обновленные навыки после пересчета
+        updated_skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))
+
+        # 4. Формируем итоговую строку
+        return "\n\n".join(f"{us.skill.name} : {us.mark}" for us in updated_skills)
+
+    async def complete_skills_stage_done(
+        self, user: User, task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None
+    ) -> str:
+        """
+        Обрабатывает навыки пользователя для задания и возвращает строку с результатами
+        """
+
+        if not isinstance(task_object, list):
+            task_object = [task_object]
+
+        codes = set()
+        for subject in task_object:
+            codes |= set(SUBJECT_CHOICES.get_first_codes(subject=subject))
+
+        skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))
+
+        # 2. Пересчитываем оценку для каждого навыка
+        for skill in skills:
+            skill.is_completed = True
+            skill.mark = min(60, skill.mark)
+            await skill.asave()
 
         # 3. Получаем обновленные навыки после пересчета
         updated_skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))

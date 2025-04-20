@@ -321,7 +321,7 @@ class TaskService(KBTaskService, KBIMServise):
                 with transaction.atomic():
                     task_user = TaskUser.objects.select_for_update().get(task=task, user=user)
                     task_user.is_completed = True
-                    task_user.attempts = models.F("attempts") + 1
+                    task_user.attempts = task_user.attempts
                     task_user.save()
                     return task_user
             except TaskUser.DoesNotExist:
