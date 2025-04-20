@@ -1,3 +1,5 @@
+from typing import Union
+
 from django.db import models
 
 # Create your models here.
@@ -16,7 +18,7 @@ class SUBJECT_CHOICES(models.IntegerChoices):
     SIMULATION_FUNCS = 10, "Функция"
 
     @staticmethod
-    def get_first_codes(subject: int | "SUBJECT_CHOICES") -> list[int]:
+    def get_first_codes(subject: Union[int, "SUBJECT_CHOICES"]) -> list[int]:
         if isinstance(subject, int):
             subject = SUBJECT_CHOICES(subject)
 
