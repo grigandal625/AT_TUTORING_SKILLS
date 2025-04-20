@@ -1,0 +1,8 @@
+{% import "descriptions/macro/evaluatable.md.jinja2" as evaluatable %}
+
+{% macro kb_event(event) %}
+Событие **`{{ event.id }}`**, с условием возникновения:
+```
+{{ evaluatable.tree(event.occurance_condition) }}
+```
+{% endmacro %}

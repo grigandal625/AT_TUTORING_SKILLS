@@ -1,0 +1,44 @@
+{% import "descriptions/macro/kb_types.md.jinja2" as kb_types -%}
+{% import "descriptions/macro/kb_class.md.jinja2" as kb_class -%}
+{% import "descriptions/macro/kb_event.md.jinja2" as kb_event -%}
+{% import "descriptions/macro/kb_interval.md.jinja2" as kb_interval -%}
+{% import "descriptions/macro/kb_rule.md.jinja2" as kb_rule -%}
+
+{%- macro kb_entity(entity) -%}
+
+{%- if entity.tag == 'type' %}
+{{ kb_types.kb_type(entity) -}}
+
+{%- elif entity.tag == 'class' %}
+{{ kb_class.kb_class(entity) -}}
+{%- elif entity.tag == 'event' %}
+{{ kb_event.kb_event(entity) -}}
+{%- elif entity.tag == 'interval' %}
+{{ kb_interval.kb_interval(entity) -}}
+{% elif entity.tag == 'rule' %}
+{{ kb_rule.kb_rule(entity) -}}
+{%- endif -%}
+
+{%- endmacro -%}
+
+{%- block task_description -%}
+
+#### <input type="checkbox" {% if task_user.is_completed | default(false) -%}checked{% endif %} disabled /> {{ task.task_name }}
+
+{%- if task.description -%}
+
+> {{ task.description -}}
+
+{%- endif %}
+
+**Попыток выполнения: {{task_user.attempts | default(0)}}**
+
+{% if not short -%}
+<details>
+<summary>Описание задания</summary>
+<div style="padding: 5px; border: 1px solid silver; boredr-radius: 2px;">
+{{ kb_entity(service.get_kb_task_entity(task)) }}
+</div>
+</details>
+{% endif %}
+{% endblock -%}

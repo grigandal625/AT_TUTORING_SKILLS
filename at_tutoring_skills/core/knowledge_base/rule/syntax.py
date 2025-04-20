@@ -30,6 +30,7 @@ class KBRuleServiceSyntax:
                 task_servise.append_mistake(syntax_mistake)
 
             raise e
+
     def process_tip(exception: str) -> str:
         ...
         return str(exception)

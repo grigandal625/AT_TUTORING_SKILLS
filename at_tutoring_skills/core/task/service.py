@@ -17,11 +17,10 @@ from django.db import models
 from django.db import transaction
 from pydantic import RootModel
 
-from at_tutoring_skills.core.task.descriptions import DescriptionsService
-
 from at_tutoring_skills.apps.mistakes.models import Mistake
 from at_tutoring_skills.apps.mistakes.models import MISTAKE_TYPE_CHOICES
 from at_tutoring_skills.apps.skills.models import Skill
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
@@ -45,6 +44,7 @@ from at_tutoring_skills.core.service.simulation.subservice.template.models.model
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleBody
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleRequest
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import TemplateMetaRequest
+from at_tutoring_skills.core.task.descriptions import DescriptionsService
 
 logger = logging.getLogger(__name__)
 
@@ -243,61 +243,53 @@ class KBIMServise:
 
 class TaskService(KBTaskService, KBIMServise):
 
-    async def get_all_tasks(self, variant_id: int = None) -> models.QuerySet[Task]:
+    async def get_all_tasks(
+        self, variant_id: int = None, task_object: int | SUBJECT_CHOICES = None
+    ) -> models.QuerySet[Task]:
         """
         Получает все задания для заданного варианта (variant).
         """
         if variant_id is None:
-            return Task.objects.all()
+            result = Task.objects.all()
         else:
             variant = await Variant.objects.aget(pk=variant_id)
-            return variant.task.all()
-        
-    async def get_variant_tasks_description(self, user: User, skip_completed=True) -> str:
+            result = variant.task.all()
+
+        if task_object:
+            result = result.filter(task_object=task_object)
+        return result
+
+    async def get_variant_tasks_description(
+        self, user: User, skip_completed=True, task_object: int | SUBJECT_CHOICES = None
+    ) -> str:
         """
         Возвращает описание заданий для указанного пользователя.
         """
-        tasks = await self.get_all_tasks(user.variant_id)
+        tasks = await self.get_all_tasks(user.variant_id, task_object=task_object)
 
         if not await tasks.aexists():
-            return "### Все задания выполнены!"
-        
-        result = "### На текуий момент необходимо выполнить следующие задания: \n" 
-        completed_result = ""
+            return "### Для текущего этапа все задания выполнены"
+
+        result = ""
         async for task in tasks:
             task_user = await TaskUser.objects.filter(user=user, task=task).afirst()
+            if task_user and task_user.is_completed and skip_completed:
+                continue
+            result += await self.get_task_description(task, user)
+            
+        if not result:
+            return "### Для текущего этапа все задания выполнены \n\n"
 
-            if not task_user or not task_user.is_completed:
-                result += '\n- [ ] ' + await self.get_task_description(task, task_user)
-            elif task_user and task_user.is_completed:
-                completed_result += '\n- [x] ' + await self.get_task_description(task, task_user, short=True)
+        result = "### На текуий момент необходимо выполнить следующие задания: \n\n" + result
 
-
-        if not skip_completed:
-            if completed_result:
-                return result + "### Выполнено: \n" + completed_result
-        
         return result
-        
-    async def get_task_description(self, task: Task, task_user: TaskUser | None, short=False) -> str:
+
+    async def get_task_description(self, task: Task, user: User | None, short=False) -> str:
         """
         Возвращает описание задания в виде строки.
         """
-        result = "**" + task.task_name 
-        if task.description:
-            result += f" - {task.description}."
-        result += "**"
-        
-        result += f" (Попыток выполнения: {task_user.attempts if task_user else 0})"
-        if not short:
-            object_description = await self.get_task_object_descritpion(task)
-            result += '\n' + object_description
-        return result
-
-    
-    async def get_task_object_descritpion(self, task: Task) -> str:
         if task.task_object in DescriptionsService.KB_SUBJECT_TO_MODEL:
-            return DescriptionsService().get_kb_task_description(task)
+            return await DescriptionsService().get_kb_task_description(task, user)
 
     async def increment_taskuser_attempts(self, task: Task, user: User) -> bool:
         """

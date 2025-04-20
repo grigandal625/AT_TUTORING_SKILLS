@@ -1,0 +1,12 @@
+{% import "descriptions/macro/evaluatable.md.jinja2" as evaluatable %}
+
+{% macro kb_interval(interval)%}
+Интервал **`{{ interval.id }}`**, с условием начала:
+```
+{{ evaluatable.tree(interval.open) }}
+```
+и условием окончания:
+```
+{{ evaluatable.tree(interval.close) }}
+```
+{% endmacro %}

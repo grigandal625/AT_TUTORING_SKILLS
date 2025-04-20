@@ -1,4 +1,3 @@
-import json
 from typing import TYPE_CHECKING
 
 from at_krl.core.fuzzy.membership_function import MembershipFunction
@@ -192,19 +191,13 @@ class KBTypeServiceLogicLexic:
         if type.id == etalon_type.id:
             if type.meta == "string":
                 if isinstance(type, KBSymbolicType):
-                    errors_list = self.estimate_string_type(
-                        user_id, task_id, type, etalon_type, context=context
-                    )
+                    errors_list = self.estimate_string_type(user_id, task_id, type, etalon_type, context=context)
             if type.meta == "number":
                 if isinstance(type, KBNumericType):
-                    errors_list = self.estimate_number_type(
-                        user_id, task_id, type, etalon_type, context=context
-                    )
+                    errors_list = self.estimate_number_type(user_id, task_id, type, etalon_type, context=context)
             if type.meta == "fuzzy":
                 if isinstance(type, KBFuzzyType):
-                    errors_list = self.estimate_fuzzy_type(
-                        user_id, task_id, type, etalon_type, context=context
-                    )
+                    errors_list = self.estimate_fuzzy_type(user_id, task_id, type, etalon_type, context=context)
         if errors_list:
             return errors_list
 

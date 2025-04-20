@@ -36,4 +36,3 @@ class KBEventServiceSyntax:
                 task_servise.append_mistake(syntax_mistake)
 
             raise e
-
