@@ -119,8 +119,6 @@ class ATTutoringKBSkills(ATComponent):
     @authorized_method
     async def handle_kb_type_updated(self, event: str, data: dict, auth_token: str):
         task_object = SUBJECT_CHOICES.KB_TYPE
-        print("Обучаемый отредактировал тип (БЗ): ", data)
-
         errors_list = []
 
         user_id = await self.get_user_id_or_token(auth_token)
@@ -149,12 +147,12 @@ class ATTutoringKBSkills(ATComponent):
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 1)
                 tasks = await self.task_service.get_variant_tasks_description(
-                    user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
+                    user, skip_completed=False, task_object=task_object
                 )
                 return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage, 'hint': tasks}
         else:
             tasks = await self.task_service.get_variant_tasks_description(
-                user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
+                user, skip_completed=False, task_object=task_object
             )
             return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False, "hint": tasks}
 
@@ -162,7 +160,6 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):
         task_object = SUBJECT_CHOICES.KB_TYPE
         errors_list = []
-        print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -198,7 +195,6 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_object_duplicated(self, event: str, data: dict, auth_token: str):
         task_object = SUBJECT_CHOICES.KB_OBJECT
         errors_list = []
-        print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -217,7 +213,6 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_object_updated(self, event: str, data: dict, auth_token: str):
         task_object = SUBJECT_CHOICES.KB_OBJECT
         errors_list = []
-        print("Обучаемый отредактировал объект (БЗ): ", data)
 
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
@@ -245,9 +240,15 @@ class ATTutoringKBSkills(ATComponent):
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 2)
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
+                tasks = await self.task_service.get_variant_tasks_description(
+                    user, skip_completed=False, task_object=task_object
+                )
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage, 'hint': tasks}
         else:
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
+            tasks = await self.task_service.get_variant_tasks_description(
+                user, skip_completed=False, task_object=task_object
+            )
+            return {"msg": "обучаемый успешно выполнил задание", 'hint': tasks}
 
     @authorized_method
     async def handle_kb_object_deleted(self, event: str, data: dict, auth_token: str):
@@ -267,7 +268,6 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_kb_event_updated(self, event: str, data: dict, auth_token: str):
         task_object = SUBJECT_CHOICES.KB_EVENT
         errors_list = []
-        print("Обучаемый отредактировал событие (БЗ): ", data)
 
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
@@ -293,15 +293,20 @@ class ATTutoringKBSkills(ATComponent):
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 3)
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
+                tasks = await self.task_service.get_variant_tasks_description(
+                    user, skip_completed=False, task_object=task_object
+                )
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage, 'hint': tasks}
         else:
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
+            tasks = await self.task_service.get_variant_tasks_description(
+                user, skip_completed=False, task_object=task_object
+            )
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False, "hint": tasks}
 
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
         task_object = SUBJECT_CHOICES.KB_EVENT
         errors_list = []
-        print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -334,7 +339,6 @@ class ATTutoringKBSkills(ATComponent):
 
     @authorized_method
     async def handle_kb_interval_updated(self, event: str, data: dict, auth_token: str):
-        print("Обучаемый отредактировал интервал (БЗ): ", data)
         task_object = SUBJECT_CHOICES.KB_INTERVAL
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
@@ -351,16 +355,21 @@ class ATTutoringKBSkills(ATComponent):
 
         if task:
             interval_et = await self.task_service.get_interval_reference(task)
-            errors_list = None
             errors_list = await self.interval_service.handle_logic_lexic_mistakes(user, task, kb_interval, interval_et)
             if errors_list:
                 return await self.get_errors_result(errors_list, user, task, task_object)
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 4)
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
+                tasks = await self.task_service.get_variant_tasks_description(
+                    user, skip_completed=False, task_object=task_object
+                )
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage, 'hint': tasks}
         else:
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
+            tasks = await self.task_service.get_variant_tasks_description(
+                user, skip_completed=False, task_object=task_object
+            )
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False, "hint": tasks}
 
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
@@ -419,22 +428,26 @@ class ATTutoringKBSkills(ATComponent):
 
         if task:
             rule_et = await self.task_service.get_rule_reference(task)
-            errors_list = None
             errors_list = await self.rule_service.handle_logic_lexic_mistakes(user, task, kb_rule, rule_et)
             if errors_list:
                 return await self.get_errors_result(errors_list, user, task, task_object)
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 5)
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
+                tasks = await self.task_service.get_variant_tasks_description(
+                    user, skip_completed=False, task_object=task_object
+                )
+                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage, 'hint': tasks}
         else:
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
+            tasks = await self.task_service.get_variant_tasks_description(
+                user, skip_completed=False, task_object=task_object
+            )
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False, "hint": tasks}
 
     @authorized_method
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):
         task_object = SUBJECT_CHOICES.KB_RULE
         errors_list = []
-        print("Обучаемый отредактировал тип (БЗ): ", data)
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
