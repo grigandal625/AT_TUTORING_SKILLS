@@ -6,7 +6,8 @@ from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
 from rest_framework import exceptions
 
-from at_tutoring_skills.apps.skills.models import Task, SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.core.knowledge_base.event.service import KBEventService
 from at_tutoring_skills.core.knowledge_base.interval.service import KBIntervalService
@@ -57,7 +58,9 @@ class ATTutoringKBSkills(ATComponent):
     async def handle_knowledge_base_created(self, event: str, data: dict, auth_token: str):
         user_id = await self.get_user_id_or_token(auth_token)
         user, _ = await self.task_service.create_user(user_id)
-        msg = await self.task_service.get_variant_tasks_description(user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE)
+        msg = await self.task_service.get_variant_tasks_description(
+            user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
+        )
 
         return {"msg": msg, "hint": msg, "kb_id": data["result"]["knowledgeBase"]["id"]}
 
