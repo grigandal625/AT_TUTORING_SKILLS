@@ -287,7 +287,7 @@ class ATTutoringKBSkills(ATComponent):
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
                 if stage:
-                    await self.task_service.complete_skills_stage_done(user, task_object=task_object)   
+                    await self.transition_service.complete_skills_stage_done(user, task_object=task_object)   
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
@@ -362,7 +362,7 @@ class ATTutoringKBSkills(ATComponent):
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
                 if stage:
-                    await self.task_service.complete_skills_stage_done(user, task_object=task_object)   
+                    await self.transition_service.complete_skills_stage_done(user, task_object=task_object)   
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
@@ -457,7 +457,7 @@ class ATTutoringKBSkills(ATComponent):
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
                 if stage:
-                    await self.task_service.complete_skills_stage_done(user, task_object=task_object)   
+                    await self.transition_service.complete_skills_stage_done(user, task_object=task_object)   
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
@@ -567,7 +567,7 @@ class ATTutoringKBSkills(ATComponent):
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
                 if stage:
-                    await self.task_service.complete_skills_stage_done(user, task_object=task_object)   
+                    await self.transition_service.complete_skills_stage_done(user, task_object=task_object)   
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
