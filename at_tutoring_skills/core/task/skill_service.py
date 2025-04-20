@@ -1,7 +1,11 @@
+from typing import List
+
 from asgiref.sync import sync_to_async
+from django.db.models import Q
 
 from at_tutoring_skills.apps.mistakes.models import Mistake
 from at_tutoring_skills.apps.skills.models import Skill
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.apps.skills.models import UserSkill
@@ -32,42 +36,56 @@ class SkillService:
         return user_skill.mark
 
     @sync_to_async
-    def _get_user_skills_direct(self, user, task):
-        return list(
-            UserSkill.objects.filter(user=user, skill__mistake__user=user, skill__mistake__task=task)
-            .select_related("skill")
-            .distinct()
-        )
+    def _get_user_skills_direct(self, user, task=None):
+        result = UserSkill.objects.filter(user=user)
+        if task:
+            result = result.filter(skill__mistake__task=task)
 
-    async def get_user_task_skills(self, user: User, task: Task) -> list[UserSkill]:
+        return list(result.select_related("skill").distinct())
+
+    async def get_user_task_skills(self, user: User, task: Task = None) -> list[UserSkill]:
         return await self._get_user_skills_direct(user, task)
 
-    async def process_and_get_skills_string(self, user: User, task: Task) -> str:
+    @sync_to_async
+    def _get_user_task_skills_for_first_codes(self, user: User, first_codes: List[int]) -> list[UserSkill]:
+        """
+        Получает навыки пользователя для задания по заданной сущности, указываемой в заданиях
+        """
+
+        result = UserSkill.objects.filter(user=user)
+
+        query = Q()
+
+        for first_code in first_codes:
+            query |= Q(skill__code__gte=first_code * 10, skill__code__lt=(first_code + 1) * 10)
+
+        result = result.filter(query)
+
+        return list(result.select_related("skill").distinct())
+
+    async def get_user_task_skills_for_first_codes(self, user: User, first_codes: List[int]) -> list[UserSkill]:
+        return await self._get_user_task_skills_for_first_codes(user, first_codes)
+
+    async def process_and_get_skills_string(
+        self, user: User, task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None
+    ) -> str:
         """
         Обрабатывает навыки пользователя для задания и возвращает строку с результатами
-
-        Шаги:
-        1. Получает навыки пользователя для задания
-        2. Пересчитывает оценку для каждого навыка
-        3. Получает обновленные навыки
-        4. Формирует строку с результатами
-
-        Args:
-            user: Объект пользователя
-            task: Объект задания
-
-        Returns:
-            Строка с навыками и оценками в формате "навык : оценка"
         """
-        # 1. Получаем начальные навыки
-        skills = await self.get_user_task_skills(user, task)
+
+        if not isinstance(task_object, list):
+            task_object = [task_object]
+
+        codes = set([SUBJECT_CHOICES.get_first_codes(subject=subject) for subject in task_object])
+
+        skills = await self.get_user_task_skills_for_first_codes(user, codes=list(codes))
 
         # 2. Пересчитываем оценку для каждого навыка
         for skill in skills:
             await self.calc_skill(user, skill.skill)
 
         # 3. Получаем обновленные навыки после пересчета
-        updated_skills = await self.get_user_task_skills(user, task)
+        updated_skills = await self.get_user_task_skills_for_first_codes(user, codes=list(codes))
 
         # 4. Формируем итоговую строку
         return "\n".join(f"{us.skill.name} : {us.mark}" for us in updated_skills)

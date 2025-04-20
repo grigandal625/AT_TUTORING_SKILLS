@@ -1,6 +1,7 @@
 # import json
 import json
 import logging
+from typing import List
 from typing import Union
 
 from asgiref.sync import sync_to_async
@@ -243,7 +244,7 @@ class KBIMServise:
 
 class TaskService(KBTaskService, KBIMServise):
     async def get_all_tasks(
-        self, variant_id: int = None, task_object: int | SUBJECT_CHOICES = None
+        self, variant_id: int = None, task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None
     ) -> models.QuerySet[Task]:
         """
         Получает все задания для заданного варианта (variant).
@@ -254,12 +255,14 @@ class TaskService(KBTaskService, KBIMServise):
             variant = await Variant.objects.aget(pk=variant_id)
             result = variant.task.all()
 
-        if task_object:
+        if isinstance(task_object, list):
+            result = result.filter(task_object__in=task_object)
+        elif task_object:
             result = result.filter(task_object=task_object)
         return result
 
     async def get_variant_tasks_description(
-        self, user: User, skip_completed=True, task_object: int | SUBJECT_CHOICES = None
+        self, user: User, skip_completed=True, task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None
     ) -> str:
         """
         Возвращает описание заданий для указанного пользователя.
@@ -279,7 +282,7 @@ class TaskService(KBTaskService, KBIMServise):
         if not result:
             return "### Для текущего этапа все задания выполнены \n\n"
 
-        result = "### На текуий момент необходимо выполнить следующие задания: \n\n" + result
+        result = "### На текущий момент необходимо выполнить следующие задания: \n\n" + result
 
         return result
 

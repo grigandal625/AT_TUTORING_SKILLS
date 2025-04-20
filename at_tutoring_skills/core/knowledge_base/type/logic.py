@@ -36,7 +36,7 @@ class KBTypeServiceLogicLexic:
                     tip=f'Введено меньше значений, чем требуется, в типе "{type.id}"  \nРасположение: {place}\n\n',
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
-                    skills=[221],
+                    skills=[1221],
                 )
             )
 
@@ -58,7 +58,7 @@ class KBTypeServiceLogicLexic:
                             tip=f'Ошибка в типе "{type.id}", ожидалось значение "{check_et[j]}",  \nЗначения, которые написаны некорректно или являются лишними: {" ".join(check_failed)}  \nРасположение: {place}\n\n',
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="type",
-                            skills=[220],
+                            skills=[1220],
                         )
                     )
 
@@ -87,7 +87,7 @@ class KBTypeServiceLogicLexic:
                     tip=f'Введено неверное значение ОТ в типе "{type.id}"  \nОжидалось: {type_et.from_}  \nПолучено: {type.from_}  \nРасположение: {place}\n\n',
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
-                    skills=[210],
+                    skills=[1210],
                 )
             )
 
@@ -101,7 +101,7 @@ class KBTypeServiceLogicLexic:
                     tip=f'Введено неверное значение ДО в типе "{type.id}",  \nОжидалось: {type_et.to_}  \nПолучено: {type.to_}  \nРасположение: {place}\n\n',
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
-                    skills=[210],
+                    skills=[1210],
                 )
             )
 

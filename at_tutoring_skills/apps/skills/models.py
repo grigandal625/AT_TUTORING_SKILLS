@@ -15,6 +15,26 @@ class SUBJECT_CHOICES(models.IntegerChoices):
     SIMULATION_TEMPLATE_USAGES = 9, "Операции"
     SIMULATION_FUNCS = 10, "Функция"
 
+    @staticmethod
+    def get_first_codes(subject: int | "SUBJECT_CHOICES") -> list[int]:
+        if isinstance(subject, int):
+            subject = SUBJECT_CHOICES(subject)
+
+        codes = {
+            SUBJECT_CHOICES.KB_TYPE: [120],
+            SUBJECT_CHOICES.KB_OBJECT: [130],
+            SUBJECT_CHOICES.KB_EVENT: [140, 170],
+            SUBJECT_CHOICES.KB_INTERVAL: [150, 170],
+            SUBJECT_CHOICES.KB_RULE: [160, 170],
+            SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES: [22],
+            SUBJECT_CHOICES.SIMULATION_RESOURCES: [23],
+            SUBJECT_CHOICES.SIMULATION_TEMPLATES: [24],
+            SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES: [25],
+            SUBJECT_CHOICES.SIMULATION_FUNCS: [26],
+        }
+
+        return codes[subject]
+
 
 class GROUP_CHOICES(models.IntegerChoices):
     KB = 1, "KB"
