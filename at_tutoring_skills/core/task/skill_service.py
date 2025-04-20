@@ -57,7 +57,7 @@ class SkillService:
         query = Q()
 
         for first_code in first_codes:
-            query |= Q(skill__code__gte=first_code * 10, skill__code__lt=(first_code + 1) * 10)
+            query |= Q(skill__code__gte=first_code * 10, skill__code__lt=(first_code + 10) * 10)
 
         result = result.filter(query)
 
