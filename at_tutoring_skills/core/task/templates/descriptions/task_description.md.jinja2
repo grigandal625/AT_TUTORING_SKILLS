@@ -23,7 +23,7 @@
 
 {%- block task_description -%}
 
-#### <input type="checkbox" {% if task_user.is_completed | default(false) -%}checked{% endif %} disabled /> {{ task.task_name }}
+#### {% if task_user.is_completed | default(false) -%}✅{%else%}☐{% endif %} {{ task.task_name }}
 
 {%- if task.description -%}
 
@@ -31,7 +31,7 @@
 
 {%- endif %}
 
-**Попыток выполнения: {{task_user.attempts | default(0)}}**
+*Попыток выполнения: {{task_user.attempts | default(0)}}*
 
 {% if not short -%}
 <details>
