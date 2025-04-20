@@ -4,6 +4,7 @@ from at_krl.core.temporal.allen_interval import KBInterval
 from rest_framework import exceptions
 
 from at_tutoring_skills.core.data_serializers import KBIntervalDataSerializer
+from at_tutoring_skills.core.errors.consts import KNOWLEDGE_COEFFICIENTS
 from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.task.service import TaskService
@@ -25,11 +26,7 @@ class KBIntervalServiceSyntax:
             syntax_mistakes: list[CommonMistake] = []
             for exception in e.detail:
                 syntax_mistakes.append(
-                    to_syntax_mistake(
-                        user_id,
-                        None,
-                        self.process_tip(exception),
-                    )
+                    to_syntax_mistake(user_id, tip=self.process_tip(exception), coefficients=KNOWLEDGE_COEFFICIENTS, entity_type="interval")
                 )
 
             for syntax_mistake in syntax_mistakes:
@@ -37,3 +34,6 @@ class KBIntervalServiceSyntax:
                 task_servise.append_mistake(syntax_mistake)
 
             raise e
+    def process_tip(self, exception: str) -> str:
+        ...
+        return str(exception)
