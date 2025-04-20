@@ -287,12 +287,21 @@ class ATTutoringKBSkills(ATComponent):
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage, "hint": tasks}
+                skill_service = SkillService()
+                skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+                return {
+                    "msg": "обучаемый успешно выполнил задание",
+                    "stage_done": stage,
+                    "hint": tasks,
+                    "skills": skills,
+                }
         else:
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
-            return {"msg": "обучаемый успешно выполнил задание", "hint": tasks}
+            skill_service = SkillService()
+            skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+            return {"msg": "обучаемый успешно выполнил задание", "hint": tasks, "skills": skills}
 
     @authorized_method
     async def handle_kb_object_deleted(self, event: str, data: dict, auth_token: str):
@@ -351,12 +360,26 @@ class ATTutoringKBSkills(ATComponent):
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage, "hint": tasks}
+                skill_service = SkillService()
+                skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+                return {
+                    "msg": "обучаемый успешно выполнил задание",
+                    "stage_done": stage,
+                    "hint": tasks,
+                    "skills": skills,
+                }
         else:
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False, "hint": tasks}
+            skill_service = SkillService()
+            skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+            return {
+                "msg": "Задание не найдено,  продолжайте выполнение работы",
+                "stage_done": False,
+                "hint": tasks,
+                "skills": skills,
+            }
 
     @authorized_method
     async def handle_kb_event_duplicated(self, event: str, data: dict, auth_token: str):
@@ -430,12 +453,26 @@ class ATTutoringKBSkills(ATComponent):
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage, "hint": tasks}
+                skill_service = SkillService()
+                skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+                return {
+                    "msg": "обучаемый успешно выполнил задание",
+                    "stage_done": stage,
+                    "hint": tasks,
+                    "skills": skills,
+                }
         else:
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False, "hint": tasks}
+            skill_service = SkillService()
+            skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+            return {
+                "msg": "Задание не найдено,  продолжайте выполнение работы",
+                "stage_done": False,
+                "hint": tasks,
+                "skills": skills,
+            }
 
     @authorized_method
     async def handle_kb_interval_duplicated(self, event: str, data: dict, auth_token: str):
@@ -524,12 +561,26 @@ class ATTutoringKBSkills(ATComponent):
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage, "hint": tasks}
+                skill_service = SkillService()
+                skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+                return {
+                    "msg": "обучаемый успешно выполнил задание",
+                    "stage_done": stage,
+                    "hint": tasks,
+                    "skills": skills,
+                }
         else:
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False, "hint": tasks}
+            skill_service = SkillService()
+            skills = await skill_service.process_and_get_skills_string(user, task_object=task_object)
+            return {
+                "msg": "Задание не найдено,  продолжайте выполнение работы",
+                "stage_done": False,
+                "hint": tasks,
+                "skills": skills,
+            }
 
     @authorized_method
     async def handle_kb_rule_duplicated(self, event: str, data: dict, auth_token: str):

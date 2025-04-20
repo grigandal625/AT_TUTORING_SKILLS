@@ -76,7 +76,9 @@ class SkillService:
         if not isinstance(task_object, list):
             task_object = [task_object]
 
-        codes = set([SUBJECT_CHOICES.get_first_codes(subject=subject) for subject in task_object])
+        codes = set()
+        for subject in task_object:
+            codes |= set(SUBJECT_CHOICES.get_first_codes(subject=subject))
 
         skills = await self.get_user_task_skills_for_first_codes(user, codes=list(codes))
 
