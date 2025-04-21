@@ -19,11 +19,12 @@ from at_tutoring_skills.core.service.simulation.subservice.template.models.model
 from at_tutoring_skills.core.service.simulation.subservice.template.service import TemplateService
 from at_tutoring_skills.core.service.simulation.subservice.template_usage.service import TemplateUsageService
 from at_tutoring_skills.core.task.service import TaskService
+from at_tutoring_skills.core.task.skill_service import SkillService
 from at_tutoring_skills.core.task.transitions import TransitionsService
 
 
 class SimulationService(ATComponent):
-    main_task_service = None
+    task_service = None
     main_task_cache = None
     cash: dict = None
 
@@ -42,8 +43,9 @@ class SimulationService(ATComponent):
         self.template_service = template_service
         self.template_usage_service = template_usage_service
         self.function_service = function_service
-        self.main_task_service = TaskService()
+        self.task_service = TaskService()
         self.transition_service = TransitionsService()
+        self.skill_service = SkillService()
         self.cash = {}
 
     async def get_user_id_or_token(self, auth_token: str) -> int | str:
@@ -157,16 +159,38 @@ class SimulationService(ATComponent):
 
     # ============================================ Cash Template =====================================================
 
+    # ============================================
+    async def get_errors_result(self, errors_list, user, task, task_object):
+        serialized_errors = [error.model_dump() for error in errors_list]
+        errors_message = " ".join(
+            [f"Ошибка №{i+1}: {error.get('tip', 'Неизвестная ошибка')}" for i, error in enumerate(serialized_errors)]
+        )
+
+        skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+
+        tasks = await self.task_service.get_variant_tasks_description(
+            user, skip_completed=False, task_object=task_object
+        )
+
+        return {
+            "status": "error",
+            "message": f"Обнаружены ошибки: {errors_message}",
+            "stage_done": False,
+            "url": errors_message,
+            "hint": tasks,
+            "skills": skills,
+        }
+
     #   ============================= Resource Types ====================================
     @authorized_method
     async def handle_resource_type(self, event: str, data: dict, auth_token: int):
         print("Обучаемый отредактировал тип ресурса (ИМ): ", data)
-
+        task_object = SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES
         user_id = await self.get_user_id_or_token(auth_token)
-        user, created = await self.main_task_service.create_user(user_id)
-        await self.main_task_service.create_user_skill_connection(user)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.create_user_skill_connection(user)
 
-        await self.main_task_service.create_task_user_entries(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         try:
@@ -174,12 +198,19 @@ class SimulationService(ATComponent):
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Type Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.main_task_service.get_task_by_name(
-            resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES
+        task: Task = await self.task_service.get_task_by_name(
+            resource_type.name, task_object
         )
 
         if not task:
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
+            # tasks = await self.task_service.get_variant_tasks_description(
+            #     user, skip_completed=False, task_object=task_object
+            # )
+            skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", 
+                    "stage_done": False, 
+                    # "hint": tasks
+                    }
 
         else:
             self.add_im_resource_type_to_cash(resource_type, auth_token)
@@ -198,16 +229,26 @@ class SimulationService(ATComponent):
             print(f"Результат: {errors_list}")
 
             if not errors_list:
-                await self.main_task_service.complete_task(task, user)
+                await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 6)
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
+                if stage:
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
+                    task_object=SUBJECT_CHOICES.SIMULATION_RESOURCES
 
-            else:  # Преобразуем объекты CommonMistake в словари
-                serialized_errors = [error.model_dump() for error in errors_list]
-                errors_message = " ".join(
-                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
-                )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
+                # tasks = await self.task_service.get_variant_tasks_description(
+                #     user, skip_completed=False, task_object=task_object
+                # )
+                skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+
+                return {
+                    "msg": "обучаемый успешно выполнил задание",
+                    "stage_done": stage,
+                    # "hint": tasks,
+                    "skills": skills,
+                }
+
+            else:
+                return await self.get_errors_result(errors_list, user, task, task_object)
 
     #   ==============================    Resource   ====================================
     @authorized_method
@@ -215,10 +256,10 @@ class SimulationService(ATComponent):
         print("Обучаемый отредактировал ресурс (ИМ): ", data)
 
         user_id = await self.get_user_id_or_token(auth_token)
-        user, created = await self.main_task_service.create_user(user_id)
-        await self.main_task_service.create_user_skill_connection(user)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.create_user_skill_connection(user)
 
-        await self.main_task_service.create_task_user_entries(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         try:
@@ -226,10 +267,17 @@ class SimulationService(ATComponent):
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.main_task_service.get_task_by_name(resource.name, SUBJECT_CHOICES.SIMULATION_RESOURCES)
+        task: Task = await self.task_service.get_task_by_name(resource.name, SUBJECT_CHOICES.SIMULATION_RESOURCES)
 
         if not task:
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
+            # tasks = await self.task_service.get_variant_tasks_description(
+            #     user, skip_completed=False, task_object=task_object
+            # )
+            skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", 
+                    "stage_done": False, 
+                    # "hint": tasks
+                    }
 
         else:
             self.add_im_resource_to_cash(resource, auth_token)
@@ -246,27 +294,37 @@ class SimulationService(ATComponent):
             print(f"Результат: {errors_list}")
 
             if not errors_list:
-                await self.main_task_service.complete_task(task, user)
+                await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 7)
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
+                if stage:
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
+                    task_object=SUBJECT_CHOICES.SIMULATION_TEMPLATES
+
+                # tasks = await self.task_service.get_variant_tasks_description(
+                #     user, skip_completed=False, task_object=task_object
+                # )
+                skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+
+                return {
+                    "msg": "обучаемый успешно выполнил задание",
+                    "stage_done": stage,
+                    # "hint": tasks,
+                    "skills": skills,
+                }
 
             else:  # Преобразуем объекты CommonMistake в словари
-                serialized_errors = [error.model_dump() for error in errors_list]
-                errors_message = " ".join(
-                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
-                )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
+                return await self.get_errors_result(errors_list, user, task, SUBJECT_CHOICES.SIMULATION_RESOURCES)
 
     #   =============================    Template   ================================
     @authorized_method
     async def handle_template(self, event: str, data: dict, auth_token: int):
         print("Обучаемый отредактировал образец операции (ИМ): ", data)
-
+        task_object = SUBJECT_CHOICES.SIMULATION_TEMPLATES
         user_id = await self.get_user_id_or_token(auth_token)
-        user, created = await self.main_task_service.create_user(user_id)
-        await self.main_task_service.create_user_skill_connection(user)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.create_user_skill_connection(user)
 
-        await self.main_task_service.create_task_user_entries(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         try:
@@ -274,12 +332,19 @@ class SimulationService(ATComponent):
         except BaseException as e:
             raise ValueError(f"Handle IM Template Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.main_task_service.get_task_by_name(
-            template.meta.name, SUBJECT_CHOICES.SIMULATION_TEMPLATES
+        task: Task = await self.task_service.get_task_by_name(
+            template.meta.name, task_object
         )
 
         if not task:
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False}
+            # tasks = await self.task_service.get_variant_tasks_description(
+            #     user, skip_completed=False, task_object=task_object
+            # )
+            skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", 
+                    "stage_done": False, 
+                    # "hint": tasks
+                    }
 
         else:
             print(task.object_name, task.object_reference, template)
@@ -298,16 +363,26 @@ class SimulationService(ATComponent):
             print(f"Результат: {errors_list}")
 
             if not errors_list:
-                await self.main_task_service.complete_task(task, user)
+                await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 7)
-                return {"msg": "обучаемый успешно выполнил задание", "stage_done": stage}
+                if stage:
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
+                    task_object=SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES
+
+                # tasks = await self.task_service.get_variant_tasks_description(
+                #     user, skip_completed=False, task_object=task_object
+                # )
+                skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+
+                return {
+                    "msg": "обучаемый успешно выполнил задание",
+                    "stage_done": stage,
+                    # "hint": tasks,
+                    "skills": skills,
+                }
 
             else:  # Преобразуем объекты CommonMistake в словари
-                serialized_errors = [error.model_dump() for error in errors_list]
-                errors_message = " ".join(
-                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
-                )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}", "stage_done": False}
+                return await self.get_errors_result(errors_list, user, task, SUBJECT_CHOICES.SIMULATION_TEMPLATES)
 
     #   ============================= Template Usage ================================
     @authorized_method
@@ -315,10 +390,10 @@ class SimulationService(ATComponent):
         print("Обучаемый отредактировал операцию (ИМ): ", data)
 
         user_id = await self.get_user_id_or_token(auth_token)
-        user, created = await self.main_task_service.create_user(user_id)
-        await self.main_task_service.create_user_skill_connection(user)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.create_user_skill_connection(user)
 
-        await self.main_task_service.create_task_user_entries(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         try:
@@ -326,13 +401,19 @@ class SimulationService(ATComponent):
         except BaseException as e:
             raise ValueError(f"Handle IM Template Usage Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.main_task_service.get_task_by_name(
+        task: Task = await self.task_service.get_task_by_name(
             template_usage.name, SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES
         )
 
         if not task:
-            skill_result = "Задание не найдено, продолжайте выполнение работы"
-            return skill_result
+            # tasks = await self.task_service.get_variant_tasks_description(
+            #     user, skip_completed=False, task_object=task_object
+            # )
+            skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", 
+                    "stage_done": False, 
+                    # "hint": tasks
+                    }
         else:
             print(task.object_name, task.object_reference, template_usage)
             # await self.task_service.create_task_user_safe(task, user)
@@ -352,15 +433,11 @@ class SimulationService(ATComponent):
             print(f"Результат: {errors_list}")
 
             if not errors_list:
-                await self.main_task_service.complete_task(task, user)
+                await self.task_service.complete_task(task, user)
                 return {"status": "success", "message": "Обучаемый успешно выполнил задание"}
 
             else:
-                serialized_errors = [error.model_dump() for error in errors_list]
-                errors_message = " ".join(
-                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
-                )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
+                return await self.get_errors_result(errors_list, user, task, SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES)
 
     #   =============================== Function =====================================
     @authorized_method
@@ -368,10 +445,10 @@ class SimulationService(ATComponent):
         print("Обучаемый отредактировал функцию (ИМ): ", data)
 
         user_id = await self.get_user_id_or_token(auth_token)
-        user, created = await self.main_task_service.create_user(user_id)
-        await self.main_task_service.create_user_skill_connection(user)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.create_user_skill_connection(user)
 
-        await self.main_task_service.create_task_user_entries(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         try:
@@ -379,11 +456,18 @@ class SimulationService(ATComponent):
         except BaseException as e:
             raise ValueError(f"Handle IM Function Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.main_task_service.get_task_by_name(function.name, SUBJECT_CHOICES.SIMULATION_FUNCS)
-
+        task: Task = await self.task_service.get_task_by_name(function.name, SUBJECT_CHOICES.SIMULATION_FUNCS)
+        
         if not task:
-            skill_result = "Задание не найдено, продолжайте выполнение работы"
-            return skill_result
+            # tasks = await self.task_service.get_variant_tasks_description(
+            #     user, skip_completed=False, task_object=task_object
+            # )
+            skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+            return {"msg": "Задание не найдено,  продолжайте выполнение работы", 
+                    "stage_done": False, 
+                    # "hint": tasks
+                    }
+        
         else:
             print(task.object_name, task.object_reference, function)
             # await self.task_service.create_task_user_safe(task, user)
@@ -400,28 +484,24 @@ class SimulationService(ATComponent):
             print(f"Результат: {errors_list}")
 
             if not errors_list:
-                await self.main_task_service.complete_task(task, user)
+                await self.task_service.complete_task(task, user)
                 return {"status": "success", "message": "Обучаемый успешно выполнил задание"}
 
             else:
-                serialized_errors = [error.model_dump() for error in errors_list]
-                errors_message = " ".join(
-                    f"Ошибка: {error.get('tip', 'Неизвестная ошибка')}" for error in serialized_errors
-                )
-                return {"status": "error", "message": f"Обнаружены ошибки: {errors_message}"}
+                return await self.get_errors_result(errors_list, user, task, SUBJECT_CHOICES.SIMULATION_FUNCS)
 
         # user_id = await self.get_user_id_or_token(auth_token)
-        # user, created = await self.main_task_service.create_user(user_id)
-        # await self.main_task_service.create_user_skill_connection(user)
+        # user, created = await self.task_service.create_user(user_id)
+        # await self.task_service.create_user_skill_connection(user)
         # user_id = user.pk
-        # # self.main_task_service.create_task_user_safe(task, user)
+        # # self.task_service.create_task_user_safe(task, user)
 
         # try:
         #     resource_type = await self.resource_type_service.handle_syntax_mistakes(user_id, data)
         # except BaseException as e:
         #     raise ValueError(f"Handle IM Resource Type Created: Syntax Mistakes: {e}") from e
 
-        # task : Task = await self.main_task_service.get_task_by_name(resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES)
+        # task : Task = await self.task_service.get_task_by_name(resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES)
         # print(task.object_name, task.object_reference)
 
         # if task:
@@ -435,7 +515,7 @@ class SimulationService(ATComponent):
         #     except BaseException as e:
         #         raise ValueError(f"Handle IM Resource Type Created: Lexic Mistakes: {e}") from e
         #     try:
-        #         await self.main_task_service.complete_task(task, user)
+        #         await self.task_service.complete_task(task, user)
         #     except BaseException as e:
         #         raise ValueError(f"Handle IM Resource Type Created: Complete Task: {e}") from e
         # else:
