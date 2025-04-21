@@ -1,4 +1,3 @@
-import json
 from typing import TYPE_CHECKING
 
 from at_krl.core.fuzzy.membership_function import MembershipFunction
@@ -37,14 +36,14 @@ class KBTypeServiceLogicLexic:
                     tip=f'Введено меньше значений, чем требуется, в типе "{type.id}"  \nРасположение: {place}\n\n',
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
-                    skills=[221],
+                    skills=[1221],
                 )
             )
 
         for j in range(len(check_et)):
             for i in range(len(check)):
                 if check_et[j] == check[i]:
-                    check[j] = None
+                    check[i] = None
                     check_et[j] = None
         for j in range(len(check_et)):
             if check_et[j] is not None:
@@ -59,7 +58,7 @@ class KBTypeServiceLogicLexic:
                             tip=f'Ошибка в типе "{type.id}", ожидалось значение "{check_et[j]}",  \nЗначения, которые написаны некорректно или являются лишними: {" ".join(check_failed)}  \nРасположение: {place}\n\n',
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="type",
-                            skills=[220],
+                            skills=[1220],
                         )
                     )
 
@@ -88,7 +87,7 @@ class KBTypeServiceLogicLexic:
                     tip=f'Введено неверное значение ОТ в типе "{type.id}"  \nОжидалось: {type_et.from_}  \nПолучено: {type.from_}  \nРасположение: {place}\n\n',
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
-                    skills=[210],
+                    skills=[1210],
                 )
             )
 
@@ -102,7 +101,7 @@ class KBTypeServiceLogicLexic:
                     tip=f'Введено неверное значение ДО в типе "{type.id}",  \nОжидалось: {type_et.to_}  \nПолучено: {type.to_}  \nРасположение: {place}\n\n',
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
-                    skills=[210],
+                    skills=[1210],
                 )
             )
 
@@ -190,20 +189,73 @@ class KBTypeServiceLogicLexic:
         errors_list = []
 
         if type.id == etalon_type.id:
-            if type.meta == "string":
+            if isinstance(etalon_type, KBSymbolicType):
                 if isinstance(type, KBSymbolicType):
-                    errors_list = self.estimate_string_type(
-                        user_id, task_id, type, etalon_type, context=context
-                    )
-            if type.meta == "number":
+                    errors_list = self.estimate_string_type(user_id, task_id, type, etalon_type, context=context)
                 if isinstance(type, KBNumericType):
-                    errors_list = self.estimate_number_type(
-                        user_id, task_id, type, etalon_type, context=context
+                    errors_list.append(
+                        to_logic_mistake(
+                            user_id=user_id,
+                            task_id=task_id,
+                            tip=f'Несовпадение базового типа в типе "{type.id}", ожидалось: символьный,  \nполучено: числовой\n\n',
+                            coefficients=KNOWLEDGE_COEFFICIENTS,
+                            entity_type="type",
+                        )
                     )
-            if type.meta == "fuzzy":
                 if isinstance(type, KBFuzzyType):
-                    errors_list = self.estimate_fuzzy_type(
-                        user_id, task_id, type, etalon_type, context=context
+                    errors_list.append(
+                        to_logic_mistake(
+                            user_id=user_id,
+                            task_id=task_id,
+                            tip=f'Несовпадение базового типа в типе "{type.id}", ожидалось: символьный,  \nполучено: нечеткий\n\n',
+                        )
+                    )
+
+            if isinstance(etalon_type, KBNumericType):
+                if isinstance(type, KBNumericType):
+                    errors_list = self.estimate_number_type(user_id, task_id, type, etalon_type, context=context)
+                if isinstance(type, KBSymbolicType):
+                    errors_list.append(
+                        to_logic_mistake(
+                            user_id=user_id,
+                            task_id=task_id,
+                            tip=f'Несовпадение базового типа в типе "{type.id}", ожидалось: числовой,  \nполучено: символьный\n\n',
+                            coefficients=KNOWLEDGE_COEFFICIENTS,
+                            entity_type="type",
+                        )
+                    )
+                if isinstance(type, KBFuzzyType):
+                    errors_list.append(
+                        to_logic_mistake(
+                            user_id=user_id,
+                            task_id=task_id,
+                            tip=f'Несовпадение базового типа в типе "{type.id}", ожидалось: числовой,  \nполучено: нечеткий\n\n',
+                            coefficients=KNOWLEDGE_COEFFICIENTS,
+                            entity_type="type",
+                        )
+                    )
+            if isinstance(etalon_type, KBFuzzyType):
+                if isinstance(type, KBFuzzyType):
+                    errors_list = self.estimate_fuzzy_type(user_id, task_id, type, etalon_type, context=context)
+                if isinstance(type, KBSymbolicType):
+                    errors_list.append(
+                        to_logic_mistake(
+                            user_id=user_id,
+                            task_id=task_id,
+                            tip=f'Несовпадение базового типа в типе "{type.id}", ожидалось: нечеткий,  \nполучено: символьный\n\n',
+                            coefficients=KNOWLEDGE_COEFFICIENTS,
+                            entity_type="type",
+                        )
+                    )
+                if isinstance(type, KBNumericType):
+                    errors_list.append(
+                        to_logic_mistake(
+                            user_id=user_id,
+                            task_id=task_id,
+                            tip=f'Несовпадение базового типа в типе "{type.id}", ожидалось: нечеткий,  \nполучено: числовой\n\n',
+                            coefficients=KNOWLEDGE_COEFFICIENTS,
+                            entity_type="type",
+                        )
                     )
         if errors_list:
             return errors_list

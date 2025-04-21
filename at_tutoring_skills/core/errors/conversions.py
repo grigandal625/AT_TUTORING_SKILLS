@@ -7,7 +7,7 @@ def to_syntax_mistake(
 ) -> CommonMistake:
     skills = skills or []
     return CommonMistake(
-        user_id=user_id,
+        user_id=str(user_id),
         type="syntax",
         task_id=None,
         fine=coefficients.syntax_fine,
@@ -23,7 +23,7 @@ def to_logic_mistake(
 ) -> CommonMistake:
     skills = skills or []
     return CommonMistake(
-        user_id=user_id,
+        user_id=str(user_id),
         type="logic",
         task_id=task_id,
         fine=coefficients.logic_fine,
@@ -39,7 +39,7 @@ def to_lexic_mistake(
 ) -> CommonMistake:
     skills = skills or []
     return CommonMistake(
-        user_id=user_id,
+        user_id=str(user_id),
         type="lexic",
         task_id=task_id,
         fine=coefficients.lexic_fine,

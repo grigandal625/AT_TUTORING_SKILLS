@@ -4,6 +4,7 @@ from at_krl.core.kb_type import KBType
 from rest_framework import exceptions
 
 from at_tutoring_skills.core.data_serializers import KBTypeDataSerializer
+from at_tutoring_skills.core.errors.consts import KNOWLEDGE_COEFFICIENTS
 from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.task.service import TaskService
@@ -22,7 +23,12 @@ class KBTypeServiceSyntax:
             syntax_mistakes: list[CommonMistake] = []
             for exception in e.detail:
                 syntax_mistakes.append(
-                    to_syntax_mistake(user_id, tip=self.process_tip(exception), coefficients=0.5, entity_type="type")
+                    to_syntax_mistake(
+                        user_id,
+                        tip=self.process_tip(exception),
+                        coefficients=KNOWLEDGE_COEFFICIENTS,
+                        entity_type="type",
+                    )
                 )
 
             for syntax_mistake in syntax_mistakes:
@@ -31,6 +37,6 @@ class KBTypeServiceSyntax:
 
             raise e
 
-    def process_tip(exception: str) -> str:
+    def process_tip(self, exception: str) -> str:
         ...
         return str(exception)

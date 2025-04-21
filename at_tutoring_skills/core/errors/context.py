@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from dataclasses import field
-from typing import List
 
 
 @dataclass(kw_only=True)
@@ -13,9 +12,12 @@ class Context:
 
     @property
     def full_path_list(self) -> str:
-        parts = []; current = self
-        while current: parts.append(current.name); current = current.parent
-        return '.'.join(reversed(parts))
+        parts = []
+        current = self
+        while current:
+            parts.append(current.name)
+            current = current.parent
+        return ".".join(reversed(parts))
 
 
 class StudentMistakeException(Exception):

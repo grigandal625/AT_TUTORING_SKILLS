@@ -1,15 +1,13 @@
 # Create your tests here.
 import json
 
+from asgiref.sync import async_to_sync
 from at_krl.models.kb_rule import KBRuleModel
 from at_krl.utils.context import Context as ATKRLContext
 from django.test import TestCase
-from asgiref.sync import async_to_sync
 
-from at_tutoring_skills.core.knowledge_base.condition.lodiclexic_condition import ConditionComparisonService
 from at_tutoring_skills.apps.skills.management.commands.importkb import Command as ImportKbCommand
-from at_tutoring_skills.apps.skills.models import Task, User
-from at_tutoring_skills.core.task.descriptions import DescriptionsService
+from at_tutoring_skills.core.knowledge_base.condition.lodiclexic_condition import ConditionComparisonService
 from at_tutoring_skills.core.task.service import TaskService
 
 

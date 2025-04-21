@@ -55,8 +55,7 @@ class KBRuleServiceLogicLexic:
                             break
 
                     if not found:
-
-                        context = context.create_child(f"else instruction {if_instr_et.ref.id}").full_path_list,
+                        context = (context.create_child(f"else instruction {if_instr_et.ref.id}").full_path_list,)
 
                         errors_list.append(
                             to_logic_mistake(
@@ -114,8 +113,7 @@ class KBRuleServiceLogicLexic:
                             break
 
                     if not found:
-                        
-                        context = context.create_child(f"else instruction {else_instr.ref.id}").full_path_list,
+                        context = (context.create_child(f"else instruction {else_instr.ref.id}").full_path_list,)
 
                         errors_list.append(
                             to_logic_mistake(

@@ -1,0 +1,34 @@
+{# Макрос для ссылки #}
+{%- macro reference(ref) -%}
+
+{%- if ref.meta == "allen_reference" -%}
+Ссылка на темпоральный объект "{{ ref.id }}"
+{%- elif ref.ref.ref +%}
+{{ ref.to_simple().krl -}}
+{%- else -%}
+Ссылка на атрибут "{{ref.ref.id}}" объекта "{{ ref.id }}"
+{%- endif -%}
+
+{%- endmacro -%}
+
+{# Макрос для значения #}
+{%- macro value(v) -%}
+Значение - {{ v.content -}}
+{%- endmacro -%}
+
+{# Макрос для полного выражения #}
+{%- macro tree(expression, whitespace="    ") -%}
+
+{%- if expression.tag == "ref" -%}
+{{ reference(expression) -}}
+{%- elif expression.tag == "value" -%}
+{{ value(expression) -}}
+{%- else -%}
+Операция "{% if expression.tag not in ['b', 'bi', 'm', 'mi', 's', 'si', 'f', 'fi', 'd', 'di', 'o', 'oi', 'e', 'a'] -%} {{ expression.original_sign }}{%else-%}{{ expression.tag }}{% endif %}" между элементами:
+{{ whitespace }}- {{ tree(expression.left, whitespace + "    ") }}
+    {%- if expression.is_binary %}
+{{ whitespace }}- {{ tree(expression.right, whitespace + "    ") }}
+{%- endif -%}
+{%- endif -%}
+
+{%- endmacro -%}
