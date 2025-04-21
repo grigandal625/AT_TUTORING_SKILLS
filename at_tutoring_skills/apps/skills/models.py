@@ -68,6 +68,7 @@ class Task(models.Model):
 class Variant(models.Model):
     name = models.CharField(max_length=255, default=None)  # проблемная область/название
     task = models.ManyToManyField(Task)
+    description = models.TextField()  # Описание задач/подзадач
 
 
 class User(models.Model):

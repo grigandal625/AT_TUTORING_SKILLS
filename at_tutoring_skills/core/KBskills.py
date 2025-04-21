@@ -62,10 +62,21 @@ class ATTutoringKBSkills(ATComponent):
             user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
         )
 
+        hint2 = await self.task_service.get_variant_tasks_description(
+            user, skip_completed=False, task_object=[
+                SUBJECT_CHOICES.KB_OBJECT, 
+                SUBJECT_CHOICES.KB_EVENT, 
+                SUBJECT_CHOICES.KB_INTERVAL, 
+                SUBJECT_CHOICES.KB_RULE
+            ]
+        )
+
+        variant = await self.task_service.get_variant(user.user_id)
+
         if event == "knowledgeBase/update":
-            return {"msg": msg, "hint": msg, "kb_id": data["result"]["id"]}
+            return {"msg": msg, "hint": msg, "kb_id": data["result"]["id"], 'hint2': hint2, 'desc': variant.description}
         if event == "knowledgeBase/create":
-            return {"msg": msg, "hint": msg, "kb_id": data["result"]["knowledgeBase"]["id"]}
+            return {"msg": msg, "hint": msg, "kb_id": data["result"]["knowledgeBase"]["id"], 'hint2': hint2, 'desc': variant.description}
 
     @authorized_method
     async def handle_knowledge_base_updated(self, event: str, data: dict, auth_token: str):
@@ -74,7 +85,16 @@ class ATTutoringKBSkills(ATComponent):
         msg = await self.task_service.get_variant_tasks_description(
             user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
         )
-        return {"msg": msg, "hint": msg, "kb_id": data["result"]["id"]}
+
+        hint2 = await self.task_service.get_variant_tasks_description(
+            user, skip_completed=False, task_object=[
+                SUBJECT_CHOICES.KB_OBJECT, 
+                SUBJECT_CHOICES.KB_EVENT, 
+                SUBJECT_CHOICES.KB_INTERVAL, 
+                SUBJECT_CHOICES.KB_RULE
+            ]
+        )
+        return {"msg": msg, "hint": msg, "kb_id": data["result"]["id"], 'hint2': hint2}
 
     # ============================= type ===================
 

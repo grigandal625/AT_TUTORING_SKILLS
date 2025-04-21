@@ -243,6 +243,15 @@ class KBIMServise:
 
 
 class TaskService(KBTaskService, KBIMServise):
+    
+    async def get_variant(self, user_id: int|str) -> Variant:
+        """
+        Получает вариант по id пользователя
+        """
+        user = await User.objects.select_related('variant').aget(user_id=user_id)
+        return user.variant
+
+
     async def get_all_tasks(
         self, variant_id: int = None, task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None
     ) -> models.QuerySet[Task]:

@@ -45,8 +45,12 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.ERROR(f"Файл {tasks_file.name} не содержит variant_name, пропускаем"))
                     continue
 
+                description = tasks_data.get("description", "")
+
                 # Создаем/получаем вариант
-                variant, created = Variant.objects.get_or_create(name=variant_name)
+                variant, created = Variant.objects.get_or_create(name=variant_name, defaults={"description": description})
+                variant.description = description
+                variant.save()
                 action = "Создан" if created else "Обновлен"
                 self.stdout.write(f"\n{action} вариант: {variant_name}")
 
