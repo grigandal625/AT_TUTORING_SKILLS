@@ -36,7 +36,7 @@ from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.
     ResourceTypeAttributeRequest,
 )
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
-from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventBody
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import GeneratorTypeEnum, IrregularEventBody, TemplateTypeEnum
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventGenerator
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventRequest
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import OperationBody
@@ -45,6 +45,7 @@ from at_tutoring_skills.core.service.simulation.subservice.template.models.model
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleBody
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleRequest
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import TemplateMetaRequest
+from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import TemplateUsageArgumentRequest, TemplateUsageRequest
 from at_tutoring_skills.core.task.descriptions import DescriptionsService
 
 logger = logging.getLogger(__name__)
