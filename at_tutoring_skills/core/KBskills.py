@@ -577,8 +577,22 @@ class ATTutoringKBSkills(ATComponent):
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
+                kb = ""
+                
                 if stage:
                     await self.skill_service.complete_skills_stage_done(user, task_object=task_object)   
+                    task_object = None
+                    knowledge_base = data['result']['knowledge_base']
+                    kb = await self.exec_external_method(
+                        'ATKRLEditor',
+                        'get_knowledge_base',
+                        {
+                            'id': knowledge_base,
+                            'format': 'at_krl'
+                        },
+                        auth_token=auth_token
+                    )
+
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
@@ -588,6 +602,7 @@ class ATTutoringKBSkills(ATComponent):
                     "stage_done": stage,
                     "hint": tasks,
                     "skills": skills,
+                    "kb": kb,
                 }
         else:
             tasks = await self.task_service.get_variant_tasks_description(

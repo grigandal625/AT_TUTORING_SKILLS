@@ -73,21 +73,28 @@ class SkillService:
         Обрабатывает навыки пользователя для задания и возвращает строку с результатами
         """
 
-        if not isinstance(task_object, list):
+        if not isinstance(task_object, list) and task_object is not None:
             task_object = [task_object]
 
-        codes = set()
-        for subject in task_object:
-            codes |= set(SUBJECT_CHOICES.get_first_codes(subject=subject))
+        if task_object is not None:
+            codes = set()
+            for subject in task_object:
+                codes |= set(SUBJECT_CHOICES.get_first_codes(subject=subject))
 
-        skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))
+            skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))
+        else:
+            skills = await self.get_user_task_skills(user)
 
         # 2. Пересчитываем оценку для каждого навыка
         for skill in skills:
             await self.calc_skill(user, skill.skill)
 
         # 3. Получаем обновленные навыки после пересчета
-        updated_skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))
+        
+        if task_object is not None:
+            updated_skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))
+        else:
+            updated_skills = await self.get_user_task_skills(user)
 
         # 4. Формируем итоговую строку
         return "\n\n".join(f"{us.skill.name} : {us.mark}" for us in updated_skills)
