@@ -56,8 +56,8 @@ class KBObjectServiceLogicLexic:
                 )
             )
         else:
-            found = obj_et.properties
-            search = obj.properties
+            found = [p for p in obj_et.properties]
+            search = [p for p in obj.properties]
             i = 0
             for property_et in obj_et.properties:
                 min_distance = 100
