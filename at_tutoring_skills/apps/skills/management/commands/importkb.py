@@ -48,7 +48,9 @@ class Command(BaseCommand):
                 description = tasks_data.get("description", "")
 
                 # Создаем/получаем вариант
-                variant, created = Variant.objects.get_or_create(name=variant_name, defaults={"kb_description": description})
+                variant, created = Variant.objects.get_or_create(
+                    name=variant_name, defaults={"kb_description": description}
+                )
                 variant.kb_description = description
                 variant.save()
                 action = "Создан" if created else "Обновлен"

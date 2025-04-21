@@ -1,16 +1,15 @@
-import asyncio
-from typing import Dict, List
+from typing import List
 
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
-from at_tutoring_skills.core.errors.models import CommonMistake
-from at_tutoring_skills.core.task.service import TaskService
-from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import (
     TemplateUsageArgumentRequest,
-    TemplateUsageRequest,
 )
+from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import TemplateUsageRequest
+from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
+from at_tutoring_skills.core.task.service import TaskService
 
 
 class TemplateUsageService:
@@ -89,13 +88,13 @@ class TemplateUsageService:
             await self.main_task_service.append_mistake(mistake)
             self._mistake_service.create_mistake(mistake, user_id, "logic")
 
-
     async def handle_lexic_mistakes(
         self,
         user_id: int,
         template_usage: TemplateUsageRequest,
         reference_template_usage: TemplateUsageRequest,
-    ) -> None: ...
+    ) -> None:
+        ...
 
     def _template_logic_mistakes(
         self,
@@ -122,10 +121,10 @@ class TemplateUsageService:
         return mistakes
 
     def _arguments_logic_mistakes(
-            self,
-            user_id: int,
-            arguments: List[str],  # Список строк
-            resource_reference: List[TemplateUsageArgumentRequest],  # Список объектов TemplateUsageArgumentRequest
+        self,
+        user_id: int,
+        arguments: List[str],  # Список строк
+        resource_reference: List[TemplateUsageArgumentRequest],  # Список объектов TemplateUsageArgumentRequest
     ) -> List[CommonMistake]:
         """
         Проверяет логические ошибки в аргументах шаблона.

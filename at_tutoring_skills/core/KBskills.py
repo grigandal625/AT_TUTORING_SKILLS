@@ -63,22 +63,36 @@ class ATTutoringKBSkills(ATComponent):
         )
 
         hint2 = await self.task_service.get_variant_tasks_description(
-            user, skip_completed=False, task_object=[
-                SUBJECT_CHOICES.KB_OBJECT, 
-                SUBJECT_CHOICES.KB_EVENT, 
-                SUBJECT_CHOICES.KB_INTERVAL, 
-                SUBJECT_CHOICES.KB_RULE
+            user,
+            skip_completed=False,
+            task_object=[
+                SUBJECT_CHOICES.KB_OBJECT,
+                SUBJECT_CHOICES.KB_EVENT,
+                SUBJECT_CHOICES.KB_INTERVAL,
+                SUBJECT_CHOICES.KB_RULE,
             ],
             base_header="",
-            completed_header=""
+            completed_header="",
         )
 
         variant = await self.task_service.get_variant(user.user_id)
 
         if event == "knowledgeBase/update":
-            return {"msg": msg, "hint": msg, "kb_id": data["result"]["id"], 'hint2': hint2, 'desc': variant.kb_description}
+            return {
+                "msg": msg,
+                "hint": msg,
+                "kb_id": data["result"]["id"],
+                "hint2": hint2,
+                "desc": variant.kb_description,
+            }
         if event == "knowledgeBase/create":
-            return {"msg": msg, "hint": msg, "kb_id": data["result"]["knowledgeBase"]["id"], 'hint2': hint2, 'desc': variant.kb_description}
+            return {
+                "msg": msg,
+                "hint": msg,
+                "kb_id": data["result"]["knowledgeBase"]["id"],
+                "hint2": hint2,
+                "desc": variant.kb_description,
+            }
 
     # ============================= type ===================
 
@@ -155,19 +169,18 @@ class ATTutoringKBSkills(ATComponent):
             if errors_list:
                 return await self.get_errors_result(errors_list, user, task, task_object)
             else:
-                
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 1)
 
                 if stage:
                     await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
-                    task_object=SUBJECT_CHOICES.KB_OBJECT
-               
+                    task_object = SUBJECT_CHOICES.KB_OBJECT
+
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
                 skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-                
+
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
@@ -299,13 +312,13 @@ class ATTutoringKBSkills(ATComponent):
 
                 if stage:
                     await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
-                    task_object=SUBJECT_CHOICES.KB_EVENT
-               
+                    task_object = SUBJECT_CHOICES.KB_EVENT
+
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
                 skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-                
+
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
@@ -375,13 +388,13 @@ class ATTutoringKBSkills(ATComponent):
                 stage = await self.transition_service.check_stage_tasks_completed(user, 3)
                 if stage:
                     await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
-                    task_object=SUBJECT_CHOICES.KB_INTERVAL
-               
+                    task_object = SUBJECT_CHOICES.KB_INTERVAL
+
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
                 skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-                
+
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
@@ -469,16 +482,16 @@ class ATTutoringKBSkills(ATComponent):
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, 4)
-                
+
                 if stage:
                     await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
-                    task_object=SUBJECT_CHOICES.KB_RULE
-               
+                    task_object = SUBJECT_CHOICES.KB_RULE
+
                 tasks = await self.task_service.get_variant_tasks_description(
                     user, skip_completed=False, task_object=task_object
                 )
                 skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-                
+
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
@@ -580,21 +593,18 @@ class ATTutoringKBSkills(ATComponent):
                 return await self.get_errors_result(errors_list, user, task, task_object)
             else:
                 await self.task_service.complete_task(task, user)
-                stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)  
+                stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)
                 kb = ""
-                
+
                 if stage:
-                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)   
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
                     task_object = None
-                    knowledge_base = data['result']['knowledge_base']
+                    knowledge_base = data["result"]["knowledge_base"]
                     kb = await self.exec_external_method(
-                        'ATKRLEditor',
-                        'get_knowledge_base',
-                        {
-                            'id': knowledge_base,
-                            'format': 'at_krl'
-                        },
-                        auth_token=auth_token
+                        "ATKRLEditor",
+                        "get_knowledge_base",
+                        {"id": knowledge_base, "format": "at_krl"},
+                        auth_token=auth_token,
                     )
 
                 tasks = await self.task_service.get_variant_tasks_description(

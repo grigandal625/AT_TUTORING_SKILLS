@@ -90,7 +90,7 @@ class SkillService:
             await self.calc_skill(user, skill.skill)
 
         # 3. Получаем обновленные навыки после пересчета
-        
+
         if task_object is not None:
             updated_skills = await self.get_user_task_skills_for_first_codes(user, first_codes=list(codes))
         else:
