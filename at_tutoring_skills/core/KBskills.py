@@ -68,7 +68,9 @@ class ATTutoringKBSkills(ATComponent):
                 SUBJECT_CHOICES.KB_EVENT, 
                 SUBJECT_CHOICES.KB_INTERVAL, 
                 SUBJECT_CHOICES.KB_RULE
-            ]
+            ],
+            base_header="",
+            completed_header=""
         )
 
         variant = await self.task_service.get_variant(user.user_id)

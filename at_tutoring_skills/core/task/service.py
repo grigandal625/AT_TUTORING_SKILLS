@@ -271,11 +271,20 @@ class TaskService(KBTaskService, KBIMServise):
         return result
 
     async def get_variant_tasks_description(
-        self, user: User, skip_completed=True, task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None
+        self, 
+        user: User, 
+        skip_completed=True, 
+        task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None,
+        base_header: str = None,
+        completed_header: str = None,
     ) -> str:
         """
         Возвращает описание заданий для указанного пользователя.
         """
+
+        base_header = base_header or "### На текущий момент необходимо выполнить следующие задания: \n\n"
+        completed_header = completed_header or "### Все задания выполнены \n\n"
+
         tasks = await self.get_all_tasks(user.variant_id, task_object=task_object)
 
         if not await tasks.aexists():
@@ -296,9 +305,9 @@ class TaskService(KBTaskService, KBIMServise):
         if not result:
             return "### Для текущего этапа все задания выполнены \n\n"
         
-        header = "### На текущий момент необходимо выполнить следующие задания: \n\n"
+        header = base_header
         if all_count == completed_count:
-            header = "### Все задания выполнены \n\n"
+            header = completed_header
 
         result = header + result
 
