@@ -36,7 +36,8 @@ from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.
     ResourceTypeAttributeRequest,
 )
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
-from at_tutoring_skills.core.service.simulation.subservice.template.models.models import GeneratorTypeEnum, IrregularEventBody
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import GeneratorTypeEnum, TemplateTypeEnum
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventBody
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventGenerator
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventRequest
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import OperationBody
@@ -45,7 +46,7 @@ from at_tutoring_skills.core.service.simulation.subservice.template.models.model
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleBody
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RuleRequest
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import TemplateMetaRequest
-from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import TemplateUsageRequest
+from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import TemplateUsageArgumentRequest, TemplateUsageRequest
 from at_tutoring_skills.core.task.descriptions import DescriptionsService
 
 logger = logging.getLogger(__name__)
@@ -88,7 +89,6 @@ class KBTaskService:
         return kb_event.to_internal(context)
 
 
-
 # #можешь переименовать
 class KBIMServise:
     async def get_resource_type_reference(self, task: Task) -> ResourceTypeRequest:
@@ -106,10 +106,7 @@ class KBIMServise:
         attributes = [ResourceTypeAttributeRequest(**attr_data) for attr_data in reference_data["attributes"]]
 
         return ResourceTypeRequest(
-            id=reference_data["id"], 
-            name=reference_data["name"], 
-            type=reference_data["type"], 
-            attributes=attributes
+            id=reference_data["id"], name=reference_data["name"], type=reference_data["type"], attributes=attributes
         )
 
     async def get_resource_reference(self, task: Task):
@@ -134,7 +131,7 @@ class KBIMServise:
     async def get_template_reference(self, task: Task) -> Union[IrregularEventRequest, RuleRequest, OperationRequest]:
         """
         Получение эталонного шаблона (template reference) из task.object_reference.
-        """ 
+        """
         # Проверяем тип task.object_reference и преобразуем его в словарь
         if isinstance(task.object_reference, str):
             try:
@@ -148,7 +145,7 @@ class KBIMServise:
 
         # Преобразуем тип шаблона в TemplateTypeEnum
         try:
-            template_type = TemplateTypeEnum(reference_data['type'])
+            template_type = TemplateTypeEnum(reference_data["type"])
         except ValueError:
             raise ValueError(f"Неизвестный тип шаблона: {reference_data['type']}")
 
@@ -157,8 +154,8 @@ class KBIMServise:
 
         # Преобразуем данные в соответствующую Pydantic модель
         if pydantic_class == IrregularEventRequest:
-            generator_data = reference_data['generator']
-            body_data = reference_data['body']
+            generator_data = reference_data["generator"]
+            body_data = reference_data["body"]
 
             # Проверяем, является ли generator_data списком
             if isinstance(generator_data, list):
@@ -170,15 +167,13 @@ class KBIMServise:
             # Теперь можно безопасно обращаться к элементам как к словарю
             return IrregularEventRequest(
                 meta=TemplateMetaRequest(
-                    id=reference_data['id'],
-                    name=reference_data['name'],
+                    id=reference_data["id"],
+                    name=reference_data["name"],
                     type=template_type,
-                    rel_resources=[
-                        RelevantResourceRequest(**res_data) for res_data in reference_data['rel_resources']
-                    ],
+                    rel_resources=[RelevantResourceRequest(**res_data) for res_data in reference_data["rel_resources"]],
                 ),
                 generator=IrregularEventGenerator(
-                    type=GeneratorTypeEnum(generator_data['type']),
+                    type=GeneratorTypeEnum(generator_data["type"]),
                     value=float(generator_data["value"]),  # Преобразуем в float
                     dispersion=float(generator_data["dispersion"]),  # Преобразуем в float
                 ),
@@ -193,9 +188,7 @@ class KBIMServise:
                     id=reference_data["id"],
                     name=reference_data["name"],
                     type=template_type,
-                    rel_resources=[
-                        RelevantResourceRequest(**res_data) for res_data in reference_data["rel_resources"]
-                    ],
+                    rel_resources=[RelevantResourceRequest(**res_data) for res_data in reference_data["rel_resources"]],
                 ),
                 body=RuleBody(
                     condition=body_data["condition"],
@@ -211,9 +204,7 @@ class KBIMServise:
                     id=reference_data["id"],
                     name=reference_data["name"],
                     type=template_type,
-                    rel_resources=[
-                        RelevantResourceRequest(**res_data) for res_data in reference_data["rel_resources"]
-                    ],
+                    rel_resources=[RelevantResourceRequest(**res_data) for res_data in reference_data["rel_resources"]],
                 ),
                 body=OperationBody(
                     condition=body_data["condition"],
@@ -226,7 +217,6 @@ class KBIMServise:
         else:
             raise ValueError(f"Неизвестный тип шаблона: {template_type}")
 
-        
     def _get_template_class(self, template_type: str):
         """
         Возвращает соответствующий класс Pydantic на основе типа шаблона.
@@ -241,7 +231,6 @@ class KBIMServise:
             raise ValueError(f"Неизвестный тип шаблона: {template_type}")
         return pydantic_class
 
-    
     async def get_template_usage_reference(self, task: Task) -> TemplateUsageRequest:
         """
         Преобразует task.object_reference в объект TemplateUsageRequest.
@@ -264,9 +253,7 @@ class KBIMServise:
             raise ValueError(f"Отсутствуют обязательные поля в object_reference: {missing_fields}")
 
         # Создаем список аргументов
-        arguments = [
-            TemplateUsageArgumentRequest(**arg_data) for arg_data in reference_data["arguments"]
-        ]
+        arguments = [TemplateUsageArgumentRequest(**arg_data) for arg_data in reference_data["arguments"]]
 
         # Возвращаем объект TemplateUsageRequest
         return TemplateUsageRequest(
@@ -275,7 +262,6 @@ class KBIMServise:
             template_id_str=reference_data["template_id_str"],
             arguments=arguments,
         )
-
 
     async def get_function_reference(self, task: Task):
         if isinstance(task.object_reference, str):
@@ -290,7 +276,10 @@ class KBIMServise:
         attributes = [FunctionParameterRequest(**attr_data) for attr_data in reference_data["params"]]
 
         return FunctionRequest(
-            id=reference_data["id"], name=reference_data["name"], ret_type=reference_data["ret_type"], attributes=attributes
+            id=reference_data["id"],
+            name=reference_data["name"],
+            ret_type=reference_data["ret_type"],
+            attributes=attributes,
         )
 
 

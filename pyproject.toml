@@ -15,6 +15,7 @@ adrf = {git = "https://github.com/grigandal625/adrf.git", rev = "main"}
 psycopg2-binary = "^2.9.10"
 psycopg2 = "^2.9.10"
 whitenoise = "^6.9.0"
+pre-commit = "^4.2.0"
 
 
 [build-system]

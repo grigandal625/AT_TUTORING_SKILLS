@@ -2,7 +2,8 @@ from venv import logger
 
 from asgiref.sync import sync_to_async
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES, Task
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
 
@@ -11,7 +12,7 @@ class TransitionsService:
     def __init__(self):
         pass
 
-    async def check_stage_tasks_completed(self, user: User, task_object: int |SUBJECT_CHOICES) -> bool:
+    async def check_stage_tasks_completed(self, user: User, task_object: int | SUBJECT_CHOICES) -> bool:
         """
         Асинхронно проверяет, завершены ли все задания указанного типа для пользователя
 
@@ -22,6 +23,7 @@ class TransitionsService:
         Returns:
             bool: True если все задания данного типа завершены и существуют, иначе False
         """
+
         # Проверяем корректность номера типа задания
         @sync_to_async
         def _check_completion():

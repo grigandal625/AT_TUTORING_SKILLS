@@ -130,8 +130,8 @@
             ],
             "body": {
                 "delay": 3,
-                "condition": "rel_res1.attr1 == 5", 
-                "body_before": "rel_res1.attr2 = 7", 
+                "condition": "rel_res1.attr1 == 5",
+                "body_before": "rel_res1.attr2 = 7",
                 "body_after": "rel_res1.attr3 = false"
             }
         }
@@ -196,6 +196,6 @@
             }
         }
     }
-    
+
 ]
 }

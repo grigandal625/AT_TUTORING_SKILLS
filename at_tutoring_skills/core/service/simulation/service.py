@@ -1,12 +1,8 @@
 import json
 from asyncio.log import logger
-import json
-from jsonschema import ValidationError
-from pydantic import BaseModel
-from datetime import datetime
-import datetime
-from operator import index
-from typing import Dict, List, Optional
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from at_queue.core.at_component import ATComponent
 from at_queue.utils.decorators import authorized_method
@@ -23,7 +19,9 @@ from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.service import ResourceTypeService
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import RelevantResourceRequest
 from at_tutoring_skills.core.service.simulation.subservice.template.service import TemplateService
-from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import TemplateUsageArgumentRequest
+from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import (
+    TemplateUsageArgumentRequest,
+)
 from at_tutoring_skills.core.service.simulation.subservice.template_usage.service import TemplateUsageService
 from at_tutoring_skills.core.task.service import TaskService
 from at_tutoring_skills.core.task.skill_service import SkillService
@@ -87,10 +85,9 @@ class SimulationService(ATComponent):
         if auth_token not in self.cash:
             self.cash[auth_token] = {
                 "resource_types": {},  # Словарь для типов ресурсов
-                "resources": {},       # Словарь для ресурсов
-                "templates": {}        # Словарь для шаблонов
+                "resources": {},  # Словарь для ресурсов
+                "templates": {},  # Словарь для шаблонов
             }
-
 
     # ============================================ Cash Resource Types =====================================================
     def add_im_resource_type_to_cash(self, resource_type: BaseModel, auth_token: int):
@@ -99,12 +96,11 @@ class SimulationService(ATComponent):
 
         if not resource_type_id:
             raise ValueError("Поле 'id' отсутствует в данных. Невозможно добавить в кэш.")
-        
+
         self.cash[auth_token]["resource_types"][resource_type_id] = {
             "data": resource_type.dict(),
             "auth_token": auth_token,
         }
-
 
     def get_im_resource_type_from_cash(self, resource_type_id: int, auth_token: int):
         self.init_cash(auth_token)
@@ -116,8 +112,9 @@ class SimulationService(ATComponent):
             print(f"Запись типа ресурса с ID {resource_type_id} не найдена в кэше.")
             return None
 
-
-    def get_resource_type_names_from_cache(self, rel_resources: List[RelevantResourceRequest], auth_token: int) -> List[Dict[str, str]]:
+    def get_resource_type_names_from_cache(
+        self, rel_resources: List[RelevantResourceRequest], auth_token: int
+    ) -> List[Dict[str, str]]:
         resource_data = []
 
         for resource in rel_resources:
@@ -156,19 +153,18 @@ class SimulationService(ATComponent):
 
         if not resource_id:
             raise ValueError("Поле 'id' отсутствует в данных. Невозможно добавить в кэш.")
-        
+
         self.cash[auth_token]["resources"][resource_id] = {
             "data": resource.dict(),
             "auth_token": auth_token,
         }
-
 
     def get_im_resource_from_cash(self, resource_id: int, auth_token: int):
         self.init_cash(auth_token)
         cached_data = self.cash[auth_token]["resources"].get(resource_id)
         if cached_data:
             print(f"Запись ресурса с ID {resource_id} найдена в кэше.")
-            return cached_data['data']
+            return cached_data["data"]
         else:
             print(f"Запись ресурса с ID {resource_id} не найдена в кэше.")
             return None
@@ -193,7 +189,10 @@ class SimulationService(ATComponent):
             "hint": tasks,
             "skills": skills,
         }
-    def get_resource_names_from_cache(self, arguments: List[TemplateUsageArgumentRequest], auth_token: int) -> List[dict]:
+
+    def get_resource_names_from_cache(
+        self, arguments: List[TemplateUsageArgumentRequest], auth_token: int
+    ) -> List[dict]:
         """
         Получает имена ресурсов из кэша и возвращает их вместе с типами.
         """
@@ -220,9 +219,11 @@ class SimulationService(ATComponent):
                         resource_type_obj = ResourceRequest(**resources_data)
 
                         # Добавляем данные в результат
-                        resource_data.append({
-                            "name": resource_type_obj.name,
-                        })
+                        resource_data.append(
+                            {
+                                "name": resource_type_obj.name,
+                            }
+                        )
 
                     except (json.JSONDecodeError, ValidationError) as e:
                         print(f"Ошибка при преобразовании cached_data для resource ID {argument.resource_id}: {e}")
@@ -235,14 +236,14 @@ class SimulationService(ATComponent):
 
         return resource_data
 
-# ============================================ Cash Template =====================================================
+    # ============================================ Cash Template =====================================================
     def add_im_template_to_cash(self, template: BaseModel, auth_token: int):
         self.init_cash(auth_token)
         template_id = getattr(template, "id", None)
 
         if not template_id:
             raise ValueError("Поле 'id' отсутствует в данных. Невозможно добавить в кэш.")
-        
+
         self.cash[auth_token]["templates"][template_id] = {
             "data": template.dict(),
             "auth_token": auth_token,
@@ -253,13 +254,12 @@ class SimulationService(ATComponent):
         cached_data = self.cash[auth_token]["templates"].get(template_id)
         if cached_data:
             print(f"Запись шаблона с ID {template_id} найдена в кэше.")
-            return cached_data['data']
+            return cached_data["data"]
         else:
             print(f"Запись шаблона с ID {template_id} не найдена в кэше.")
             return None
 
     def get_template_name_from_cache(self, template_id: int, auth_token: int) -> Optional[str]:
-
         cached_data = self.get_im_template_from_cash(template_id, auth_token)
 
         if not cached_data:
@@ -268,7 +268,7 @@ class SimulationService(ATComponent):
         try:
             if isinstance(cached_data, str):
                 resources_data = json.loads(cached_data)
-                
+
             elif isinstance(cached_data, dict):
                 resources_data = cached_data
             else:
@@ -285,7 +285,6 @@ class SimulationService(ATComponent):
             print(f"Ошибка при обработке данных шаблона с ID {template_id}: {e}")
             return None
 
-
     #   =========================== Simulation model ===================================
     @authorized_method
     async def handle_simulation_model_created(self, event: str, data: dict, auth_token: str):
@@ -293,15 +292,13 @@ class SimulationService(ATComponent):
         user, _ = await self.task_service.create_user(user_id)
         msg = await self.task_service.get_variant_tasks_description(user, scip_completed=True)
 
-        return {"msg": msg, "hint": msg} # , "kb_id": data["result"]["knowledgeBase"]["id"]}
-
+        return {"msg": msg, "hint": msg}  # , "kb_id": data["result"]["knowledgeBase"]["id"]}
 
     @authorized_method
     async def handle_simulation_model_updated(self, event: str, data: dict, auth_token: str):
         user_id = await self.get_user_id_or_token(auth_token)
         # self.init_cash(user_id)
-        
-        
+
     #   ============================= Resource Types ====================================
     @authorized_method
     async def handle_resource_type(self, event: str, data: dict, auth_token: int):
@@ -319,19 +316,18 @@ class SimulationService(ATComponent):
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Type Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.task_service.get_task_by_name(
-            resource_type.name, task_object
-        )
+        task: Task = await self.task_service.get_task_by_name(resource_type.name, task_object)
 
         if not task:
             # tasks = await self.task_service.get_variant_tasks_description(
             #     user, skip_completed=False, task_object=task_object
             # )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", 
-                    "stage_done": False, 
-                    # "hint": tasks
-                    }
+            return {
+                "msg": "Задание не найдено,  продолжайте выполнение работы",
+                "stage_done": False,
+                # "hint": tasks
+            }
 
         else:
             self.add_im_resource_type_to_cash(resource_type, auth_token)
@@ -351,10 +347,10 @@ class SimulationService(ATComponent):
 
             if not errors_list:
                 await self.task_service.complete_task(task, user)
-                stage = await self.transition_service.check_stage_tasks_completed(user, 6)
+                stage = await self.transition_service.check_stage_tasks_completed(user, task_object)
                 if stage:
                     await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
-                    task_object=SUBJECT_CHOICES.SIMULATION_RESOURCES
+                    task_object = SUBJECT_CHOICES.SIMULATION_RESOURCES
 
                 # tasks = await self.task_service.get_variant_tasks_description(
                 #     user, skip_completed=False, task_object=task_object
@@ -375,7 +371,7 @@ class SimulationService(ATComponent):
     @authorized_method
     async def handle_resource(self, event: str, data: dict, auth_token: int):
         print("Обучаемый отредактировал ресурс (ИМ): ", data)
-
+        task_object = SUBJECT_CHOICES.SIMULATION_RESOURCES
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -388,17 +384,18 @@ class SimulationService(ATComponent):
         except BaseException as e:
             raise ValueError(f"Handle IM Resource Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.task_service.get_task_by_name(resource.name, SUBJECT_CHOICES.SIMULATION_RESOURCES)
+        task: Task = await self.task_service.get_task_by_name(resource.name, task_object)
 
         if not task:
             # tasks = await self.task_service.get_variant_tasks_description(
             #     user, skip_completed=False, task_object=task_object
             # )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", 
-                    "stage_done": False, 
-                    # "hint": tasks
-                    }
+            return {
+                "msg": "Задание не найдено,  продолжайте выполнение работы",
+                "stage_done": False,
+                # "hint": tasks
+            }
 
         else:
             self.add_im_resource_to_cash(resource, auth_token)
@@ -407,7 +404,6 @@ class SimulationService(ATComponent):
 
             resource_type_name = self.get_im_resource_type_from_cash(resource.resource_type_id, auth_token)
             print(f"Строка, полученная для сравнения: {resource_type_name}")
-
 
             errors_list = []
             errors_list_logic = await self.resource_service.handle_logic_mistakes(user_id, resource, resource_type_name)
@@ -421,7 +417,7 @@ class SimulationService(ATComponent):
                 stage = await self.transition_service.check_stage_tasks_completed(user, 7)
                 if stage:
                     await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
-                    task_object=SUBJECT_CHOICES.SIMULATION_TEMPLATES
+                    task_object = SUBJECT_CHOICES.SIMULATION_TEMPLATES
 
                 # tasks = await self.task_service.get_variant_tasks_description(
                 #     user, skip_completed=False, task_object=task_object
@@ -455,19 +451,18 @@ class SimulationService(ATComponent):
         except BaseException as e:
             raise ValueError(f"Handle IM Template Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.task_service.get_task_by_name(
-            template.meta.name, task_object
-        )
+        task: Task = await self.task_service.get_task_by_name(template.meta.name, task_object)
 
         if not task:
             # tasks = await self.task_service.get_variant_tasks_description(
             #     user, skip_completed=False, task_object=task_object
             # )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", 
-                    "stage_done": False, 
-                    # "hint": tasks
-                    }
+            return {
+                "msg": "Задание не найдено,  продолжайте выполнение работы",
+                "stage_done": False,
+                # "hint": tasks
+            }
 
         else:
             self.add_im_template_to_cash(template.meta, auth_token)
@@ -493,7 +488,7 @@ class SimulationService(ATComponent):
                 stage = await self.transition_service.check_stage_tasks_completed(user, task_object)
                 if stage:
                     await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
-                    task_object=SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES
+                    task_object = SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES
 
                 # tasks = await self.task_service.get_variant_tasks_description(
                 #     user, skip_completed=False, task_object=task_object
@@ -514,7 +509,7 @@ class SimulationService(ATComponent):
     @authorized_method
     async def handle_template_usage(self, event: str, data: dict, auth_token: int):
         print("Обучаемый отредактировал операцию (ИМ): ", data)
-
+        task_object = SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -527,19 +522,18 @@ class SimulationService(ATComponent):
         except BaseException as e:
             raise ValueError(f"Handle IM Template Usage Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.task_service.get_task_by_name(
-            template_usage.name, SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES
-        )
+        task: Task = await self.task_service.get_task_by_name(template_usage.name, task_object)
 
         if not task:
             # tasks = await self.task_service.get_variant_tasks_description(
             #     user, skip_completed=False, task_object=task_object
             # )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", 
-                    "stage_done": False, 
-                    # "hint": tasks
-                    }
+            return {
+                "msg": "Задание не найдено,  продолжайте выполнение работы",
+                "stage_done": False,
+                # "hint": tasks
+            }
         else:
             print(task.object_name, task.object_reference, template_usage)
 
@@ -547,24 +541,41 @@ class SimulationService(ATComponent):
             template_name = self.get_template_name_from_cache(template_usage.template_id, auth_token)
 
             errors_list = []
-            errors_list_logic = await self.template_usage_service.handle_logic_mistakes(user_id, template_usage,  resource_type_name,  template_name)
+            errors_list_logic = await self.template_usage_service.handle_logic_mistakes(
+                user_id, template_usage, resource_type_name, template_name
+            )
             if errors_list_logic:
-                errors_list.extend(errors_list_logic) 
-                
+                errors_list.extend(errors_list_logic)
+
             print(f"Результат: {errors_list}")
 
             if not errors_list:
                 await self.task_service.complete_task(task, user)
-                return {"status": "success", "message": "Обучаемый успешно выполнил задание"}
+                stage = await self.transition_service.check_stage_tasks_completed(user, task_object)
+                if stage:
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
+                    task_object = SUBJECT_CHOICES.SIMULATION_FUNCS
+
+                # tasks = await self.task_service.get_variant_tasks_description(
+                #     user, skip_completed=False, task_object=task_object
+                # )
+                skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+
+                return {
+                    "msg": "обучаемый успешно выполнил задание",
+                    "stage_done": stage,
+                    # "hint": tasks,
+                    "skills": skills,
+                }
 
             else:
-                return await self.get_errors_result(errors_list, user, task, SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES)
+                return await self.get_errors_result(errors_list, user, task, task_object)
 
     #   =============================== Function =====================================
     @authorized_method
     async def handle_function(self, event: str, data: dict, auth_token: int):
         print("Обучаемый отредактировал функцию (ИМ): ", data)
-
+        task_object = SUBJECT_CHOICES.SIMULATION_FUNCS
         user_id = await self.get_user_id_or_token(auth_token)
         user, created = await self.task_service.create_user(user_id)
         await self.task_service.create_user_skill_connection(user)
@@ -577,18 +588,19 @@ class SimulationService(ATComponent):
         except BaseException as e:
             raise ValueError(f"Handle IM Function Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.task_service.get_task_by_name(function.name, SUBJECT_CHOICES.SIMULATION_FUNCS)
-        
+        task: Task = await self.task_service.get_task_by_name(function.name, task_object)
+
         if not task:
             # tasks = await self.task_service.get_variant_tasks_description(
             #     user, skip_completed=False, task_object=task_object
             # )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", 
-                    "stage_done": False, 
-                    # "hint": tasks
-                    }
-        
+            return {
+                "msg": "Задание не найдено,  продолжайте выполнение работы",
+                "stage_done": False,
+                # "hint": tasks
+            }
+
         else:
             print(task.object_name, task.object_reference, function)
             # await self.task_service.create_task_user_safe(task, user)
@@ -606,193 +618,21 @@ class SimulationService(ATComponent):
 
             if not errors_list:
                 await self.task_service.complete_task(task, user)
-                return {"status": "success", "message": "Обучаемый успешно выполнил задание"}
+                stage = await self.transition_service.check_stage_tasks_completed(user, task_object)
+                if stage:
+                    await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
+
+                # tasks = await self.task_service.get_variant_tasks_description(
+                #     user, skip_completed=False, task_object=task_object
+                # )
+                skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+
+                return {
+                    "msg": "обучаемый успешно выполнил задание",
+                    "stage_done": stage,
+                    # "hint": tasks,
+                    "skills": skills,
+                }
 
             else:
-                return await self.get_errors_result(errors_list, user, task, SUBJECT_CHOICES.SIMULATION_FUNCS)
-
-        # user_id = await self.get_user_id_or_token(auth_token)
-        # user, created = await self.task_service.create_user(user_id)
-        # await self.task_service.create_user_skill_connection(user)
-        # user_id = user.pk
-        # # self.task_service.create_task_user_safe(task, user)
-
-        # try:
-        #     resource_type = await self.resource_type_service.handle_syntax_mistakes(user_id, data)
-        # except BaseException as e:
-        #     raise ValueError(f"Handle IM Resource Type Created: Syntax Mistakes: {e}") from e
-
-        # task : Task = await self.task_service.get_task_by_name(resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES)
-        # print(task.object_name, task.object_reference)
-
-        # if task:
-        #     try:
-        #         await self.resource_type_service.handle_logic_mistakes(user_id, resource_type)
-        #     except BaseException as e:
-        #         raise ValueError(f"Handle IM Resource Type Created: Logic Mistakes: {e}") from e
-
-        #     try:
-        #         await self.resource_type_service.handle_lexic_mistakes(user_id, resource_type)
-        #     except BaseException as e:
-        #         raise ValueError(f"Handle IM Resource Type Created: Lexic Mistakes: {e}") from e
-        #     try:
-        #         await self.task_service.complete_task(task, user)
-        #     except BaseException as e:
-        #         raise ValueError(f"Handle IM Resource Type Created: Complete Task: {e}") from e
-        # else:
-        #     return "Задание не найдено"
-
-
-#         # ============================================ Cash  =====================================================
-#     # Добавление объекта в кэш
-#     def add_to_cash(self, array_name: str, data: dict, auth_token: str):
-#         self.init_cash(auth_token)
-#         if array_name not in self.cash[auth_token]:
-#             raise ValueError(f"Array '{array_name}' does not exist in the cash.")
-
-#         self.cash[auth_token][array_name].append(data)
-
-#     # Тип ресурса
-#     def add_im_resourceType_to_cash(self, data: dict, auth_token: str):
-#         self.add_to_cash('im_resourceTypes', data, auth_token)
-
-
-# # ============================== get from dict ==============================
-#     @staticmethod
-#     def im_resourceTypes_from_dict(resourcetype, event: str) -> dict:
-#         new_resourcetype = {}
-#         if resourcetype:
-#             # Проверяем тип данных
-#             if isinstance(resourcetype, dict):
-#                 resourcetype_id = resourcetype.get('id')
-#                 resourcetype_type = resourcetype.get('type')
-#                 attributes = resourcetype.get('attributes', [])
-#             else:
-#                 # Если это Pydantic модель
-#                 resourcetype_id = getattr(resourcetype, 'id', None)
-#                 resourcetype_type = getattr(resourcetype, 'type', None)
-#                 attributes = getattr(resourcetype, 'attributes', [])
-
-#             # Заполняем новый словарь
-#             new_resourcetype['typeId'] = resourcetype_id
-#             new_resourcetype['meta'] = {1: 'constant', 2: 'temporal'}.get(resourcetype_type, 0)
-#             new_resourcetype['attributes_processed'] = []
-
-#             # Обработка атрибутов
-#             for attr in attributes:
-#                 processed_attr = {
-#                     'attributeId': getattr(attr, 'id', None) if hasattr(attr, 'id') else attr.get('id'),
-#                     'name': getattr(attr, 'name', None) if hasattr(attr, 'name') else attr.get('name'),
-#                     'type': getattr(attr, 'type', None) if hasattr(attr, 'type') else attr.get('type'),
-#                     'default': getattr(attr, 'default_value', None) if hasattr(attr, 'default_value') else attr.get('default_value')
-#                 }
-#                 # Обработка enum-атрибутов
-#                 if processed_attr['type'] == 4:
-#                     processed_attr['enum_values'] = getattr(attr, 'enum_values_set', []) if hasattr(attr, 'enum_values_set') else attr.get('enum_values_set', [])
-
-#                 new_resourcetype['attributes_processed'].append(processed_attr)
-#         else:
-#             print("Ошибка: resourcetype пуст")
-#         return new_resourcetype
-
-#     # Обработка списка типов ресурсо
-#     @authorized_method
-#     async def handle_im_resource_types_get(self, event: str, data: dict, auth_token: str):
-#         print('Извлечение списка типов ресурсов ', data)
-#         resourceTypes_array = data['result']['items']
-#         print(resourceTypes_array)
-#         for item in resourceTypes_array:
-#             resourceTypes_dict = self.im_resourceTypes_from_dict(item, event)
-#             self.add_im_resourceType_to_cash(resourceTypes_dict, auth_token)
-
-
-# # =================================== get value from element by key ===========================
-#     # Универсальный метод для поиска значений по ключам
-#     def get_smth_val_by_key(self, array_name: str, search_key: str, dest_key: str, key_value: str, auth_token: str):
-#         self.init_cash(auth_token)
-#         if array_name not in self.cash[auth_token]:
-#             raise ValueError(f"Array '{array_name}' does not exist in the cash.")
-
-#         array = self.cash[auth_token][array_name]
-
-#         # Поиск элемента по ключу и значению
-#         for item in array:
-#             if item.get(search_key) == key_value:
-#                 return item.get(dest_key)
-
-#         raise KeyError(f"Element with {search_key}='{key_value}' not found in array '{array_name}'.")
-
-#   =============================    Template   ================================
-# def handle_template(self, event: str, data: dict, auth_token: int):
-#     print("Обучаемый отредактировал образец операции (ИМ): ", data)
-#     user_id = self.get_user_id_or_token(auth_token)
-#     try:
-#         template = TemplateService.handle_syntax_mistakes(user_id, data)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Template Created: Syntax Mistakes: {e}") from e
-
-#     try:
-#         TemplateService.handle_logic_mistakes(user_id, template)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Template Created: Logic Mistakes: {e}") from e
-
-#     try:
-#         TemplateService.handle_lexic_mistakes(user_id, template)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Template Created: Lexic Mistakes: {e}") from e
-
-#     try:
-#         ITaskService.complete_task(user_id, event, template.id)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Template Created: Complete Task: {e}") from e
-
-# #   ============================= Template Usage ================================
-# def handle_template_usage(self, event: str, data: dict, auth_token: int):
-#     print("Обучаемый отредактировал тип ресурса (ИМ): ", data)
-#     user_id = self.get_user_id_or_token(self, auth_token)
-#     try:
-#         template_usage = TemplateUsageService.handle_syntax_mistakes(user_id, data)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Template Usage Created: Syntax Mistakes: {e}") from e
-
-#     try:
-#         TemplateUsageService.handle_logic_mistakes(user_id, template_usage)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Template Usage Created: Logic Mistakes: {e}") from e
-
-#     try:
-#         TemplateUsageService.handle_lexic_mistakes(user_id, template_usage)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Template Usage Created: Lexic Mistakes: {e}") from e
-
-#     try:
-#         ITaskService.complete_task(user_id, event, template_usage.id)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Template Usage Created: Complete Task: {e}") from e
-
-# #   ============================= Function =====================================
-# @authorized_method
-# async def handle_function(self, event: str, data: dict, auth_token: int):
-#     print("Обучаемый отредактировал функцию (ИМ): ", data)
-#     user_id = await self.get_user_id_or_token(auth_token)
-#     user, created = await self.create_user(user_id)
-
-#     try:
-#         function = await self.function_service.handle_syntax_mistakes(user_id, data)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Function Created: Syntax Mistakes: {e}") from e
-
-#     try:
-#         await self.function_service.handle_logic_mistakes(user_id, function)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Function Created: Logic Mistakes: {e}") from e
-
-#     try:
-#         await self.function_service.handle_lexic_mistakes(user_id, function)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Function Created: Lexic Mistakes: {e}") from e
-
-#     try:
-#         ITaskService.complete_task(user_id, event, function.id)
-#     except BaseException as e:
-#         raise ValueError(f"Handle IM Function Created: Complete Task: {e}") from e
+                return await self.get_errors_result(errors_list, user, task, task_object)
