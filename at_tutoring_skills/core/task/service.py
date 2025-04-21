@@ -362,6 +362,8 @@ class TaskService(KBTaskService, KBIMServise):
         """
         if task.task_object in DescriptionsService.KB_SUBJECT_TO_MODEL:
             return await DescriptionsService().get_kb_task_description(task, user)
+        else:
+            return ""
 
     async def increment_taskuser_attempts(self, task: Task, user: User) -> bool:
         """

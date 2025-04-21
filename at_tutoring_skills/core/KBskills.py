@@ -59,7 +59,7 @@ class ATTutoringKBSkills(ATComponent):
         user_id = await self.get_user_id_or_token(auth_token)
         user, _ = await self.task_service.create_user(user_id)
         msg = await self.task_service.get_variant_tasks_description(
-            user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE
+            user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE,
         )
 
         hint2 = await self.task_service.get_variant_tasks_description(
