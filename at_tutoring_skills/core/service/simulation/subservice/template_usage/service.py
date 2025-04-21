@@ -1,410 +1,166 @@
-# from typing import List
-# from pydantic import ValidationError
-# from pydantic_core import ErrorDetails
-# from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-# from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
-# from at_tutoring_skills.core.errors.models import CommonMistake
-# from at_tutoring_skills.core.service.simulation.subservice.template_usage.dependencies import (
-#     IMistakeService,
-#     ITaskService,
-# )
-# from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import (
-#     TemplateUsageArgumentRequest,
-#     TemplateUsageRequest
-# )
-# from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
+import asyncio
+from typing import Dict, List
+
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.core.errors.models import CommonMistake
+from at_tutoring_skills.core.task.service import TaskService
+from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
+from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
+from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import (
+    TemplateUsageArgumentRequest,
+    TemplateUsageRequest,
+)
 
 
 class TemplateUsageService:
-    ...
-
-
-# mistake_service = None
-# main_task_service = None
-
-# def __init__(
-#     self,
-#     mistake_service: IMistakeService,
-#     task_service: ITaskService,
-# ):
-#     self._mistake_service = mistake_service
-#     self._task_service = task_service
-#     self.main_task_service = TaskService()
-
-
-# async def handle_syntax_mistakes(
-#         self,
-#         user_id: int,
-#         data: dict
-#     ) -> TemplateUsageRequest:
-
-
-#     def handle_syntax_mistakes(
-#         self,
-#         user_id: int,
-#         raw_request: dict,
-#     ) -> TemplateUsageRequest:
-#         result = pydantic_mistakes(
-#             user_id=123,
-#             raw_request=raw_request,
-#             pydantic_class=TemplateUsageRequest,
-#             pydantic_class_name="template_usage",
-#         )
-
-#         if isinstance(result, TemplateUsageRequest):
-#             return result
-
-#         elif isinstance(result, list) and all(
-#             isinstance(err, CommonMistake) for err in result
-#         ):
-#             for mistake in result:
-#                 self._mistake_service.create_mistake(mistake, user_id)
-
-#             raise ValueError("Handle template usage: syntax mistakes")
-
-#         raise TypeError("Handle template usage type: unexpected result")
-
-#     def handle_lexic_mistakes(
-#         self,
-#         user_id: int,
-#         template_usage: TemplateUsageRequest,
-#     ) -> None:
-#         try:
-#             object_reference = self._task_service.get_object_reference(
-#                 template_usage.name,
-#                 TemplateUsageRequest,
-#             )
-
-#         except ValueError:  # NotFoundError
-#             return
-
-#         mistakes = self._attributes_lexic_mistakes(
-#             template_usage.attributes,
-#             object_reference.attributes,
-#         )
-
-#         if len(mistakes) != 0:
-#             for mistake in mistakes:
-#                 self._mistake_service.create_mistake(mistake, user_id)
-
-#             raise ValueError("Handle template usage: lexic mistakes")
-
-#     def handle_logic_mistakes(
-#         self,
-#         user_id: int,
-#         template_usage: TemplateUsageRequest,
-#     ) -> None:
-#         try:
-#             object_reference = self._task_service.get_object_reference(
-#                 template_usage.name,
-#                 TemplateUsageRequest,
-#             )
-
-#         except ValueError:  # NotFoundError
-#             return
-
-#         mistakes = self._attributes_logic_mistakes(
-#             template_usage.template_id,
-#             object_reference.template_id,
-#             template_usage.arguments,
-#             object_reference.arguments,
-#         )
-
-#         if len(mistakes) != 0:
-#             for mistake in mistakes:
-#                 self._mistake_service.create_mistake(mistake, user_id)
-
-#             raise ValueError("Handle template usage: logic mistakes")
-
-
-#     def _attributes_logic_mistakes(
-#         self,
-#         id_template: TemplateUsageRequest,
-#         id_template_reference: TemplateUsageRequest,
-#         attrs: List[TemplateUsageArgumentRequest],
-#         attrs_reference: List[TemplateUsageArgumentRequest],
-#     ) -> List[CommonMistake]:
-#         mistakes: List[CommonMistake] = []
-#         match_attrs_count = 0
-
-#         if id_template != id_template_reference:
-#             mistake = CommonMistake(
-#                 message=f"Wrong template provided.",
-#             )
-#             mistakes.append(mistake)
-#             return mistakes
-
-#         for attr in attrs:
-#             find_flag = False
-#             for attr_reference in attrs_reference:
-#                 if attr.name == attr_reference.name:
-#                     find_flag = True
-#                     match_attrs_count += 1
-#                     if attr.type != attr_reference.type:
-#                         mistake = CommonMistake(
-#                             message=f"Invalid attribute type'{attr.name}'.",
-#                         )
-#                         mistakes.append(mistake)
-#                         continue
-
-#                     if attr.default_value != attr_reference.default_value:
-#                         mistake = CommonMistake(
-#                             message=f"Invalid attribute default value'{attr.name}'.",
-#                         )
-#                     mistakes.append(mistake)
-#                     break
-
-#             if not find_flag:
-#                 mistake = CommonMistake(
-#                     message=f"Unknown attribute'{attr.name}'.",
-#                 )
-#                 mistakes.append(mistake)
-
-#         if match_attrs_count < len(attrs_reference):
-#             mistake = CommonMistake(
-#                 message=f"Missing required attributes.",
-#             )
-#             mistakes.append(mistake)
-
-#         return mistakes
-
-
-#     def _attributes_lexic_mistakes(
-#         self,
-#         attrs: List[TemplateUsageRequest],
-#         attrs_reference: List[TemplateUsageRequest],
-#     ) -> List[CommonMistake]:  ...
-
-from typing import List, Type
-
-from pydantic import BaseModel
-
-from at_tutoring_skills.core.errors.models import CommonMistake
-
-from at_tutoring_skills.core.service.simulation.subservice.template.dependencies import (
-    IMistakeService,
-    ITaskService,
-    IResourceTypeComponent,
-)
-
-from at_tutoring_skills.core.service.simulation.subservice.template.models.models import (
-    RelevantResourceRequest,
-    TemplateMetaRequest,
-    IrregularEventRequest,
-    OperationRequest,
-    RuleRequest,
-)
-
-from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import (
-    ResourceTypeRequest,
-)
-
-from at_tutoring_skills.core.service.simulation.utils.utils import pydantic_mistakes
-
-
-class TemplateService:
-    def __init__(
-        self,
-        mistake_service: IMistakeService,
-        task_service: ITaskService,
-        object_resource_type_service: IResourceTypeComponent,
-    ):
+    def __init__(self, mistake_service, task_service):
         self._mistake_service = mistake_service
         self._task_service = task_service
-        self._object_resource_type_service = object_resource_type_service
+        self.main_task_service = TaskService()
 
-    def handle_syntax_mistakes(
-        self,
-        user_id: int,
-        raw_request: dict,
-    ) -> TemplateMetaRequest:
-        template_type = raw_request.get("type")
+    async def handle_syntax_mistakes(self, user_id: int, data: dict) -> TemplateUsageRequest:
+        """
+        Обрабатывает синтаксические ошибки в данных шаблона.
+        """
+        raw_request = data.get("args", {}).get("templateUsage") or data.get("result")
 
-        model_mapping: dict[str, Type[BaseModel]] = {
-            "IRREGULAR_EVENT": IrregularEventRequest,
-            "OPERATION": OperationRequest,
-            "RULE": RuleRequest,
-        }
-
-        pydantic_class = model_mapping.get(template_type, TemplateMetaRequest)
+        if raw_request is None:
+            raise ValueError("Handle template usage: missing 'template' in input data")
 
         result = pydantic_mistakes(
-            user_id=123,
+            user_id=user_id,
             raw_request=raw_request,
-            pydantic_class=pydantic_class,
-            pydantic_class_name="template",
+            pydantic_class=TemplateUsageRequest,
+            pydantic_class_name="template_usage",
         )
+        print("Данные, полученные pydantic моделью: ", result)
 
-        if isinstance(result, TemplateMetaRequest):
+        if isinstance(result, TemplateUsageRequest):
             return result
-
         elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
-                self._mistake_service.create_mistake(mistake, user_id)
+                await self.main_task_service.append_mistake(mistake)
+                self._mistake_service.create_mistake(mistake, user_id, "syntax")
+            raise ValueError("Handle template usage: syntax mistakes")
+        raise TypeError("Handle template usage: unexpected result")
 
-            raise ValueError("Handle template: syntax mistakes")
-
-        raise TypeError("Handle template: unexpected result")
-
-    def handle_lexic_mistakes(
+    async def handle_logic_mistakes(
         self,
         user_id: int,
-        template: TemplateMetaRequest,
-        resource: ResourceTypeRequest,
+        template_usage: TemplateUsageRequest,
+        resource_reference: List[str],
+        template_reference: str,
     ) -> None:
+        """
+        Обрабатывает логические ошибки в данных шаблона.
+        """
         try:
-            object_reference = self._task_service.get_object_reference(
-                resource.name,
-                ResourceTypeRequest,
+            task = await self.main_task_service.get_task_by_name(
+                template_usage.name, SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES
             )
-
-            object_resource_type_reference = self._object_resource_type_service.get_object_reference(
-                resource.rta_id,
-                ResourceTypeRequest,
-            )
-
+            task_id = task.pk
+            object_reference = await self.main_task_service.get_template_usage_reference(task)
+            print("Данные object reference, полученные для сравнения: ", object_reference)
         except ValueError:  # NotFoundError
+            print("Создан образец операции, не касающийся задания")
             return
 
-        mistakes = self._resource_name_lexic_mistakes(
-            template,
-            object_reference,
-        )
-
-        if len(mistakes) != 0:
-            for mistake in mistakes:
-                self._mistake_service.create_mistake(mistake, user_id)
-
-            raise ValueError("Handle template: lexic mistakes")
-
-    def handle_logic_mistakes(
-        self,
-        user_id: int,
-        template: TemplateMetaRequest,
-    ) -> None:
-        try:
-            object_reference = self._task_service.get_object_reference(
-                template.name,
-                TemplateMetaRequest,
-            )
-
-        except ValueError:  # NotFoundError
-            return
-
-        mistakes = self._rel_resources_logic_mistakes(
-            template.rel_resources,
-            object_reference.rel_resources,
-        )
-
-        if template.type == "IRREGULAR_EVENT":
-            mistakes += self._irregular_event_logic_mistakes(template)
-
-        elif template.type == "OPERATION":
-            mistakes += self._operation_logic_mistakes(template)
-
-        if len(mistakes) != 0:
-            for mistake in mistakes:
-                self._mistake_service.create_mistake(mistake, user_id)
-
-            raise ValueError("Handle template: logic mistakes")
-
-    def _rel_resources_logic_mistakes(
-        self,
-        rel_resources: List[RelevantResourceRequest],
-        rel_resources_reference: List[RelevantResourceRequest],
-    ) -> List[CommonMistake]:
         mistakes: List[CommonMistake] = []
-        match_attrs_count = 0
 
-        if id_template != id_template_reference:
-            mistake = CommonMistake(
-                message=f"Wrong template provided.",
+        mistakes.extend(
+            self._template_logic_mistakes(
+                user_id=user_id,
+                template_usage=template_usage,
+                template_reference=template_reference,
+            )
+        )
+
+        mistakes.extend(
+            self._arguments_logic_mistakes(
+                user_id=user_id,
+                arguments=resource_reference,
+                resource_reference=object_reference.arguments,
+            )
+        )
+
+        # Сохранение ошибок
+        for mistake in mistakes:
+            await self.main_task_service.append_mistake(mistake)
+            self._mistake_service.create_mistake(mistake, user_id, "logic")
+
+
+    async def handle_lexic_mistakes(
+        self,
+        user_id: int,
+        template_usage: TemplateUsageRequest,
+        reference_template_usage: TemplateUsageRequest,
+    ) -> None: ...
+
+    def _template_logic_mistakes(
+        self,
+        user_id: int,
+        template_usage: TemplateUsageRequest,
+        template_reference: str,
+    ) -> List[CommonMistake]:
+        """
+        Проверяет логические ошибки в основном шаблоне.
+        """
+        mistakes: List[CommonMistake] = []
+
+        # Проверка template_id_str
+        if template_usage.template_id_str != template_reference:
+            mistake = to_logic_mistake(
+                user_id=user_id,
+                task_id=None,
+                tip=f"Неверное значение образца операции. Ожидалось: {template_reference}.",
+                coefficients=SIMULATION_COEFFICIENTS,
+                entity_type="template_usage",
             )
             mistakes.append(mistake)
-            return mistakes
 
-        for attr in attrs:
-            find_flag = False
-            for attr_reference in attrs_reference:
-                if attr.name == attr_reference.name:
-                    find_flag = True
-                    match_attrs_count += 1
-                    if attr.type != attr_reference.type:
-                        mistake = CommonMistake(
-                            message=f"Invalid attribute type'{attr.name}'.",
-                        )
-                        mistakes.append(mistake)
-                        continue
+        return mistakes
 
-                    if attr.default_value != attr_reference.default_value:
-                        mistake = CommonMistake(
-                            message=f"Invalid attribute default value'{attr.name}'.",
-                        )
-                    mistakes.append(mistake)
-                    break
+    def _arguments_logic_mistakes(
+            self,
+            user_id: int,
+            arguments: List[str],  # Список строк
+            resource_reference: List[TemplateUsageArgumentRequest],  # Список объектов TemplateUsageArgumentRequest
+    ) -> List[CommonMistake]:
+        """
+        Проверяет логические ошибки в аргументах шаблона.
+        """
+        mistakes: List[CommonMistake] = []
 
-            if not find_flag:
-                mistake = CommonMistake(
-                    message=f"Unknown attribute'{attr.name}'.",
+        if not resource_reference:
+            raise ValueError("Параметр resource_reference не должен быть пустым.")
+
+        print(f"Reference names: {[ref.relevant_resource_id for ref in resource_reference]}")
+
+        # Создаем множество допустимых relevant_resource_id для быстрого поиска
+        valid_resource_ids = {ref.resource_id_str for ref in resource_reference}
+
+        for arg in arguments:
+            print(f"\nProcessing argument: {arg}")
+            resource_name = arg.get("name")
+
+            if not resource_name:
+                print(f"Argument missing 'name' field: {arg}")
+                continue
+
+            # Проверяем, существует ли resource_name в valid_resource_ids
+            if resource_name not in valid_resource_ids:
+                print(f"No reference found for relevant_resource_id={arg}")
+                mistake = to_logic_mistake(
+                    user_id=user_id,
+                    task_id=None,
+                    tip=f"Ресурс с идентификатором {arg} отсутствует в списке допустимых ресурсов.",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="template_usage",
                 )
                 mistakes.append(mistake)
+                continue
 
-        if match_attrs_count < len(attrs_reference):
-            mistake = CommonMistake(
-                message=f"Missing required attributes.",
-            )
-            mistakes.append(mistake)
+            print(f"Found reference for relevant_resource_id={arg}")
 
         return mistakes
-
-    def _attributes_lexic_mistakes(
-        self,
-        attrs: List[TemplateMetaRequest],
-        attrs_reference: List[TemplateMetaRequest],
-    ) -> List[CommonMistake]:
-        ...
-
-    def _resource_name_lexic_mistakes(
-        self,
-        rel_resources: List[RelevantResourceRequest],
-        reference: ResourceTypeRequest,
-    ) -> List[CommonMistake]:
-        mistakes = []
-        for attr in attrs:
-            find_flag = False
-            closest_match = None
-            for attr_reference in attrs_reference:
-                if attr.name == attr_reference.name:
-                    find_flag = True
-                    break
-                else:
-                    distance = self._levenshtein_distance(attr.name, attr_reference.name)
-                    if distance == 1:
-                        closest_match = attr_reference.name
-                        mistake = CommonMistake(
-                            message=f"Attribute naming error.",
-                        )
-                        mistakes.append(mistake)
-                        break
-
-        return mistakes
-
-    @staticmethod
-    def _levenshtein_distance(s1: str, s2: str) -> int:
-        if len(s1) < len(s2):
-            return TemplateService._levenshtein_distance(s2, s1)
-
-        if len(s2) == 0:
-            return len(s1)
-
-        previous_row = range(len(s2) + 1)
-        for i, c1 in enumerate(s1):
-            current_row = [i + 1]
-            for j, c2 in enumerate(s2):
-                insertions = previous_row[j + 1] + 1
-                deletions = current_row[j] + 1
-                substitutions = previous_row[j] + (c1 != c2)
-                current_row.append(min(insertions, deletions, substitutions))
-            previous_row = current_row
-
-        return previous_row[-1]

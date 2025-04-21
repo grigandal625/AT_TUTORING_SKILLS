@@ -1,3 +1,6 @@
+from contextvars import Context
+
+
 class Fine:
     SYNTAX_ERROR = 3
     LOGIC_ERROR = 2

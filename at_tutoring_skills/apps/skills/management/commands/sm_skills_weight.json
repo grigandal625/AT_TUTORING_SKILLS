@@ -1,0 +1,67 @@
+[
+    {
+        "skill": 217,
+        "in_skill": [200, 216],
+        "weights": [1, 1]
+    },
+    {
+        "skill": 200,
+        "in_skill": [211, 212, 215, 270],
+        "weights": [1, 1, 1, 1]
+    },
+    {
+        "skill": 216,
+        "in_skill": [215],
+        "weights": [1]
+    },
+    {
+        "skill": 270,
+        "in_skill": [215],
+        "weights": [1]
+    },
+    {
+        "skill": 212,
+        "in_skill": [214],
+        "weights": [1]
+    },
+    {
+        "skill": 213,
+        "in_skill": [220, 230],
+        "weights": [1, 1]
+    },
+    {
+        "skill": 212,
+        "in_skill": [240, 250],
+        "weights": [1, 1]
+    },
+    {
+        "skill": 215,
+        "in_skill": [220, 230, 240, 250, 260],
+        "weights": [1, 1, 1, 1, 1]
+    },
+    {
+        "skill": 220,
+        "in_skill": [221, 222, 223, 224],
+        "weights": [1, 1, 1, 1]
+    },
+    {
+        "skill": 230,
+        "in_skill": [231, 232],
+        "weights": [1, 1]
+    },
+    {
+        "skill": 240,
+        "in_skill": [241, 242, 243, 244, 245, 246],
+        "weights": [1, 1, 1, 1, 1, 1]
+    },
+    {
+        "skill": 250,
+        "in_skill": [251, 252],
+        "weights": [1, 1]
+    },
+    {
+        "skill": 260,
+        "in_skill": [261, 262, 263],
+        "weights": [1, 1, 1]
+    }
+]
