@@ -136,15 +136,14 @@ class CompareConditionsService(ReferenceVariationsService):
         if not vars1 and not vars2:
             return 0.0
         lenght = len(vars1)
-        sum =0
+        sum = 0
         for i in range(lenght):
             if vars1[i] == vars2[i]:
-                sum +=1
+                sum += 1
         if sum != 0:
-            return sum/lenght
+            return sum / lenght
         else:
             return 0
-
 
     def _constants_similarity(
         self,

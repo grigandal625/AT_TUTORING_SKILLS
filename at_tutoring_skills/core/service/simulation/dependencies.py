@@ -1,7 +1,6 @@
 from typing import Protocol
 
 
-
 class IMistakeService(Protocol):
     def create_mistake(self, user_id: int, event: str, object_name: str):
         ...

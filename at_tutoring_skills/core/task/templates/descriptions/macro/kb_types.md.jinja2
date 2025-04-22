@@ -1,0 +1,33 @@
+{%- macro numeric(type) %}
+Числовой тип **`{{ type.id }}`**, определяющий значения от {{ type.from_ }} до {{ type.to_ }}
+{%- endmacro -%}
+
+{%- macro symbolic(type) %}
+Символьный тип **`{{ type.id }}`**, определяющий набор символьных значений:
+
+{% for value in type.values %}
+    {{ loop.index }}. {{ value -}}
+{%- endfor -%}
+{%- endmacro -%}
+
+{%- macro fuzzy(type) %}
+Нечеткий тип, определяющий лингвистическую переменную **`{{type.id}}`**, характеризуемую набором следующих функций принадлежности:
+
+{% for mf in type.membership_functions -%}
+    {{ loop.index }}. {{ mf.name -}}
+{%- endfor -%}
+{%- endmacro -%}
+
+{% macro kb_type(type) %}
+
+{%- if type.meta == "number" -%}
+{{ numeric(type) }}
+
+{%- elif type.meta == "string" -%}
+{{ symbolic(type) }}
+
+{%- elif type.meta == "fuzzy" -%}
+{{ fuzzy(type) }}
+{%- endif -%}
+
+{%- endmacro -%}

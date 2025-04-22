@@ -8,19 +8,22 @@ from django.db.models import Count  # Импортируем Count
 from at_tutoring_skills.apps.skills.models import Skill
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import Variant
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+commands_dir = Path(__file__).resolve().parent
 
 class Command(BaseCommand):
     help = "Импортирует задачи из JSON-файла в базу данных"
 
     def handle(self, *args, **options):
         """Основной обработчик команды"""
+        
         try:
             # Импорт задач из JSON-файла в базу данных
             stats = self.import_tasks_from_json(
-                "C:/Users/Никита/АТ_не_АТ/AT_TUTORING_SKILLS/at_tutoring_skills/apps/skills/management/commands/generated_tasks_sm.json"
+                commands_dir / "generated_tasks_sm.json"
             )
             # Вывод результатов
             self.stdout.write(
@@ -34,7 +37,7 @@ class Command(BaseCommand):
 
     def import_tasks_from_json(
         self,
-        filename: str = "C:/Users/Никита/АТ_не_АТ/AT_TUTORING_SKILLS/at_tutoring_skills/apps/skills/management/commands/generated_tasks_sm.json",
+        filename: str = commands_dir / "generated_tasks_sm.json",
     ) -> dict:
         """
         Импортирует задачи из JSON-файла в базу данных

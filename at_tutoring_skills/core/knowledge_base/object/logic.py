@@ -1,4 +1,3 @@
-import json
 from typing import List
 from typing import Optional
 from typing import TYPE_CHECKING
@@ -53,23 +52,22 @@ class KBObjectServiceLogicLexic:
                     tip=f'Введено меньше атрибутов, чем требуется, в объекте "{obj.id}"\nрасположение: {place}',
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="object",
-                    skills=[301],
+                    skills=[1301],
                 )
             )
         else:
-            found = obj_et.properties
-            search = obj.properties
+            found = [p for p in obj_et.properties]
+            search = [p for p in obj.properties]
             i = 0
             for property_et in obj_et.properties:
                 min_distance = 100
-                j=0
+                j = 0
 
                 for prop in obj.properties:
                     if prop:
                         distance = levenshtein_distance(prop.id, property_et.id)
                     if distance < min_distance:
                         min_distance = distance
-                    
 
                     if min_distance == 0:
                         found[i] = None
@@ -86,12 +84,12 @@ class KBObjectServiceLogicLexic:
                                     # Ошибка в типе "{type.id}", ожидалось значение "{check_et[j]}",  \nЗначения, которые написаны некорректно или являются лишними: {" ".join(check_failed)}  \nРасположение: {place}\n\n',
                                     coefficients=KNOWLEDGE_COEFFICIENTS,
                                     entity_type="object",
-                                    skills=[300, 302],
+                                    skills=[1300, 1302],
                                 )
                             )
                         break
-                    
-                    j+=1
+
+                    j += 1
                 i += 1
 
             found_failed = [x for x in found if x is not None]
@@ -107,7 +105,6 @@ class KBObjectServiceLogicLexic:
                     child_context = context.create_child(f'Атрибут "{f.id}"')
                     place = child_context.full_path_list
 
-                    
                     errors_list.append(
                         to_logic_mistake(
                             user_id=user_id,
@@ -115,7 +112,7 @@ class KBObjectServiceLogicLexic:
                             tip=f'Отсутствует атрибут "{f.id}"  \nАтрибуты, которые написаны некорректно или являются лишними: {" ".join(search_array)}  \nрасположение: {place}',
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="object",
-                            skills=[300, 301],
+                            skills=[1300, 1301],
                         )
                     )
 
@@ -141,4 +138,3 @@ class KBObjectServiceLogicLexic:
             return errors_list
 
         return None
-        

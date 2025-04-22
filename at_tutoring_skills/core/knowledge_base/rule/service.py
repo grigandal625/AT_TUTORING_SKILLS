@@ -9,4 +9,3 @@ class KBRuleService(KBRuleServiceSyntax, KBRuleServiceLogicLexic):
     - KBRuleServiceSyntax: обработка синтаксических ошибок в правилах
     - KBRuleServiceLogicLexic: логическая обработка и анализ правил
     """
-
