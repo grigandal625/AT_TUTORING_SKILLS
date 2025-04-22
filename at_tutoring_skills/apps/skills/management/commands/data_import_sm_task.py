@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Count  # Импортируем Count
 
-from at_tutoring_skills.apps.skills.models import Skill
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES, Skill
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import Variant
 from pathlib import Path
@@ -101,10 +101,23 @@ class Command(BaseCommand):
                             logger.error(f"Некорректный элемент в данных: {item}")
                             stats["errors"] += 1
                             continue
+                        task_object = item.get("task_object")
+                        if task_object == SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES:
+                            task_name = "тип ресурса"
+                        elif task_object == SUBJECT_CHOICES.SIMULATION_RESOURCES:
+                            task_name = "ресурс"
+                        elif task_object == SUBJECT_CHOICES.SIMULATION_TEMPLATES:
+                            task_name = "образец операции"
+                        elif task_object == SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES:
+                            task_name = "операцию"
+                        elif task_object == SUBJECT_CHOICES.SIMULATION_FUNCS:
+                            task_name = "функцию"
+                        else:
+                            task_name = "Неизвестный тип"
 
                         # Преобразование данных для модели Task
                         task_data = {
-                            "task_name": item.get("task_name"),
+                            "task_name": f'Создать {task_object} "{item.get('object_name')}"',
                             "task_object": item.get("task_object"),
                             "object_name": item.get("object_name"),
                             "description": item.get("description"),
