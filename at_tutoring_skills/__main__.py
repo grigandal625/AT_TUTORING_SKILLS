@@ -115,4 +115,5 @@ async def main_with_django():
 if __name__ == "__main__":
     management.call_command("migrate")
     management.call_command("importkb")
+    management.call_command("data_import_sm_task")
     asyncio.run(main_with_django())
