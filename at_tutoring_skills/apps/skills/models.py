@@ -74,6 +74,9 @@ class Variant(models.Model):
     kb_description = models.TextField(null=True, blank=True, default=None)  # Описание задач/подзадач
     sm_description = models.TextField(null=True, blank=True, default=None)  # Описание внешней среды
 
+    def __str__(self):
+        return self.name
+
 
 class User(models.Model):
     user_id = models.CharField(primary_key=True, max_length=255)
