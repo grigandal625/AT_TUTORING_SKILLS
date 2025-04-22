@@ -64,6 +64,9 @@ class Task(models.Model):
         Skill, related_name="tasks_skills", default=None
     )  # Связь "многие-ко-многим" с умениями
 
+    def __str__(self):
+        return self.task_name
+
 
 class Variant(models.Model):
     name = models.CharField(max_length=255, default=None)  # проблемная область/название
