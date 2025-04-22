@@ -117,7 +117,7 @@ class Command(BaseCommand):
 
                         # Преобразование данных для модели Task
                         task_data = {
-                            "task_name": f'Создать {task_object} "{item.get('object_name')}"',
+                            "task_name": f'Создать {task_name} "{item.get('object_name')}"',
                             "task_object": item.get("task_object"),
                             "object_name": item.get("object_name"),
                             "description": item.get("description"),
