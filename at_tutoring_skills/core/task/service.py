@@ -325,8 +325,8 @@ class TaskService(KBTaskService, KBIMServise):
         Возвращает описание заданий для указанного пользователя.
         """
 
-        base_header = base_header or "### На текущий момент необходимо выполнить следующие задания: \n\n"
-        completed_header = completed_header or "### Все задания выполнены \n\n"
+        base_header = base_header if base_header is not None else "### На текущий момент необходимо выполнить следующие задания: \n\n"
+        completed_header = completed_header if completed_header is not None else "### Все задания выполнены \n\n"
 
         tasks = await self.get_all_tasks(user.variant_id, task_object=task_object)
 
