@@ -66,13 +66,9 @@ class SkillService:
     async def get_user_task_skills_for_first_codes(self, user: User, first_codes: List[int]) -> list[UserSkill]:
         return await self._get_user_task_skills_for_first_codes(user, first_codes)
 
-    async def process_and_get_skills_string(
+    async def process_and_get_skills(
         self, user: User, task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None
-    ) -> str:
-        """
-        Обрабатывает навыки пользователя для задания и возвращает строку с результатами
-        """
-
+    ):
         if not isinstance(task_object, list) and task_object is not None:
             task_object = [task_object]
 
@@ -96,6 +92,16 @@ class SkillService:
         else:
             updated_skills = await self.get_user_task_skills(user)
 
+        return updated_skills
+        
+    async def process_and_get_skills_string(
+        self, user: User, task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None
+    ) -> str:
+        """
+        Обрабатывает навыки пользователя для задания и возвращает строку с результатами
+        """
+        updated_skills = await self.process_and_get_skills(user, task_object)
+        
         # 4. Формируем итоговую строку
         return "\n\n".join(f"{us.skill.name} : {us.mark}" for us in updated_skills)
 
