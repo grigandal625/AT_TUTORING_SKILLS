@@ -5,7 +5,7 @@
             "task_name": "",
             "task_object": 6,
             "object_name": "type1",
-            "description": "",
+            "description": "создай type1",
             "object_reference": {
                 "id": 211,
                 "name": "type1",
@@ -46,7 +46,7 @@
         "task_name": "res1",
         "task_object": 7,
         "object_name": "res1",
-        "description": "",
+        "description": "создай res1",
         "object_reference": {
             "id": 211,
             "name": "res1",
@@ -88,7 +88,7 @@
         "task_name": "",
         "task_object": 8,
         "object_name": "event1",
-        "description": "",
+        "description": "создай event1",
         "object_reference": {
             "id": 231,
             "name": "event1",
@@ -116,7 +116,7 @@
         "task_name": "",
         "task_object": 8,
         "object_name": "operation1",
-        "description": "",
+        "description": "operation1",
         "object_reference": {
             "id": 231,
             "name": "operation1",
@@ -140,7 +140,7 @@
         "task_name": "",
         "task_object": 8,
         "object_name": "rule1",
-        "description": "",
+        "description": "rule1",
         "object_reference": {
             "id": 231,
             "name": "rule1",
@@ -162,7 +162,7 @@
         "task_name": "",
         "task_object": 9,
         "object_name": "usage1",
-        "description": "",
+        "description": "usage1",
         "object_reference": {
             "id": 242,
             "name": "usage1",
@@ -179,7 +179,7 @@
         "task_name": "",
         "task_object": 10,
         "object_name": "square",
-        "description": "",
+        "description": "square",
         "object_reference": {
             "id": 231,
             "name": "square",

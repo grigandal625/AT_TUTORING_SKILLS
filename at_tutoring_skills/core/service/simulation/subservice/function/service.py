@@ -4,7 +4,7 @@ from typing import Sequence
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_lexic_mistake, to_logic_mistake, to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest
 from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionRequest
@@ -34,6 +34,7 @@ class FunctionService:
             pydantic_class=FunctionRequest,
             pydantic_class_name="function",
         )
+        errors_list = []
 
         print("Данные, полученные pydentic моделью: ", result)
 
@@ -41,12 +42,21 @@ class FunctionService:
             return result
         elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
-                await self.main_task_service.append_mistake(mistake)
-                self._mistake_service.create_mistake(mistake, user_id, "syntax")
+                # await self.main_task_service.append_mistake(mistake)
+                # self._mistake_service.create_mistake(mistake, user_id, "syntax")
 
-            raise ValueError("Handle function: syntax mistakes")
+                common_mistake = to_syntax_mistake(
+                        user_id=user_id,
+                        tip=f"Синтаксическая ошибка при создании функции.",
+                        coefficients=SIMULATION_COEFFICIENTS,
+                        entity_type="function",
+                        skills=[270],
+                )
+                errors_list.append(common_mistake)
+                await self.main_task_service.append_mistake(common_mistake)
 
-        raise TypeError("Handle function: unexpected result")
+            raise ValueError("Синтаксическая ошибка при создании функции.")
+
 
     async def handle_logic_mistakes(
         self,
@@ -128,6 +138,7 @@ class FunctionService:
                 tip="Указан неправильный тип функции.",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="function",
+                skills=[262, 263],
             )
             mistakes.append(mistake)
             return mistakes
@@ -142,21 +153,23 @@ class FunctionService:
                 tip="Тело функции не может быть пустым.",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="function",
+                skills=[262, 263],
             )
             mistakes.append(mistake)
             return mistakes
 
         # Проверка на совпадение с эталонным значением
-        if function.body != function_reference.body:
-            mistake = to_logic_mistake(
-                user_id=user_id,
-                task_id=task_id,
-                tip=f"Указано неверное тело функции. Ожидалось: '{function_reference.body}', получено: '{function.body}'.",
-                coefficients=SIMULATION_COEFFICIENTS,
-                entity_type="function",
-            )
-            mistakes.append(mistake)
-            return mistakes
+        # if function.body != function_reference.body:
+        #     mistake = to_logic_mistake(
+        #         user_id=user_id,
+        #         task_id=task_id,
+        #         tip=f"Указано неверное тело функции. Ожидалось: '{function_reference.body}', получено: '{function.body}'.",
+        #         coefficients=SIMULATION_COEFFICIENTS,
+        #         entity_type="function",
+        #         skills=[262, 263],
+        #     )
+        #     mistakes.append(mistake)
+        #     return mistakes
 
         print(f"Comparing number of parameters: provided={len(params)}, reference={len(params_reference)}")
         if len(params) != len(params_reference):
@@ -166,6 +179,7 @@ class FunctionService:
                 tip="Указано неправильное количество параметров.",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="function",
+                skills=[261],
             )
             mistakes.append(mistake)
 
@@ -175,14 +189,14 @@ class FunctionService:
 
         # Обработка предоставленных параметров
         for param in params:
-            print(f"\nProcessing parameter: name={param.name}, type={param.type}, default_value={param.default_value}")
+            print(f"\nProcessing parameter: name={param.name}, type={param.type}")
 
             if param.name not in params_reference_dict:
                 continue
 
             param_reference = params_reference_dict[param.name]
             print(
-                f"Found reference parameter: name={param_reference.name}, type={param_reference.type}, default_value={param_reference.default_value}"
+                f"Found reference parameter: name={param_reference.name}, type={param_reference.type}"
             )
 
             # Проверка типа параметра
@@ -196,6 +210,7 @@ class FunctionService:
                     tip=f"Недопустимый тип параметра {param.name}.",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="function",
+                    skills=[261],
                 )
                 mistakes.append(mistake)
                 continue
@@ -237,7 +252,7 @@ class FunctionService:
         print(f"Reference parameters dictionary: {params_reference_dict}")
 
         for param in params:
-            print(f"\nProcessing parameter: name={param.name}, type={param.type}, default_value={param.default_value}")
+            print(f"\nProcessing parameter: name={param.name}, type={param.type}")
 
             if param.name in params_reference_dict:
                 continue  # Параметр совпадает с эталоном
@@ -259,6 +274,7 @@ class FunctionService:
                     tip=f"Ошибка в имени параметра: {param.name} не найден, но {closest_match} является ближайшим.",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="function",
+                    skills=[270],
                 )
                 mistakes.append(mistake)
                 print(f"Lexic mistake: Close match found for '{param.name}' -> '{closest_match}'")
@@ -269,6 +285,7 @@ class FunctionService:
                     tip=f"Неизвестный параметр: {param.name} не найден.",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="function",
+                    skills=[270],
                 )
                 mistakes.append(mistake)
                 print(f"Lexic mistake: Unknown parameter '{param.name}'")

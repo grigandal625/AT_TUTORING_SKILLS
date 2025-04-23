@@ -36,7 +36,7 @@ from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.
     ResourceTypeAttributeRequest,
 )
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
-from at_tutoring_skills.core.service.simulation.subservice.template.models.models import GeneratorTypeEnum
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import GeneratorTypeEnum, TemplateTypeEnum
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventBody
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventGenerator
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventRequest
@@ -277,13 +277,16 @@ class KBIMServise:
         else:
             raise ValueError("task.object_reference должен быть строкой JSON или словарём")
 
-        attributes = [FunctionParameterRequest(**attr_data) for attr_data in reference_data["params"]]
+        body = reference_data["body"]
+        if isinstance(body, dict) and "body" in body:
+            body = body["body"]
 
         return FunctionRequest(
             id=reference_data["id"],
             name=reference_data["name"],
             ret_type=reference_data["ret_type"],
-            attributes=attributes,
+            body=body,  # Используем обработанное значение body
+            params=[FunctionParameterRequest(**attr_data) for attr_data in reference_data["params"]],
         )
 
 
@@ -657,3 +660,47 @@ class TaskService(KBTaskService, KBIMServise):
         except Exception as e:
             logger.error(f"Error creating TaskUser entries for user {user.user_id}: {str(e)}")
             raise
+
+
+    async def get_variant_tasks_description_sm(
+        self,
+        user: User,
+        skip_completed: bool = True,
+        task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None,
+        base_header: str = None,
+        completed_header: str = None,
+    ) -> str:
+        """
+        Возвращает описание заданий для указанного пользователя.
+        """
+
+        base_header = base_header or "### На текущий момент необходимо выполнить следующие задания: \n\n"
+        completed_header = completed_header or "### Все задания выполнены \n\n"
+
+        tasks = await self.get_all_tasks(user.variant_id, task_object=task_object)
+
+        if not await tasks.aexists():
+            return "### Для текущего этапа все задания выполнены"
+
+        result = ""
+        all_count = 0
+        completed_count = 0
+        async for task in tasks:
+            all_count += 1
+            task_user = await TaskUser.objects.filter(user=user, task=task).afirst()
+            if task_user and task_user.is_completed:
+                completed_count += 1
+                if skip_completed:
+                    continue
+            result += task.description
+
+        if not result:
+            return "### Для текущего этапа все задания выполнены \n\n"
+
+        header = base_header
+        if all_count == completed_count:
+            header = completed_header
+
+        result = header + result
+
+        return result

@@ -15,11 +15,6 @@
         "weights": [1]
     },
     {
-        "skill": 270,
-        "in_skill": [215],
-        "weights": [1]
-    },
-    {
         "skill": 212,
         "in_skill": [214],
         "weights": [1]

@@ -6,7 +6,7 @@ from jsonschema import ValidationError
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_logic_mistake, to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import ITaskService
@@ -41,6 +41,7 @@ class ResourceService:
             pydantic_class=ResourceRequest,
             pydantic_class_name="resource",
         )
+        errors_list = []
 
         print("Данные, полученные pydentic моделью: ", result)
 
@@ -48,11 +49,20 @@ class ResourceService:
             return result
         elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
-                self._mistake_service.create_mistake(mistake, user_id)
+                # self._mistake_service.create_mistake(mistake, user_id)
 
-            raise ValueError("Handle resource: syntax mistakes")
+                common_mistake = to_syntax_mistake(
+                        user_id=user_id,
+                        tip=f"Синтаксическая ошибка при создании ресурса.",
+                        coefficients=SIMULATION_COEFFICIENTS,
+                        entity_type="resource_type",
+                        skills=[270],
+                )
+                errors_list.append(common_mistake)
+                await self.main_task_service.append_mistake(common_mistake)
 
-        raise TypeError("Handle resource: unexpected result")
+            raise ValueError("Синтаксическая ошибка при создании ресурса")
+
 
     async def handle_logic_mistakes(
         self,
@@ -151,7 +161,8 @@ class ResourceService:
                 task_id=task_id,
                 tip="Указан неправильный тип ресурса.",
                 coefficients=SIMULATION_COEFFICIENTS,
-                entity_type="resource_type",
+                entity_type="resource",
+                skills=[231],
             )
             mistakes.append(mistake)
             return mistakes
@@ -177,7 +188,8 @@ class ResourceService:
                     task_id=task_id,
                     tip=tip,
                     coefficients=SIMULATION_COEFFICIENTS,
-                    entity_type="resource_type",
+                    entity_type="resource",
+                    skills=[232],
                 )
                 mistakes.append(mistake)
                 continue

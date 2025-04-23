@@ -2,7 +2,7 @@ from typing import List
 
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_logic_mistake, to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import (
     TemplateUsageArgumentRequest,
@@ -19,13 +19,7 @@ class TemplateUsageService:
         self.main_task_service = TaskService()
 
     async def handle_syntax_mistakes(self, user_id: int, data: dict) -> TemplateUsageRequest:
-        """
-        Обрабатывает синтаксические ошибки в данных шаблона.
-        """
         raw_request = data.get("args", {}).get("templateUsage") or data.get("result")
-
-        if raw_request is None:
-            raise ValueError("Handle template usage: missing 'template' in input data")
 
         result = pydantic_mistakes(
             user_id=user_id,
@@ -33,16 +27,28 @@ class TemplateUsageService:
             pydantic_class=TemplateUsageRequest,
             pydantic_class_name="template_usage",
         )
+        errors_list = []
+
         print("Данные, полученные pydantic моделью: ", result)
 
         if isinstance(result, TemplateUsageRequest):
             return result
         elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
-                await self.main_task_service.append_mistake(mistake)
-                self._mistake_service.create_mistake(mistake, user_id, "syntax")
-            raise ValueError("Handle template usage: syntax mistakes")
-        raise TypeError("Handle template usage: unexpected result")
+                # await self.main_task_service.append_mistake(mistake)
+                # self._mistake_service.create_mistake(mistake, user_id, "syntax")
+
+                common_mistake = to_syntax_mistake(
+                        user_id=user_id,
+                        tip=f"Синтаксическая ошибка при создании операции.",
+                        coefficients=SIMULATION_COEFFICIENTS,
+                        entity_type="template_usage",
+                )
+                errors_list.append(common_mistake)
+                await self.main_task_service.append_mistake(common_mistake)
+
+            raise ValueError("Синтаксическая ошибка при создании операции")
+
 
     async def handle_logic_mistakes(
         self,
@@ -115,6 +121,7 @@ class TemplateUsageService:
                 tip=f"Неверное значение образца операции. Ожидалось: {template_reference}.",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="template_usage",
+                skills=[251],
             )
             mistakes.append(mistake)
 
@@ -156,6 +163,7 @@ class TemplateUsageService:
                     tip=f"Ресурс с идентификатором {arg} отсутствует в списке допустимых ресурсов.",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template_usage",
+                    skills=[252],
                 )
                 mistakes.append(mistake)
                 continue
