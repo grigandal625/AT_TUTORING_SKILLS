@@ -1,45 +1,16 @@
-from rest_framework import viewsets
-
-from .models import Event
-from .models import Reaction
-from .models import ScenarioPart
-from .models import Skill
-from .models import Task
-from .serializers import EventSerializer
-from .serializers import ReactionSerializer
-from .serializers import ScenarioPartSerializer
-from .serializers import SkillSerializer
-from .serializers import TaskSerializer
-
-# -
-# Create your views here.#-
-# project/skills_data/ATskills/views.py#-
-# import rest_framework
+from adrf import viewsets
+from at_tutoring_skills.apps.skills.models import User
+from at_tutoring_skills.apps.skills.serializers import UserSerializer
+from at_tutoring_skills.core.KBskills import ATTutoringKBSkills
 
 
-class SkillViewSet(viewsets.ModelViewSet):
-    queryset = Skill.objects.all()
-    serializer_class = SkillSerializer
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
+    async def alist(self, *args, **kwargs):
+        kb_skills: ATTutoringKBSkills = self.request.scope.get("kb_skills")
+        at_solver_registered = await kb_skills.check_external_registered('ATSolver')
+        assert at_solver_registered, "ATSolver is not registered"
 
-class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
-    serializer_class = TaskSerializer
-
-
-class ReactionViewSet(viewsets.ModelViewSet):
-    queryset = Reaction.objects.all()
-    serializer_class = ReactionSerializer
-
-
-class ScenarioPartViewSet(viewsets.ModelViewSet):
-    queryset = ScenarioPart.objects.all()
-    serializer_class = ScenarioPartSerializer
-
-
-class EventViewSet(viewsets.ModelViewSet):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
-
-
-# {"conversationId":"a3308710-35cf-4756-96f5-a44e5f818851","source":"instruct"}
+        return await super().alist(*args, **kwargs)

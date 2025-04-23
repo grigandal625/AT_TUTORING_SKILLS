@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "adrf",
     "at_tutoring_skills.apps.skills",
     "at_tutoring_skills.apps.mistakes",
 ]
@@ -55,6 +57,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "at_tutoring_skills.apps.skills.middleware.initialization_check_middleware",
 ]
 
 ROOT_URLCONF = "at_tutoring_skills.base_server.urls"

@@ -99,6 +99,8 @@ async def main_with_django():
                     break
         else:
             # Обработка HTTP-запросов через Django
+            scope["kb_skills"] = kb_skills
+            scope["im_skills"] = im_skills
             await django_application(scope, receive, send)
 
     # Конфигурация и запуск сервера Uvicorn
