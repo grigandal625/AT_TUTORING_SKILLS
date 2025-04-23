@@ -1,0 +1,67 @@
+[
+    {
+        "skill": 1000,
+        "in_skill": [1001, 1002, 1005],
+        "weights": [1, 1, 1]
+    },
+    {
+        "skill": 1001,
+        "in_skill": [1111, 1121],
+        "weights": [1, 1]
+    },
+    {
+        "skill": 1002,
+        "in_skill": [1111, 1121],
+        "weights": [1, 1]
+    },
+    {
+        "skill": 1111,
+        "in_skill": [1200, 1300, 1600],
+        "weights": [1, 1, 1]
+    },
+    {
+        "skill": 1121,
+        "in_skill": [1600, 1400, 1500, 1700],
+        "weights": [1, 1, 1, 1]
+    },
+    {
+        "skill": 1200,
+        "in_skill": [1201, 1210, 1220, 1230],
+        "weights": [1, 1, 1, 1]
+    },
+    {
+        "skill": 1220,
+        "in_skill": [1221],
+        "weights": [1]
+    },
+    {
+        "skill": 1230,
+        "in_skill": [1231, 1232],
+        "weights": [1, 1]
+    },
+    {
+        "skill": 1300,
+        "in_skill": [1310, 1311],
+        "weights": [1, 1]
+    },
+    {
+        "skill": 1400,
+        "in_skill": [1401],
+        "weights": [1]
+    },
+    {
+        "skill": 1500,
+        "in_skill": [1501, 1502],
+        "weights": [1, 1]
+    },
+    {
+        "skill": 1600,
+        "in_skill": [1601],
+        "weights": [1]
+    },
+    {
+        "skill": 1601,
+        "in_skill": [1610, 1620, 1630],
+        "weights": [1, 1, 1]
+    }
+]

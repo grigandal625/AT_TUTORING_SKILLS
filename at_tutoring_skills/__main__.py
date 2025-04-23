@@ -113,6 +113,10 @@ async def main_with_django():
 
 
 if __name__ == "__main__":
+    from django.contrib.auth.models import User
     management.call_command("migrate")
     management.call_command("importkb")
+    management.call_command("data_import_sm_task")
+    if not User.objects.filter(is_superuser=True).exists():
+        User.objects.create_superuser('admin', 'admin@example.com', '1=qpALzm')
     asyncio.run(main_with_django())

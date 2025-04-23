@@ -80,7 +80,7 @@ class ConditionComparisonService(CompareConditionsService):
                     to_logic_mistake(
                         user_id=user_id,
                         task_id=task_id,
-                        tip=f"Ссылка не совпадает. Ожидалось: {etalon_condition.id}, "
+                        tip=f"Ссылка (объект) не совпадает. Ожидалось: {etalon_condition.id}, "
                         f"получено: {user_condition.id}\nРасположение: {path}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type=entity_type,
@@ -98,7 +98,7 @@ class ConditionComparisonService(CompareConditionsService):
                     to_logic_mistake(
                         user_id=user_id,
                         task_id=task_id,
-                        tip=f"Вложенная ссылка не совпадает. Ожидалось: {etalon_ref}, "
+                        tip=f"Ссылка (атрибут объекта) не совпадает. Ожидалось: {etalon_ref}, "
                         f"получено: {user_ref}\nРасположение: {path}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type=entity_type,
@@ -120,7 +120,7 @@ class ConditionComparisonService(CompareConditionsService):
                         f"получено: {user_condition.sign}\nРасположение: {path}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type=entity_type,
-                        skills=[],
+                        skills=[1700],
                     )
                 )
 
@@ -196,11 +196,11 @@ class ConditionComparisonService(CompareConditionsService):
                 to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Тип цели операнда Аллена не совпадает. Ожидалось: {type(etalon_operand.target).__name__}, "
+                    tip=f"Тип(событие/интервал) операнда Аллена не совпадает. Ожидалось: {type(etalon_operand.target).__name__}, "
                     f"получено: {type(user_operand.target).__name__}\nРасположение: {path}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type=entity_type,
-                    skills=[],
+                    skills=[1700],
                 )
             )
             return mistakes
@@ -212,7 +212,7 @@ class ConditionComparisonService(CompareConditionsService):
                 to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"ID цели операнда Аллена не совпадает. Ожидалось: {etalon_operand.id}, "
+                    tip=f"Операнд в операции Аллена не совпадает. Ожидалось: {etalon_operand.id}, "
                     f"получено: {user_operand.id}\nРасположение: {path}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type=entity_type,

@@ -51,6 +51,11 @@ class Skill(models.Model):
     def __str__(self):
         return self.name
 
+class SKillConnection(models.Model):
+    skill_from = models.ForeignKey(Skill, on_delete=models.CASCADE, null=True, default=None, related_name="skill_from")
+    skill_to = models.ForeignKey(Skill, on_delete=models.SET_NULL, null=True, default=None, related_name="skill_to")
+    weight = models.FloatField()
+
 
 class Task(models.Model):
     task_name = models.CharField(max_length=255)  # Название события
@@ -64,12 +69,18 @@ class Task(models.Model):
         Skill, related_name="tasks_skills", default=None
     )  # Связь "многие-ко-многим" с умениями
 
+    def __str__(self):
+        return self.task_name
+
 
 class Variant(models.Model):
     name = models.CharField(max_length=255, default=None)  # проблемная область/название
     task = models.ManyToManyField(Task)
     kb_description = models.TextField(null=True, blank=True, default=None)  # Описание задач/подзадач
     sm_description = models.TextField(null=True, blank=True, default=None)  # Описание внешней среды
+
+    def __str__(self):
+        return self.name
 
 
 class User(models.Model):
