@@ -32,17 +32,26 @@ class KBIntervalServiceLogicLexic:
             interval.close, var_close, {"structure": 0.3, "variables": 0.6, "constants": 0.5}
         )
 
+        errors_list=[]
         context = Context(parent=None, name=f"Объект {interval.id}")
 
         errors_list_open = await cond.compare_conditions_deep(
             user_id, task_id, interval.open, most_common_open, "interval", context, None
         )
+        if errors_list_open:
+            for e in errors_list_open:
+                e.skills.append(1501)
+            errors_list.extend(errors_list_open)
+
         errors_list_close = await cond.compare_conditions_deep(
             user_id, task_id, interval.close, most_common_close, "interval", context, None
         )
+        if errors_list_close:
+            for e in errors_list_close:
+                e.skills.append(1502)
+            errors_list.extend(errors_list_close)
 
-        errors_list_open.extend(errors_list_close)
-        return errors_list_open
+        return errors_list
 
     async def handle_logic_lexic_mistakes(
         self: "KBIntervalService", user: User, task: Task, interval: KBInterval, interval_et: KBInterval

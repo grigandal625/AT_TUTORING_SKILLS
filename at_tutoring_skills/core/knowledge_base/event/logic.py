@@ -28,6 +28,9 @@ class KBEventServiceLogicLexic:
         errors_list = await cond.compare_conditions_deep(
             user_id, task_id, event.occurance_condition, most_common, "event", context, None
         )
+        if errors_list:
+            for e in errors_list:
+                e.skills.append(1401)
 
         return errors_list
 

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 
-from .models import Skill
+from .models import SKillConnection, Skill
 from .models import Task
 from .models import TaskUser
 from .models import User
@@ -19,6 +19,11 @@ class SkillAdmin(ModelAdmin):
         return obj.get_group_display()
 
     get_group_display.short_description = "Group"
+
+@admin.register(SKillConnection)
+class SKillConnectionAdmin(ModelAdmin):
+    list_display = ("id", "skill_from", "skill_to", "weight")
+    search_fields = ("skill_from__name", "skill_to__name")
 
 
 @admin.register(Task)

@@ -4,7 +4,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from at_tutoring_skills.apps.skills.models import Skill
+from at_tutoring_skills.apps.skills.models import SKillConnection, Skill
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import Variant
 
@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         commands_dir = Path(__file__).resolve().parent
-        data_dir = commands_dir / "data"
+        data_dir = commands_dir / "data_kb"
 
         with transaction.atomic():
             # 1. Загрузка всех навыков из единого файла
@@ -83,5 +83,50 @@ class Command(BaseCommand):
 
                     action = "Создано" if created else "Обновлено"
                     self.stdout.write(f"  {action} задание: {task.task_name}")
+
+            # 3. Загрузка связей между навыками (без удаления существующих)
+            connections_file = data_dir / "kb_skills_connections.json"
+            if connections_file.exists():
+                self.stdout.write("\nЗагрузка связей между навыками...")
+                with open(connections_file, "r", encoding="utf-8") as f:
+                    connections_data = json.load(f)
+
+                created_count = 0
+                updated_count = 0
+                for connection_item in connections_data:
+                    skill_to_code = connection_item["skill"]
+                    skill_to = skills_map.get(skill_to_code)
+
+                    if not skill_to:
+                        self.stdout.write(
+                            self.style.WARNING(f"  Навык с кодом {skill_to_code} не найден (пропускаем связи)"))
+                        continue
+
+                    for skill_from_code, weight in zip(connection_item["in_skill"], connection_item["weights"]):
+                        skill_from = skills_map.get(skill_from_code)
+
+                        if not skill_from:
+                            self.stdout.write(
+                                self.style.WARNING(f"  Навык с кодом {skill_from_code} не найден (связь с {skill_to_code})"))
+                            continue
+
+                        # Создаем или обновляем связь
+                        connection, created = SKillConnection.objects.update_or_create(
+                            skill_from=skill_from,
+                            skill_to=skill_to,
+                            defaults={'weight': weight}
+                        )
+
+                        if created:
+                            created_count += 1
+                            self.stdout.write(
+                                f"  Создана связь: {skill_from_code} -> {skill_to_code} (вес: {weight})")
+                        else:
+                            updated_count += 1
+                            self.stdout.write(
+                                f"  Обновлена связь: {skill_from_code} -> {skill_to_code} (новый вес: {weight})")
+
+                self.stdout.write(f"  Создано {created_count} новых связей")
+                self.stdout.write(f"  Обновлено {updated_count} существующих связей")
 
         self.stdout.write(self.style.SUCCESS("\nЗагрузка данных завершена!"))

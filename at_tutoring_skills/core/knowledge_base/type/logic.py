@@ -36,7 +36,7 @@ class KBTypeServiceLogicLexic:
                     tip=f'Введено меньше значений, чем требуется, в типе "{type.id}"  \nРасположение: {place}\n\n',
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="type",
-                    skills=[1221],
+                    skills=[1220],
                 )
             )
 
@@ -58,7 +58,7 @@ class KBTypeServiceLogicLexic:
                             tip=f'Ошибка в типе "{type.id}", ожидалось значение "{check_et[j]}",  \nЗначения, которые написаны некорректно или являются лишними: {" ".join(check_failed)}  \nРасположение: {place}\n\n',
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="type",
-                            skills=[1220],
+                            skills=[1221, 1220],
                         )
                     )
 
