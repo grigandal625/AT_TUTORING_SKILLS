@@ -61,9 +61,9 @@ def build_skill_graph(skills: list[Skill],
     # Стили для различных типов связей
     relation_types = {
         1: ('Иерархия', 'black', 'solid'),
-        2: ('Агрегация', 'blue', 'dashed'),
-        3: ('Ассоциация', 'green', 'dotted'),
-        4: ('Слабая', 'red', 'bold')
+        2: ('Агрегация', 'red', 'bold'),
+        3: ('Ассоциация', 'blue', 'dashed'),
+        4: ('Слабая', 'green', 'dotted')
     }
 
     # Добавление узлов с визуальным выделением корневых
@@ -129,9 +129,9 @@ def build_legend_graph(skills: list[Skill],
     # Стили для различных типов связей
     relation_types = {
         1: ('Иерархия', 'black', 'solid'),
-        2: ('Агрегация', 'blue', 'dashed'),
-        3: ('Ассоциация', 'green', 'dotted'),
-        4: ('Слабая', 'red', 'bold')
+        2: ('Агрегация', 'red', 'bold'),
+        3: ('Ассоциация', 'blue', 'dashed'),
+        4: ('Слабая', 'green', 'dotted')
     }
     
     user_marks = {us.skill_id: us.mark for us in user_skills}
