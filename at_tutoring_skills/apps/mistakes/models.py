@@ -21,3 +21,8 @@ class Mistake(models.Model):
     fine = models.FloatField(null=True, blank=True)
     tip = models.TextField(null=True, blank=True)
     is_tip_shown = models.BooleanField(default=False)
+
+class MistakeConnection(models.Model):
+    mistake_from = models.ForeignKey(Mistake, on_delete=models.CASCADE, related_name="mistake_from")
+    mistake_to = models.ForeignKey(Mistake, on_delete=models.SET_NULL, null=True, default=None, related_name="mistake_to")  
+    weight = models.FloatField()
