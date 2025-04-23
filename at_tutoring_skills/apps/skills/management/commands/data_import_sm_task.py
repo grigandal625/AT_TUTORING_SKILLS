@@ -24,9 +24,7 @@ class Command(BaseCommand):
         try:
             self.create_skills()
             # Импорт задач из JSON-файла в базу данных
-            stats = self.import_tasks_from_json(
-                data_dir / "generated_tasks_sm.json"
-            )
+            stats = self.import_tasks_from_json()
             # Вывод результатов
             self.stdout.write(
                 self.style.SUCCESS(
@@ -38,14 +36,9 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Ошибка: {str(e)}"))
 
-    def import_tasks_from_json(
-        self,
-        filename: str = data_dir / "generated_tasks_sm.json",
-    ) -> dict:
+    def import_tasks_from_json(self) -> dict:
         """
-        Импортирует задачи из JSON-файла в базу данных
-        Args:
-            filename: Путь к JSON-файлу
+        Импортирует задачи из JSON-файлов в базу данных
         Returns:
             dict: Статистика импорта {
                 'total': int,
@@ -55,65 +48,38 @@ class Command(BaseCommand):
             }
         """
         stats = {"total": 0, "created": 0, "updated": 0, "errors": 0}
-        skills_map = {}  # Для хранения соответствия code -> skill
+        skills_map = {skill.code: skill for skill in Skill.objects.all()}
 
-        try:
-            # Загрузка всех навыков из базы данных
-            for skill in Skill.objects.all():
-                skills_map[skill.code] = skill
+        # Загрузка заданий из файлов generated_tasks_*.json
+        tasks_files = data_dir.glob("sm_tasks_*.json")
 
-            # Удаление дубликатов задач перед импортом
-            self.remove_duplicate_tasks()
+        for tasks_file in tasks_files:
+            with open(tasks_file, "r", encoding="utf-8") as f:
+                tasks_data = json.load(f)
 
-            # Чтение JSON-файла
-            with open(filename, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                logger.debug(f"Загруженные данные: {data}")
-
-            # Проверка, что данные являются словарем
-            if not isinstance(data, dict):
-                logger.error("Данные в файле не являются словарем. Проверьте структуру JSON.")
-                stats["errors"] += 1
-                return stats
-
-            # Извлечение списка задач и имени варианта
-            tasks_data = data.get("tasks", [])
-            variant_name = data.get("variant_name")
-
-            if not tasks_data:
-                logger.error("В файле отсутствует список задач или он пуст.")
-                stats["errors"] += 1
-                return stats
-
+            variant_name = tasks_data.get("variant_name")
             if not variant_name:
-                logger.error("В файле отсутствует имя варианта.")
+                self.stdout.write(self.style.ERROR(f"Файл {tasks_file.name} не содержит variant_name, пропускаем"))
                 stats["errors"] += 1
-                return stats
+                continue
 
-            # Создание или получение варианта
+            description = tasks_data.get("description", "")
+
+            # Создаем/получаем вариант
             variant, created = Variant.objects.get_or_create(
-                name=variant_name, 
-                defaults={"kb_description": data.get("description", "")}
+                name=variant_name, defaults={"kb_description": description}
             )
-            variant.kb_description = data.get("description", "")
+            variant.kb_description = description
             variant.save()
-            
             action = "Создан" if created else "Обновлен"
             self.stdout.write(f"\n{action} вариант: {variant_name}")
 
-            stats["total"] = len(tasks_data)
-
-            for item in tasks_data:
+            # Загрузка заданий
+            for task_data in tasks_data.get("tasks", []):
                 try:
                     with transaction.atomic():
-                        # Проверка, что элемент является словарем
-                        if not isinstance(item, dict):
-                            logger.error(f"Некорректный элемент в данных: {item}")
-                            stats["errors"] += 1
-                            continue
-                        
                         # Определение типа задачи
-                        task_object = item.get("task_object")
+                        task_object = task_data.get("task_object")
                         if task_object == SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES:
                             task_name = "тип ресурса"
                         elif task_object == SUBJECT_CHOICES.SIMULATION_RESOURCES:
@@ -128,33 +94,25 @@ class Command(BaseCommand):
                             task_name = "Неизвестный тип"
 
                         # Подготовка данных задачи
-                        task_data = {
-                            "task_name": f'Создать {task_name} "{item.get("object_name")}"',
-                            "task_object": item.get("task_object"),
-                            "object_name": item.get("object_name"),
-                            "description": item.get("description"),
-                            "object_reference": item.get("object_reference", {}),
+                        prepared_task_data = {
+                            "task_name": f'Создать {task_name} "{task_data.get("object_name")}"',
+                            "task_object": task_data.get("task_object"),
+                            "object_name": task_data.get("object_name"),
+                            "description": task_data.get("description"),
+                            "object_reference": task_data.get("object_reference", {}),
                         }
 
                         # Создание или обновление задачи
                         task, created = Task.objects.update_or_create(
-                            object_name=item["object_name"], 
-                            defaults=task_data
+                            object_name=task_data["object_name"],
+                            defaults=prepared_task_data
                         )
-
-                        action = "Создано" if created else "Обновлено"
-                        self.stdout.write(f"  {action} задание: {task.task_name}")
-
-                        if created:
-                            stats["created"] += 1
-                        else:
-                            stats["updated"] += 1
 
                         # Связывание с вариантом
                         variant.task.add(task)
 
                         # Связывание с навыками
-                        skill_codes = item.get("skill_codes", [])
+                        skill_codes = task_data.get("skill_codes", [])
                         for code in skill_codes:
                             if code in skills_map:
                                 task.skills.add(skills_map[code])
@@ -165,14 +123,19 @@ class Command(BaseCommand):
                                 )
                                 stats["errors"] += 1
 
+                        action = "Создано" if created else "Обновлено"
+                        self.stdout.write(f"  {action} задание: {task.task_name}")
+
+                        if created:
+                            stats["created"] += 1
+                        else:
+                            stats["updated"] += 1
+                        stats["total"] += 1
+
                 except Exception as e:
                     stats["errors"] += 1
-                    logger.error(f"Ошибка обработки задачи {item.get('object_name', 'unknown')}: {str(e)}")
+                    logger.error(f"Ошибка обработки задачи {task_data.get('object_name', 'unknown')}: {str(e)}")
                     continue
-
-        except Exception as e:
-            logger.error(f"Ошибка чтения файла {filename}: {str(e)}")
-            stats["errors"] += 1
 
         return stats
 
