@@ -4,3 +4,5 @@ tmp.py
 __pycache__
 .mypy_cache
 *.sqlite3
+skills_graph.png
+skills_legend.png
