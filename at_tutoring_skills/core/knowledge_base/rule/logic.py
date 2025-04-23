@@ -30,6 +30,9 @@ class KBRuleServiceLogicLexic:
         errors_list = await cond.compare_conditions_deep(
             user_id, task_id, rule.condition, most_common, "rule", context, None
         )
+        if errors_list: 
+            for e in errors_list:
+                e.skills.append(1610)
 
         if rule.instructions:
             if rule_et.instructions:
@@ -42,7 +45,7 @@ class KBRuleServiceLogicLexic:
                             tip=f"Введено меньше условий ТО, чем требуется, в объекте {rule.id}\nрасположение: {place}",
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="rule",
-                            skills=[301],
+                            skills=[1620],
                         )
                     )
 
@@ -64,7 +67,7 @@ class KBRuleServiceLogicLexic:
                                 tip=f"Не найдено условие ТО {if_instr_et.ref.id}, в правиле {rule.id}\nрасположение: {place}",
                                 coefficients=KNOWLEDGE_COEFFICIENTS,
                                 entity_type="object",
-                                skills=[],
+                                skills=[1620],
                             )
                         )
                     if found:
@@ -76,6 +79,9 @@ class KBRuleServiceLogicLexic:
                         errors_list1 = await cond.compare_conditions_deep(
                             user_id, task_id, if_instr.value, most_common, "rule", context, None
                         )
+                        if errors_list1:
+                            for e in errors_list1:
+                                e.skills = [1620]
                         errors_list.extend(errors_list1)
             else:
                 errors_list.append(
@@ -85,7 +91,7 @@ class KBRuleServiceLogicLexic:
                         tip=f"Созданы лишние условия ТО в правиле {rule.id}\nрасположение: {context.full_path_list}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type="object",
-                        skills=[],
+                        skills=[1620],
                     )
                 )
 
@@ -100,7 +106,7 @@ class KBRuleServiceLogicLexic:
                             tip=f"Введено меньше условий ИНАЧЕ, чем требуется, в объекте {rule.id}\nрасположение: {place}",
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="rule",
-                            skills=[301],
+                            skills=[1630],
                         )
                     )
 
@@ -119,10 +125,10 @@ class KBRuleServiceLogicLexic:
                             to_logic_mistake(
                                 user_id=user_id,
                                 task_id=task_id,
-                                tip=f"Не найдено условие ТЕ {else_instr_et.ref.id}, в правиле {rule.id}\nрасположение: {place}",
+                                tip=f"Не найдено условие ИНАЧЕ {else_instr_et.ref.id}, в правиле {rule.id}\nрасположение: {place}",
                                 coefficients=KNOWLEDGE_COEFFICIENTS,
                                 entity_type="object",
-                                skills=[],
+                                skills=[1630],
                             )
                         )
                     if found:
@@ -134,6 +140,9 @@ class KBRuleServiceLogicLexic:
                         errors_list2 = await cond.compare_conditions_deep(
                             user_id, task_id, else_instr.value, most_common, "rule", context, None
                         )
+                        if errors_list2:
+                            for e in errors_list2:
+                                e.skills = [1630]
                         errors_list.extend(errors_list2)
             else:
                 errors_list.append(
@@ -143,7 +152,7 @@ class KBRuleServiceLogicLexic:
                         tip=f"Созданы лишние условия ИНАЧЕ в правиле {rule.id}\nрасположение: {context.full_path_list}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type="object",
-                        skills=[],
+                        skills=[1630],
                     )
                 )
         return errors_list

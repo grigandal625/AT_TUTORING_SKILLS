@@ -120,7 +120,7 @@ class ConditionComparisonService(CompareConditionsService):
                         f"получено: {user_condition.sign}\nРасположение: {path}",
                         coefficients=KNOWLEDGE_COEFFICIENTS,
                         entity_type=entity_type,
-                        skills=[],
+                        skills=[1700],
                     )
                 )
 
@@ -200,7 +200,7 @@ class ConditionComparisonService(CompareConditionsService):
                     f"получено: {type(user_operand.target).__name__}\nРасположение: {path}",
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type=entity_type,
-                    skills=[],
+                    skills=[1700],
                 )
             )
             return mistakes

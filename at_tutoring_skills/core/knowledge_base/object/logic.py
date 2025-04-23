@@ -52,7 +52,7 @@ class KBObjectServiceLogicLexic:
                     tip=f'Введено меньше атрибутов, чем требуется, в объекте "{obj.id}"\nрасположение: {place}',
                     coefficients=KNOWLEDGE_COEFFICIENTS,
                     entity_type="object",
-                    skills=[1301],
+                    skills=[1310],
                 )
             )
         else:
@@ -84,7 +84,7 @@ class KBObjectServiceLogicLexic:
                                     # Ошибка в типе "{type.id}", ожидалось значение "{check_et[j]}",  \nЗначения, которые написаны некорректно или являются лишними: {" ".join(check_failed)}  \nРасположение: {place}\n\n',
                                     coefficients=KNOWLEDGE_COEFFICIENTS,
                                     entity_type="object",
-                                    skills=[1300, 1302],
+                                    skills=[1311],
                                 )
                             )
                         break
@@ -112,7 +112,7 @@ class KBObjectServiceLogicLexic:
                             tip=f'Отсутствует атрибут "{f.id}"  \nАтрибуты, которые написаны некорректно или являются лишними: {" ".join(search_array)}  \nрасположение: {place}',
                             coefficients=KNOWLEDGE_COEFFICIENTS,
                             entity_type="object",
-                            skills=[1300, 1301],
+                            skills=[1310],
                         )
                     )
 
