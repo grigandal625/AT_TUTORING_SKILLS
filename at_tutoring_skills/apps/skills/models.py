@@ -51,6 +51,11 @@ class Skill(models.Model):
     def __str__(self):
         return self.name
 
+class SKillConnection(models.Model):
+    skill_from = models.ForeignKey(Skill, on_delete=models.CASCADE, null=True, default=None, related_name="skill_from")
+    skill_to = models.ForeignKey(Skill, on_delete=models.SET_NULL, null=True, default=None, related_name="skill_to")
+    weight = models.FloatField()
+
 
 class Task(models.Model):
     task_name = models.CharField(max_length=255)  # Название события
