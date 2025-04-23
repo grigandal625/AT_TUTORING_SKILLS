@@ -53,7 +53,7 @@ class ResourceService:
 
                 common_mistake = to_syntax_mistake(
                         user_id=user_id,
-                        tip=f"Синтаксическая ошибка при создании ресурса.",
+                        tip=f"Синтаксическая ошибка при создании ресурса.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="resource_type",
                         skills=[270],
@@ -159,7 +159,7 @@ class ResourceService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip="Указан неправильный тип ресурса.",
+                tip="Указан неправильный тип ресурса.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="resource",
                 skills=[231],
@@ -182,7 +182,7 @@ class ResourceService:
                 print(
                     f"Default value mismatch for attribute {attr.name}: provided={attr.value}, reference={attr_reference.value}"
                 )
-                tip = f"Недопустимое значение атрибута по умолчанию {attr.name}."
+                tip = f"Недопустимое значение атрибута по умолчанию {attr.name}.\n\n"
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,

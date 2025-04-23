@@ -40,7 +40,7 @@ class TemplateUsageService:
 
                 common_mistake = to_syntax_mistake(
                         user_id=user_id,
-                        tip=f"Синтаксическая ошибка при создании операции.",
+                        tip=f"Синтаксическая ошибка при создании операции.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="template_usage",
                 )
@@ -118,7 +118,7 @@ class TemplateUsageService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=None,
-                tip=f"Неверное значение образца операции. Ожидалось: {template_reference}.",
+                tip=f"Неверное значение образца операции. Ожидалось: {template_reference}.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="template_usage",
                 skills=[251],
@@ -160,7 +160,7 @@ class TemplateUsageService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=None,
-                    tip=f"Ресурс с идентификатором {arg} отсутствует в списке допустимых ресурсов.",
+                    tip=f"Ресурс с идентификатором {arg} отсутствует в списке допустимых ресурсов.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template_usage",
                     skills=[252],

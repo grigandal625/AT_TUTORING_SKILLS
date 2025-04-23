@@ -254,7 +254,7 @@ class ResourceTypeService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip=f"Отсутствует обязательный атрибут {attr_name}.",
+                tip=f"Отсутствует обязательный атрибут {attr_name}.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="resource_type",
                 skills=[222],

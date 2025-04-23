@@ -47,7 +47,7 @@ class FunctionService:
 
                 common_mistake = to_syntax_mistake(
                         user_id=user_id,
-                        tip=f"Синтаксическая ошибка при создании функции.",
+                        tip=f"Синтаксическая ошибка при создании функции.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="function",
                         skills=[270],
@@ -135,7 +135,7 @@ class FunctionService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip="Указан неправильный тип функции.",
+                tip="Указан неправильный тип функции.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="function",
                 skills=[262, 263],
@@ -150,7 +150,7 @@ class FunctionService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip="Тело функции не может быть пустым.",
+                tip="Тело функции не может быть пустым.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="function",
                 skills=[262, 263],
@@ -176,7 +176,7 @@ class FunctionService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip="Указано неправильное количество параметров.",
+                tip="Указано неправильное количество параметров.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="function",
                 skills=[261],
@@ -207,7 +207,7 @@ class FunctionService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Недопустимый тип параметра {param.name}.",
+                    tip=f"Недопустимый тип параметра {param.name}.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="function",
                     skills=[261],
