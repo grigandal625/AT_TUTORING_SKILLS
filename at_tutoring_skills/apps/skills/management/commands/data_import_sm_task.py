@@ -3,9 +3,9 @@ import logging
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.db.models import Count  # Импортируем Count
+from django.db.models import Count
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES, Skill
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES, SKillConnection, Skill
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import Variant
 from pathlib import Path
@@ -13,6 +13,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 commands_dir = Path(__file__).resolve().parent
+data_dir = commands_dir / "data_sm"
 
 class Command(BaseCommand):
     help = "Импортирует задачи из JSON-файла в базу данных"
@@ -21,9 +22,10 @@ class Command(BaseCommand):
         """Основной обработчик команды"""
         
         try:
+            self.create_skills()
             # Импорт задач из JSON-файла в базу данных
             stats = self.import_tasks_from_json(
-                commands_dir / "generated_tasks_sm.json"
+                data_dir / "generated_tasks_sm.json"
             )
             # Вывод результатов
             self.stdout.write(
@@ -32,12 +34,13 @@ class Command(BaseCommand):
                     f"Обновлено: {stats['updated']}. Ошибок: {stats['errors']}."
                 )
             )
+            self.create_connections_skills(filename=data_dir / "sm_skills_connections.json")
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Ошибка: {str(e)}"))
 
     def import_tasks_from_json(
         self,
-        filename: str = commands_dir / "generated_tasks_sm.json",
+        filename: str = data_dir / "generated_tasks_sm.json",
     ) -> dict:
         """
         Импортирует задачи из JSON-файла в базу данных
@@ -88,8 +91,15 @@ class Command(BaseCommand):
                 return stats
 
             # Создание или получение варианта
-            variant, _ = Variant.objects.get_or_create(name=variant_name)
-            logger.info(f"Создан или получен вариант: {variant.name}")
+            variant, created = Variant.objects.get_or_create(
+                name=variant_name, 
+                defaults={"kb_description": data.get("description", "")}
+            )
+            variant.kb_description = data.get("description", "")
+            variant.save()
+            
+            action = "Создан" if created else "Обновлен"
+            self.stdout.write(f"\n{action} вариант: {variant_name}")
 
             stats["total"] = len(tasks_data)
 
@@ -101,6 +111,8 @@ class Command(BaseCommand):
                             logger.error(f"Некорректный элемент в данных: {item}")
                             stats["errors"] += 1
                             continue
+                        
+                        # Определение типа задачи
                         task_object = item.get("task_object")
                         if task_object == SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES:
                             task_name = "тип ресурса"
@@ -115,26 +127,28 @@ class Command(BaseCommand):
                         else:
                             task_name = "Неизвестный тип"
 
-                        # Преобразование данных для модели Task
+                        # Подготовка данных задачи
                         task_data = {
-                            "task_name": f'Создать {task_name} "{item.get('object_name')}"',
+                            "task_name": f'Создать {task_name} "{item.get("object_name")}"',
                             "task_object": item.get("task_object"),
                             "object_name": item.get("object_name"),
                             "description": item.get("description"),
-                            "object_reference": item.get("object_reference", {}),  # Прямое использование JSON
+                            "object_reference": item.get("object_reference", {}),
                         }
 
                         # Создание или обновление задачи
                         task, created = Task.objects.update_or_create(
-                            object_name=item["object_name"], defaults=task_data
+                            object_name=item["object_name"], 
+                            defaults=task_data
                         )
+
+                        action = "Создано" if created else "Обновлено"
+                        self.stdout.write(f"  {action} задание: {task.task_name}")
 
                         if created:
                             stats["created"] += 1
-                            logger.info(f"Создана задача: {task.object_name}")
                         else:
                             stats["updated"] += 1
-                            logger.debug(f"Обновлена задача: {task.object_name}")
 
                         # Связывание с вариантом
                         variant.task.add(task)
@@ -144,9 +158,11 @@ class Command(BaseCommand):
                         for code in skill_codes:
                             if code in skills_map:
                                 task.skills.add(skills_map[code])
-                                logger.info(f"Задача {task.task_name} связана с навыком {skills_map[code].name}")
+                                self.stdout.write(f"  Связано с навыком: {skills_map[code].name}")
                             else:
-                                logger.warning(f"Навык с кодом {code} не найден для задачи {task.task_name}")
+                                self.stdout.write(
+                                    self.style.WARNING(f"  Навык с кодом {code} не найден для задания {task.task_name}")
+                                )
                                 stats["errors"] += 1
 
                 except Exception as e:
@@ -193,3 +209,76 @@ class Command(BaseCommand):
             except (json.JSONDecodeError, TypeError):
                 object_reference = task.object_reference  # Если данные уже словарь
             print(f"ID: {task.id}, Name: {task.task_name}, Object Reference: {object_reference}")
+
+    def create_skills(self, skills_file: str = data_dir / "sm_skills.json"):
+        skills_map = {}  # Для хранения соответствия code -> skill
+
+        if skills_file.exists():
+            with open(skills_file, "r", encoding="utf-8") as f:
+                skills_data = json.load(f)
+
+            for skill_data in skills_data.get("skills", []):
+                skill, created = Skill.objects.get_or_create(
+                    code=skill_data["code"], 
+                    defaults={"name": skill_data["name"], "group": skill_data["group"]}
+                )
+                skills_map[skill.code] = skill
+                action = "Создан" if created else "Обновлен"
+                self.stdout.write(f"{action} навык: {skill.name} (код: {skill.code})")
+
+    def create_connections_skills(self, filename: str = data_dir / "sm_skills_connections.json"):
+        if not filename.exists():
+            self.stdout.write(self.style.ERROR(f"File {filename} not found"))
+            return
+
+        with transaction.atomic():
+            # Load connections data
+            with open(filename, "r", encoding="utf-8") as f:
+                connections_data = json.load(f)
+
+            # Create a mapping of skill codes to Skill objects for faster lookup
+            skills_map = {skill.code: skill for skill in Skill.objects.all()}
+
+            created_count = 0
+            updated_count = 0
+            
+            self.stdout.write("\nЗагрузка связей между навыками...")
+
+            for item in connections_data:
+                skill_to_code = item['skill']
+                skill_to = skills_map.get(skill_to_code)
+                
+                if not skill_to:
+                    self.stdout.write(
+                        self.style.WARNING(f'  Навык с кодом {skill_to_code} не найден (пропускаем связи)')
+                    )
+                    continue
+
+                for skill_from_code, weight in zip(item['in_skill'], item['weights']):
+                    skill_from = skills_map.get(skill_from_code)
+                    
+                    if not skill_from:
+                        self.stdout.write(
+                            self.style.WARNING(f'  Навык с кодом {skill_from_code} не найден (связь с {skill_to_code})')
+                        )
+                        continue
+
+                    # Создаем или обновляем связь
+                    connection, created = SKillConnection.objects.update_or_create(
+                        skill_from=skill_from,
+                        skill_to=skill_to,
+                        defaults={'weight': weight}
+                    )
+
+                    if created:
+                        created_count += 1
+                        self.stdout.write(
+                            f"  Создана связь: {skill_from_code} -> {skill_to_code} (вес: {weight})")
+                    else:
+                        updated_count += 1
+                        self.stdout.write(
+                            f"  Обновлена связь: {skill_from_code} -> {skill_to_code} (новый вес: {weight})")
+
+            self.stdout.write(f"  Создано {created_count} новых связей")
+            self.stdout.write(f"  Обновлено {updated_count} существующих связей")
+            self.stdout.write(self.style.SUCCESS("Загрузка связей между навыками завершена!"))
