@@ -11,9 +11,10 @@ from .models import Variant
 
 @admin.register(Skill)
 class SkillAdmin(ModelAdmin):
-    list_display = ("id", "name", "get_group_display")
+    list_display = ("id", "name", "get_group_display", "code")
     list_filter = ("group",)
     search_fields = ("name",)
+    list_select_related = ("variant",)
 
     def get_group_display(self, obj):
         return obj.get_group_display()
@@ -43,7 +44,7 @@ class TaskAdmin(ModelAdmin):
 class VariantAdmin(ModelAdmin):
     list_display = ("id", "name", "display_tasks")
     search_fields = ("name",)
-    filter_horizontal = ("task",)
+    # filter_horizontal = ("task",)
 
     def display_tasks(self, obj):
         return ", ".join([task.task_name for task in obj.task.all()])

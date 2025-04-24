@@ -25,7 +25,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             text = None
-            file_name = "TrafficAccidentsKB_test"
+            file_name = "демонстрация"
             with open(
                 f"at_tutoring_skills/apps/skills/management/commands/{file_name}.txt", "r", encoding="utf-8"
             ) as f:

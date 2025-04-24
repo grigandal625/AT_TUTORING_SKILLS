@@ -96,22 +96,23 @@ class Command(BaseCommand):
                         # Подготовка данных задачи
                         prepared_task_data = {
                             "task_name": f'Создать {task_name} "{task_data.get("object_name")}"',
-                            "task_object": task_data.get("task_object"),
                             "object_name": task_data.get("object_name"),
                             "description": task_data.get("description"),
                             "object_reference": task_data.get("object_reference", {}),
+                            "variant": variant,  # Добавляем связь через ForeignKey
                         }
 
                         # Создание или обновление задачи
+                        # Теперь ищем по object_name И variant
                         task, created = Task.objects.update_or_create(
                             object_name=task_data["object_name"],
+                            variant=variant,
+                            task_object=task_data["task_object"],
                             defaults=prepared_task_data
                         )
 
-                        # Связывание с вариантом
-                        variant.task.add(task)
-
-                        # Связывание с навыками
+                        # Обновляем связи с навыками (очищаем старые и добавляем новые)
+                        task.skills.clear()
                         skill_codes = task_data.get("skill_codes", [])
                         for code in skill_codes:
                             if code in skills_map:
@@ -124,7 +125,7 @@ class Command(BaseCommand):
                                 stats["errors"] += 1
 
                         action = "Создано" if created else "Обновлено"
-                        self.stdout.write(f"  {action} задание: {task.task_name}")
+                        self.stdout.write(f"  {action} задание: {task.task_name} (вариант: {variant_name})")
 
                         if created:
                             stats["created"] += 1
@@ -141,20 +142,23 @@ class Command(BaseCommand):
 
     def remove_duplicate_tasks(self):
         """
-        Удаляет дубликаты задач на основе поля object_name.
-        Оставляет только одну задачу для каждого уникального значения object_name.
+        Удаляет дубликаты задач на основе полей object_name и variant.
+        Оставляет только одну задачу для каждой уникальной комбинации.
         """
         try:
-            # Найти все дубликаты
-            duplicates = Task.objects.values("object_name").annotate(count=Count("id")).filter(count__gt=1)
+            # Найти все дубликаты по object_name и variant
+            duplicates = Task.objects.values("object_name", "variant").annotate(
+                count=Count("id")
+            ).filter(count__gt=1)
 
             for duplicate in duplicates:
                 object_name = duplicate["object_name"]
-                tasks = Task.objects.filter(object_name=object_name)
+                variant_id = duplicate["variant"]
+                tasks = Task.objects.filter(object_name=object_name, variant_id=variant_id)
                 # Оставить только одну задачу, остальные удалить
                 for task in tasks[1:]:
                     task.delete()
-                    logger.info(f"Удален дубликат задачи: {object_name}")
+                    logger.info(f"Удален дубликат задачи: {object_name} (вариант ID: {variant_id})")
 
             logger.info("Проверка и удаление дубликатов завершено.")
 
@@ -165,13 +169,13 @@ class Command(BaseCommand):
         """
         Выводит все задачи из базы данных в читаемом формате
         """
-        for task in Task.objects.all():
+        for task in Task.objects.select_related('variant').all():
             try:
                 # Преобразуем JSON-строку обратно в словарь
                 object_reference = task.object_reference
             except (json.JSONDecodeError, TypeError):
                 object_reference = task.object_reference  # Если данные уже словарь
-            print(f"ID: {task.id}, Name: {task.task_name}, Object Reference: {object_reference}")
+            print(f"ID: {task.id}, Name: {task.task_name}, Variant: {task.variant.name}, Object Reference: {object_reference}")
 
     def create_skills(self, skills_file: str = data_dir / "sm_skills.json"):
         skills_map = {}  # Для хранения соответствия code -> skill

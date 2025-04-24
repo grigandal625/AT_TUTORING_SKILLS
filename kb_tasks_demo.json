@@ -1,0 +1,898 @@
+{
+    "variant_name": "Управление медицинскими силами и средствами при крупных дорожно-транспортных происшествиях(демонстрационный_2)",
+    "description": "**Проблемная область** Управление медицинскими силами и средствами при крупных дорожно-транспортных происшествиях\n\nВ данной проблемной области выделены следующие задачи:\n\n1. Ф-задача типа мониторинг: Задача мониторинга конкретного участка федеральной трассы  РФ и сигнализация о ДТП, включая первичную оценку типа ДТП (количество пострадавших и размер ДТП).\n2. НФ-задача типа планирование: Задача планирования мероприятий по устранению последствий ДТП, включает в себя разработку оптимального плана прибытия машины скорой помощи, которая должна быть оснащена необходимым набором оборудования и обеспечена квалифицированными медработниками.\n3. НФ-задача типа диагностика: Задача диагностики пострадавших в ДТП, включает в себя определение степени тяжести полученных травм и составление диагностического образа. Это позволяет медицинскому персоналу оценить состояние пострадавших и принять необходимые меры для оказания им медицинской помощи.\n4. НФ-задача типа планирование: Задача планирования мероприятий по госпитализации конкретного пострадавшего в ближайшее ЛПУ с подходящими характеристиками относительно типа и тяжести травмы.\n5. Ф-задача типа мониторинг: Задача мониторинга маршрутов машин скорой помощи, включает в себя мониторинг процесса госпитализации и состояния пострадавших.\n\nЗадачи типа «планирование» учитывают изменение состояния ситуации на дороге в реальном времени, поэтому НФ-задачи типа «планирование» могут быть дополнены темпоральными правилами. \n\nК НФ-задачам данного типа в рамках данной ПрО относятся:\n\n- задача планирования мероприятий по устранению последствий ДТП\n- задача планирования мероприятий по госпитализации конкретного пострадавшего в ближайшее ЛПУ\n\nДля решения данных задач неоьходимо построить фрагмент темпоральной БЗ на расширенном ЯПЗ.",
+    "tasks":[
+    {
+        "task_name": "Создать тип Тип_машины",
+        "task_object": 1,
+        "object_name": "Тип_машины",
+        "description": "",
+        "object_reference": {
+            "tag": "type",
+            "id": "Тип_машины",
+            "desc": "Тип_машины",
+            "meta": "string",
+            "values": [
+                "A",
+                "B",
+                "C"
+            ]
+        }
+    },
+    {
+        "task_name": "Создать тип Тип_бригады",
+        "task_object": 1,
+        "object_name": "Тип_бригады",
+        "description": "",
+        "object_reference": {
+            "tag": "type",
+            "id": "Тип_бригады",
+            "desc": "Тип_бригады",
+            "meta": "string",
+            "values": [
+                "A",
+                "B",
+                "C"
+            ]
+        }
+    },
+    {
+        "task_name": "Создать тип Состояние",
+        "task_object": 1,
+        "object_name": "Состояние",
+        "description": "",
+        "object_reference": {
+            "tag": "type",
+            "id": "Состояние",
+            "desc": "Состояние",
+            "meta": "string",
+            "values": [
+                "Свободна",
+                "Прибыла",
+                "Занята",
+                "Везет",
+                "В_ЛПУ"
+            ]
+        }
+    },
+    {
+        "task_name": "Создать тип Количество",
+        "task_object": 1,
+        "object_name": "Количество",
+        "description": "",
+        "object_reference": {
+            "tag": "type",
+            "id": "Количество",
+            "desc": "Количество",
+            "meta": "number",
+            "from": 0,
+            "to": 1000
+        }
+    },
+    {
+        "task_name": "Создать тип Степень_тяжести",
+        "task_object": 1,
+        "object_name": "Степень_тяжести",
+        "description": "",
+        "object_reference": {
+            "tag": "type",
+            "id": "Степень_тяжести",
+            "desc": "Степень_тяжести",
+            "meta": "string",
+            "values": [
+                "Легкая",
+                "Средняя",
+                "Тяжелая",
+                "Очень_тяжелая"
+            ]
+        }
+    },
+    {
+        "task_name": "Создать тип Тип_травмы",
+        "task_object": 1,
+        "object_name": "Тип_травмы",
+        "description": "",
+        "object_reference": {
+            "tag": "type",
+            "id": "Тип_травмы",
+            "desc": "Тип_травмы",
+            "meta": "string",
+            "values": [
+                "Ожоговая",
+                "Реанимация",
+                "Хирургия",
+                "Нейрохирургия"
+            ]
+        }
+    },
+    {
+        "task_name": "Создать объект Машина_1",
+        "task_object": 2,
+        "object_name": "Машина_1",
+        "description": "",
+        "object_reference": {
+            "tag": "class",
+            "id": "Машина_1",
+            "group": "ГРУППА1",
+            "desc": "Класс для Машина_1",
+            "properties": [
+                {
+                    "tag": "property",
+                    "id": "Тип_машины",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Тип_машины",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Тип_машины",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                },
+                {
+                    "tag": "property",
+                    "id": "Тип_бригады",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Тип_бригады",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Тип_бригады",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                },
+                {
+                    "tag": "property",
+                    "id": "Состояние",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Состояние",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Состояние",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                }
+            ],
+            "rules": []
+        }
+    },
+    {
+        "task_name": "Создать объект ДТП_1",
+        "task_object": 2,
+        "object_name": "ДТП_1",
+        "description": "",
+        "object_reference": {
+            "tag": "class",
+            "id": "ДТП_1",
+            "group": "ГРУППА1",
+            "desc": "Класс для ДТП_1",
+            "properties": [
+                {
+                    "tag": "property",
+                    "id": "Количество_ДТП",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Количество",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Количество_ДТП",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                },
+                {
+                    "tag": "property",
+                    "id": "Количество_пострадавших",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Количество",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Количество_пострадавших",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                }
+            ],
+            "rules": []
+        }
+    },
+    {
+        "task_name": "Создать объект Пострадавший_1",
+        "task_object": 2,
+        "object_name": "Пострадавший_1",
+        "description": "",
+        "object_reference": {
+            "tag": "class",
+            "id": "Пострадавший_1",
+            "group": "ГРУППА1",
+            "desc": "Класс для Пострадавший_1",
+            "properties": [
+                {
+                    "tag": "property",
+                    "id": "Приоритет_пострадавшего",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Количество",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Приоритет_пострадавшего",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                },
+                {
+                    "tag": "property",
+                    "id": "Степень_тяжести",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Степень_тяжести",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Степень_тяжести",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                },
+                {
+                    "tag": "property",
+                    "id": "Тип_травмы",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Тип_травмы",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Тип_травмы",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                }
+            ],
+            "rules": []
+        }
+    },
+    {
+        "task_name": "Создать интервал Устранение_подследствий_ДТП",
+        "task_object": 4,
+        "object_name": "Устранение_подследствий_ДТП",
+        "description": "",
+        "object_reference": {
+            "tag": "interval",
+            "id": "Устранение_подследствий_ДТП",
+            "group": "ИНТЕРВАЛ",
+            "desc": "Устранение_подследствий_ДТП",
+            "open": {
+                "tag": "and",
+                "left": {
+                    "tag": "ge",
+                    "left": {
+                        "tag": "ref",
+                        "id": "ДТП_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Количество_ДТП",
+                            "ref": null
+                        }
+                    },
+                    "right": {
+                        "tag": "value",
+                        "content": 1
+                    }
+                },
+                "right": {
+                    "tag": "ne",
+                    "left": {
+                        "tag": "ref",
+                        "id": "ДТП_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Количество_пострадавших",
+                            "ref": null
+                        }
+                    },
+                    "right": {
+                        "tag": "value",
+                        "content": 0
+                    }
+                }
+            },
+            "close": {
+                "tag": "or",
+                "left": {
+                    "tag": "lt",
+                    "left": {
+                        "tag": "ref",
+                        "id": "ДТП_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Количество_ДТП",
+                            "ref": null
+                        }
+                    },
+                    "right": {
+                        "tag": "value",
+                        "content": 1
+                    }
+                },
+                "right": {
+                    "tag": "eq",
+                    "left": {
+                        "tag": "ref",
+                        "id": "ДТП_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Количество_пострадавших",
+                            "ref": null
+                        }
+                    },
+                    "right": {
+                        "tag": "value",
+                        "content": 0
+                    }
+                }
+            }
+        }
+    },
+    {
+        "task_name": "Создать событие Машина1_прибыла_на_ДТП1",
+        "task_object": 3,
+        "object_name": "Машина1_прибыла_на_ДТП1",
+        "description": "",
+        "object_reference": {
+            "tag": "event",
+            "id": "Машина1_прибыла_на_ДТП1",
+            "group": "СОБЫТИЕ",
+            "desc": "Машина1_прибыла_на_ДТП1",
+            "occurance_condition": {
+                "tag": "eq",
+                "left": {
+                    "tag": "ref",
+                    "id": "Машина_1",
+                    "ref": {
+                        "tag": "ref",
+                        "id": "Состояние",
+                        "ref": null
+                    }
+                },
+                "right": {
+                    "tag": "value",
+                    "content": "Прибыла"
+                }
+            }
+        }
+    },
+    {
+        "task_name": "Создать правило Отправить_М1_на_ДТП1",
+        "task_object": 5,
+        "object_name": "Отправить_М1_на_ДТП1",
+        "description": "",
+        "object_reference": {
+            "tag": "rule",
+            "id": "Отправить_М1_на_ДТП1",
+            "condition": {
+                "tag": "gt",
+                "left": {
+                    "tag": "ref",
+                    "id": "ДТП_1",
+                    "ref": {
+                        "tag": "ref",
+                        "id": "Количество_пострадавших",
+                        "ref": null,
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "non_factor": {
+                        "tag": "with",
+                        "belief": 50,
+                        "probability": 100,
+                        "accuracy": 0
+                    }
+                },
+                "right": {
+                    "tag": "value",
+                    "content": 0,
+                    "non_factor": {
+                        "tag": "with",
+                        "belief": 50,
+                        "probability": 100,
+                        "accuracy": 0
+                    }
+                },
+                "non_factor": {
+                    "tag": "with",
+                    "belief": 50,
+                    "probability": 100,
+                    "accuracy": 0
+                }
+            },
+            "instructions": [
+                {
+                    "tag": "assign",
+                    "non_factor": {
+                        "tag": "with",
+                        "belief": 50,
+                        "probability": 100,
+                        "accuracy": 0
+                    },
+                    "ref": {
+                        "tag": "ref",
+                        "id": "Машина_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Состояние",
+                            "ref": null,
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "value": {
+                        "tag": "value",
+                        "content": "Занята",
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    }
+                }
+            ],
+            "else_instructions": [
+                {
+                    "tag": "assign",
+                    "non_factor": {
+                        "tag": "with",
+                        "belief": 50,
+                        "probability": 100,
+                        "accuracy": 0
+                    },
+                    "ref": {
+                        "tag": "ref",
+                        "id": "Машина_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Состояние",
+                            "ref": null,
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "value": {
+                        "tag": "value",
+                        "content": "Свободна",
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    }
+                }
+            ],
+            "meta": "simple",
+            "period": null,
+            "desc": "Отправить_М1_на_ДТП1"
+        }
+    },
+    {
+        "task_name": "Создать правило Машина1_забрала_пострадавшего",
+        "task_object": 5,
+        "object_name": "Машина1_забрала_пострадавшего",
+        "description": "",
+        "object_reference": {
+            "tag": "rule",
+            "id": "Машина1_забрала_пострадавшего",
+            "condition": {
+                "tag": "and",
+                "left": {
+                    "tag": "d",
+                    "left": {
+                        "tag": "ref",
+                        "id": "Машина1_прибыла_на_ДТП1",
+                        "index": null,
+                        "meta": "allen_reference"
+                    },
+                    "right": {
+                        "tag": "ref",
+                        "id": "Устранение_подследствий_ДТП",
+                        "index": null,
+                        "meta": "allen_reference"
+                    }
+                },
+                "right": {
+                    "tag": "and",
+                    "left": {
+                        "tag": "and",
+                        "left": {
+                            "tag": "eq",
+                            "left": {
+                                "tag": "ref",
+                                "id": "Машина_1",
+                                "ref": {
+                                    "tag": "ref",
+                                    "id": "Тип_бригады",
+                                    "ref": null,
+                                    "non_factor": {
+                                        "tag": "with",
+                                        "belief": 50,
+                                        "probability": 100,
+                                        "accuracy": 0
+                                    }
+                                },
+                                "non_factor": {
+                                    "tag": "with",
+                                    "belief": 50,
+                                    "probability": 100,
+                                    "accuracy": 0
+                                }
+                            },
+                            "right": {
+                                "tag": "value",
+                                "content": "A",
+                                "non_factor": {
+                                    "tag": "with",
+                                    "belief": 50,
+                                    "probability": 100,
+                                    "accuracy": 0
+                                }
+                            },
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "right": {
+                            "tag": "eq",
+                            "left": {
+                                "tag": "ref",
+                                "id": "Машина_1",
+                                "ref": {
+                                    "tag": "ref",
+                                    "id": "Тип_машины",
+                                    "ref": null,
+                                    "non_factor": {
+                                        "tag": "with",
+                                        "belief": 50,
+                                        "probability": 100,
+                                        "accuracy": 0
+                                    }
+                                },
+                                "non_factor": {
+                                    "tag": "with",
+                                    "belief": 50,
+                                    "probability": 100,
+                                    "accuracy": 0
+                                }
+                            },
+                            "right": {
+                                "tag": "value",
+                                "content": "A",
+                                "non_factor": {
+                                    "tag": "with",
+                                    "belief": 50,
+                                    "probability": 100,
+                                    "accuracy": 0
+                                }
+                            },
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "right": {
+                        "tag": "and",
+                        "left": {
+                            "tag": "eq",
+                            "left": {
+                                "tag": "ref",
+                                "id": "Пострадавший_1",
+                                "ref": {
+                                    "tag": "ref",
+                                    "id": "Приоритет_пострадавшего",
+                                    "ref": null,
+                                    "non_factor": {
+                                        "tag": "with",
+                                        "belief": 50,
+                                        "probability": 100,
+                                        "accuracy": 0
+                                    }
+                                },
+                                "non_factor": {
+                                    "tag": "with",
+                                    "belief": 50,
+                                    "probability": 100,
+                                    "accuracy": 0
+                                }
+                            },
+                            "right": {
+                                "tag": "value",
+                                "content": 1,
+                                "non_factor": {
+                                    "tag": "with",
+                                    "belief": 50,
+                                    "probability": 100,
+                                    "accuracy": 0
+                                }
+                            },
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "right": {
+                            "tag": "eq",
+                            "left": {
+                                "tag": "ref",
+                                "id": "Пострадавший_1",
+                                "ref": {
+                                    "tag": "ref",
+                                    "id": "Степень_тяжести",
+                                    "ref": null,
+                                    "non_factor": {
+                                        "tag": "with",
+                                        "belief": 50,
+                                        "probability": 100,
+                                        "accuracy": 0
+                                    }
+                                },
+                                "non_factor": {
+                                    "tag": "with",
+                                    "belief": 50,
+                                    "probability": 100,
+                                    "accuracy": 0
+                                }
+                            },
+                            "right": {
+                                "tag": "value",
+                                "content": "Очень_тяжелая",
+                                "non_factor": {
+                                    "tag": "with",
+                                    "belief": 50,
+                                    "probability": 100,
+                                    "accuracy": 0
+                                }
+                            },
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "non_factor": {
+                        "tag": "with",
+                        "belief": 50,
+                        "probability": 100,
+                        "accuracy": 0
+                    }
+                },
+                "non_factor": {
+                    "tag": "with",
+                    "belief": 50,
+                    "probability": 100,
+                    "accuracy": 0
+                }
+            },
+            "instructions": [
+                {
+                    "tag": "assign",
+                    "non_factor": {
+                        "tag": "with",
+                        "belief": 50,
+                        "probability": 100,
+                        "accuracy": 0
+                    },
+                    "ref": {
+                        "tag": "ref",
+                        "id": "ДТП_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Количество_пострадавших",
+                            "ref": null,
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "value": {
+                        "tag": "sub",
+                        "left": {
+                            "tag": "ref",
+                            "id": "ДТП_1",
+                            "ref": {
+                                "tag": "ref",
+                                "id": "Количество_пострадавших",
+                                "ref": null,
+                                "non_factor": {
+                                    "tag": "with",
+                                    "belief": 50,
+                                    "probability": 100,
+                                    "accuracy": 0
+                                }
+                            },
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "right": {
+                            "tag": "value",
+                            "content": 1,
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    }
+                },
+                {
+                    "tag": "assign",
+                    "non_factor": {
+                        "tag": "with",
+                        "belief": 50,
+                        "probability": 100,
+                        "accuracy": 0
+                    },
+                    "ref": {
+                        "tag": "ref",
+                        "id": "Машина_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Состояние",
+                            "ref": null,
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "value": {
+                        "tag": "value",
+                        "content": "Везет",
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    }
+                },
+                {
+                    "tag": "assign",
+                    "non_factor": {
+                        "tag": "with",
+                        "belief": 50,
+                        "probability": 100,
+                        "accuracy": 0
+                    },
+                    "ref": {
+                        "tag": "ref",
+                        "id": "Пострадавший_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Приоритет_пострадавшего",
+                            "ref": null,
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "value": {
+                        "tag": "value",
+                        "content": 0,
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    }
+                }
+            ],
+            "else_instructions": null,
+            "meta": "simple",
+            "period": null,
+            "desc": "Машина1_забрала_пострадавшего"
+        }
+    }
+]
+}

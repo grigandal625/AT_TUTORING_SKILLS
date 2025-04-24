@@ -58,20 +58,37 @@ class Command(BaseCommand):
 
                 # Загрузка заданий
                 for task_data in tasks_data.get("tasks", []):
+                    # Ищем задание с таким именем И вариантом
                     task, created = Task.objects.get_or_create(
-                        task_name=task_data["task_name"],
+                        object_name=task_data["object_name"],
+                        variant=variant,  # Добавляем вариант в условия поиска
+                        task_object=task_data["task_object"],
                         defaults={
-                            "task_object": task_data["task_object"],
-                            "object_name": task_data["object_name"],
+                            "task_name": task_data["task_name"],
                             "description": task_data["description"],
                             "object_reference": task_data.get("object_reference"),
                         },
                     )
 
-                    # Связывание с вариантом
-                    variant.task.add(task)
+                    # Если задание уже существовало, но параметры изменились - обновляем
+                    if not created:
+                        updated = False
+                        if task.task_name != task_data["task_name"]:
+                            task.task_name = task_data["task_name"]
+                            updated = True
+                        if task.description != task_data["description"]:
+                            task.description = task_data["description"]
+                            updated = True
+                        if task.object_reference != task_data.get("object_reference"):
+                            task.object_reference = task_data.get("object_reference")
+                            updated = True
+                        
+                        if updated:
+                            task.save()
+                            self.stdout.write(f"  Обновлено задание: {task.task_name}")
 
-                    # Связывание с навыками
+                    # Связывание с навыками (очищаем старые связи и добавляем новые)
+                    task.skills.clear()
                     for code in task_data.get("skill_codes", []):
                         if code in skills_map:
                             task.skills.add(skills_map[code])
@@ -81,8 +98,8 @@ class Command(BaseCommand):
                                 self.style.WARNING(f"  Навык с кодом {code} не найден для задания {task.task_name}")
                             )
 
-                    action = "Создано" if created else "Обновлено"
-                    self.stdout.write(f"  {action} задание: {task.task_name}")
+                    action = "Создано" if created else "Обновлено" if updated else "Без изменений"
+                    self.stdout.write(f"  {action} задание: {task.task_name} (вариант: {variant_name})")
 
             # 3. Загрузка связей между навыками (без удаления существующих)
             connections_file = data_dir / "kb_skills_connections.json"
