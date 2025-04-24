@@ -16,6 +16,8 @@ from at_tutoring_skills.core.knowledge_base.type.service import KBTypeService
 from at_tutoring_skills.core.task.service import TaskService
 from at_tutoring_skills.core.task.skill_service import SkillService
 from at_tutoring_skills.core.task.transitions import TransitionsService
+from django.urls import reverse
+from django.http import QueryDict
 
 
 class ATTutoringKBSkills(ATComponent):
@@ -61,6 +63,8 @@ class ATTutoringKBSkills(ATComponent):
         msg = await self.task_service.get_variant_tasks_description(
             user, skip_completed=False, task_object=SUBJECT_CHOICES.KB_TYPE,
         )
+        await self.task_service.create_user_skill_connection(user)
+        await self.task_service.create_task_user_entries(user)
 
         hint2 = await self.task_service.get_variant_tasks_description(
             user,
@@ -77,10 +81,27 @@ class ATTutoringKBSkills(ATComponent):
 
         variant = await self.task_service.get_variant(user.user_id)
 
+        full_end_query = QueryDict(mutable=True)
+        full_end_query.setlist('task_object', [
+                SUBJECT_CHOICES.KB_TYPE,
+                SUBJECT_CHOICES.KB_OBJECT,
+                SUBJECT_CHOICES.KB_EVENT,
+                SUBJECT_CHOICES.KB_INTERVAL,
+                SUBJECT_CHOICES.KB_RULE,
+            ])
+        full_end_query.setlist("as_initial", [True])
+
+        end_query = QueryDict(mutable=True)
+        full_end_query.setlist('task_objetc', [SUBJECT_CHOICES.KB_TYPE])
+        
         if event == "knowledgeBase/update":
             return {
                 "msg": msg,
                 "hint": msg,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "full_skills_url_end": '&' + full_end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
                 "kb_id": data["result"]["id"],
                 "hint2": hint2,
                 "desc": variant.kb_description,
@@ -89,6 +110,9 @@ class ATTutoringKBSkills(ATComponent):
             return {
                 "msg": msg,
                 "hint": msg,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
                 "kb_id": data["result"]["knowledgeBase"]["id"],
                 "hint2": hint2,
                 "desc": variant.kb_description,
@@ -121,6 +145,12 @@ class ATTutoringKBSkills(ATComponent):
             user, skip_completed=False, task_object=task_object
         )
 
+        if not isinstance(task_object, list):
+            task_object = [task_object]
+
+        end_query = QueryDict(mutable=True)
+        end_query.setlist('task_object', task_object)
+
         return {
             "status": "error",
             "message": f"Обнаружены ошибки: {errors_message}",
@@ -128,6 +158,9 @@ class ATTutoringKBSkills(ATComponent):
             "url": errors_message,
             "hint": tasks,
             "skills": skills,
+            "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+            "skills_url_end": '&' + end_query.urlencode(),
+            "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
         }
 
     @authorized_method
@@ -181,18 +214,35 @@ class ATTutoringKBSkills(ATComponent):
                 )
                 skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
 
+                end_query = QueryDict(mutable=True)
+                end_query.setlist('task_object', [task_object])
+
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
                     "hint": tasks,
                     "skills": skills,
+                    "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                    "skills_url_end": '&' + end_query.urlencode(),
+                    "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
                 }
         else:
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-            return {"msg": "Задание не найдено,  продолжайте выполнение работы", "stage_done": False, "hint": tasks}
+            
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+
+            return {
+                "msg": "Задание не найдено, продолжайте выполнение работы", 
+                "stage_done": False, 
+                "hint": tasks,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
+            }
 
     @authorized_method
     async def handle_kb_type_duplicated(self, event: str, data: dict, auth_token: str):
@@ -319,18 +369,35 @@ class ATTutoringKBSkills(ATComponent):
                 )
                 skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
 
+                end_query = QueryDict(mutable=True)
+                end_query.setlist('task_object', [task_object])
+
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
                     "hint": tasks,
                     "skills": skills,
+                    "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                    "skills_url_end": '&' + end_query.urlencode(),
+                    "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
                 }
         else:
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
-            return {"msg": "обучаемый успешно выполнил задание", "hint": tasks, "skills": skills}
+
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+
+            return {
+                "msg": "Задание не найдено. Продолжайте выполнение.", 
+                "hint": tasks, 
+                "skills": skills,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
+            }
 
     @authorized_method
     async def handle_kb_object_deleted(self, event: str, data: dict, auth_token: str):
@@ -395,22 +462,35 @@ class ATTutoringKBSkills(ATComponent):
                 )
                 skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
 
+                end_query = QueryDict(mutable=True)
+                end_query.setlist('task_object', [task_object])
+
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
                     "hint": tasks,
                     "skills": skills,
+                    "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                    "skills_url_end": '&' + end_query.urlencode(),
+                    "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
                 }
         else:
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+
             return {
-                "msg": "Задание не найдено,  продолжайте выполнение работы",
+                "msg": "Задание не найдено, продолжайте выполнение работы",
                 "stage_done": False,
                 "hint": tasks,
                 "skills": skills,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
 
     @authorized_method
@@ -492,22 +572,35 @@ class ATTutoringKBSkills(ATComponent):
                 )
                 skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
 
+                end_query = QueryDict(mutable=True)
+                end_query.setlist('task_object', [task_object])
+
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
                     "hint": tasks,
                     "skills": skills,
+                    "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                    "skills_url_end": '&' + end_query.urlencode(),
+                    "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
                 }
         else:
             tasks = await self.task_service.get_variant_tasks_description(
                 user, skip_completed=False, task_object=task_object
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+            
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+            
             return {
-                "msg": "Задание не найдено,  продолжайте выполнение работы",
+                "msg": "Задание не найдено, продолжайте выполнение работы",
                 "stage_done": False,
                 "hint": tasks,
                 "skills": skills,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
 
     @authorized_method
@@ -598,7 +691,7 @@ class ATTutoringKBSkills(ATComponent):
 
                 if stage:
                     await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
-                    task_object = None
+                    task_object = [SUBJECT_CHOICES.KB_TYPE, SUBJECT_CHOICES.KB_OBJECT, SUBJECT_CHOICES.KB_EVENT, SUBJECT_CHOICES.KB_INTERVAL, SUBJECT_CHOICES.KB_RULE]
                     knowledge_base = data["result"]["knowledge_base"]
                     kb = await self.exec_external_method(
                         "ATKRLEditor",
@@ -611,12 +704,19 @@ class ATTutoringKBSkills(ATComponent):
                     user, skip_completed=False, task_object=task_object
                 )
                 skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+
+                end_query = QueryDict(mutable=True)
+                end_query.setlist('task_object', task_object if isinstance(task_object, list) else [task_object])
+
                 return {
                     "msg": "обучаемый успешно выполнил задание",
                     "stage_done": stage,
                     "hint": tasks,
                     "skills": skills,
                     "kb": kb,
+                    "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                    "skills_url_end": '&' + end_query.urlencode(),
+                    "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
                 }
         else:
             tasks = await self.task_service.get_variant_tasks_description(

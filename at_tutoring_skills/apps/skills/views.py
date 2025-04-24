@@ -40,6 +40,7 @@ class UserViewSet(viewsets.GenericViewSet):
         self.kwargs = {"user_id": self.user_id}
         user: User = await self.aget_object()
         task_object = self.serializer.data.get('task_object')
+        as_initial = self.serializer.data.get('as_initial', False)
 
         service = SkillService()
         user_skills_list = await service.process_and_get_skills(user, task_object)
@@ -56,7 +57,7 @@ class UserViewSet(viewsets.GenericViewSet):
                 pk=user_skill.pk, 
                 user_id=user_skill.user_id, 
                 skill_id=user_skill.skill_id,
-                mark=user_skill.mark,
+                mark=user_skill.mark if not as_initial else 0,
             ))
             dto_skills.append(
                 dto.Skill(

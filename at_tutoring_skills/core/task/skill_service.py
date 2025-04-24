@@ -1,7 +1,6 @@
 from typing import List, Dict, Optional, Union
 from asgiref.sync import sync_to_async
 from django.db.models import F, Sum, Q
-from django.contrib.auth import get_user_model
 from at_tutoring_skills.apps.skills.models import (
     User, Skill, UserSkill, SKillConnection, Task, SUBJECT_CHOICES
 )
@@ -57,7 +56,7 @@ class SkillService:
     # Методы для работы с целевыми навыками (skill_to)
     @sync_to_async
     def _get_target_skills(self):
-        return list(Skill.objects.filter(skill_to__isnull=False).distinct())
+        return list(Skill.objects.filter(inputs__isnull=False).distinct())
 
     async def get_target_skills(self) -> List[Skill]:
         return await self._get_target_skills()
@@ -83,10 +82,10 @@ class SkillService:
             user=user,
             skill__in=connections.values('skill_from')
         ).annotate(
-            weighted=F('mark') * F('skill__skill_from__weight')
+            weighted=F('mark') * F('skill__outputs__weight')
         ).aggregate(
             total_weighted=Sum('weighted'),
-            total_weights=Sum('skill__skill_from__weight')
+            total_weights=Sum('skill__outputs__weight')
         )
         return (result['total_weighted'] / result['total_weights']) if result['total_weights'] else None
 

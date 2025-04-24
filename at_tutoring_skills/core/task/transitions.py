@@ -28,8 +28,9 @@ class TransitionsService:
         @sync_to_async
         def _check_completion():
             # Проверяем наличие незавершенных заданий
+            current_tasks = user.variant.task.filter(task_object=task_object).values_list('id', flat=True)
             has_uncompleted = TaskUser.objects.filter(
-                user=user, task__task_object=task_object, is_completed=False
+                task_id__in=current_tasks, is_completed=False
             ).exists()
 
             if has_uncompleted:

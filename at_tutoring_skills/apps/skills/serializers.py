@@ -19,3 +19,4 @@ class QueryParamSerializer(serializers.Serializer):
         required=False,
         default=[]
     )
+    as_initial = serializers.BooleanField(required=False, default=False)
