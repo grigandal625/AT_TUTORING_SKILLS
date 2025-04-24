@@ -113,6 +113,7 @@ class ATTutoringKBSkills(ATComponent):
                 "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
                 "skills_url_end": '&' + end_query.urlencode(),
                 "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
+                "full_skills_url_end": '&' + full_end_query.urlencode(),
                 "kb_id": data["result"]["knowledgeBase"]["id"],
                 "hint2": hint2,
                 "desc": variant.kb_description,
