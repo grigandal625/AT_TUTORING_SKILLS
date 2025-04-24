@@ -190,58 +190,68 @@ class Command(BaseCommand):
                 self.stdout.write(f"{action} навык: {skill.name} (код: {skill.code})")
 
     def create_connections_skills(self, filename: str = data_dir / "sm_skills_connections.json"):
+        """Создает или обновляет связи между навыками из JSON-файла"""
         if not filename.exists():
-            self.stdout.write(self.style.ERROR(f"File {filename} not found"))
+            self.stdout.write(self.style.ERROR(f"Файл {filename} не найден"))
             return
 
+        # Создаем mapping code -> skill для быстрого доступа
+        skills_map = {skill.code: skill for skill in Skill.objects.all()}
+        
+        self.stdout.write("\nЗагрузка связей между навыками...")
+        
+        created_count = 0
+        updated_count = 0
+        error_count = 0
+
         with transaction.atomic():
-            # Load connections data
             with open(filename, "r", encoding="utf-8") as f:
                 connections_data = json.load(f)
 
-            # Create a mapping of skill codes to Skill objects for faster lookup
-            skills_map = {skill.code: skill for skill in Skill.objects.all()}
-
-            created_count = 0
-            updated_count = 0
-            
-            self.stdout.write("\nЗагрузка связей между навыками...")
-
-            for item in connections_data:
-                skill_to_code = item['skill']
+            for connection_item in connections_data:
+                skill_to_code = connection_item["skill"]
                 skill_to = skills_map.get(skill_to_code)
-                
+
                 if not skill_to:
                     self.stdout.write(
-                        self.style.WARNING(f'  Навык с кодом {skill_to_code} не найден (пропускаем связи)')
-                    )
+                        self.style.WARNING(f"  Навык с кодом {skill_to_code} не найден (пропускаем связи)"))
+                    error_count += 1
                     continue
 
-                for skill_from_code, weight in zip(item['in_skill'], item['weights']):
+                for skill_from_code, weight in zip(connection_item["in_skill"], connection_item["weights"]):
                     skill_from = skills_map.get(skill_from_code)
-                    
+
                     if not skill_from:
                         self.stdout.write(
-                            self.style.WARNING(f'  Навык с кодом {skill_from_code} не найден (связь с {skill_to_code})')
-                        )
+                            self.style.WARNING(f"  Навык с кодом {skill_from_code} не найден (связь с {skill_to_code})"))
+                        error_count += 1
                         continue
 
-                    # Создаем или обновляем связь
-                    connection, created = SKillConnection.objects.update_or_create(
-                        skill_from=skill_from,
-                        skill_to=skill_to,
-                        defaults={'weight': weight}
-                    )
+                    try:
+                        # Создаем или обновляем связь
+                        connection, created = SKillConnection.objects.update_or_create(
+                            skill_from=skill_from,
+                            skill_to=skill_to,
+                            defaults={'weight': weight}
+                        )
 
-                    if created:
-                        created_count += 1
-                        self.stdout.write(
-                            f"  Создана связь: {skill_from_code} -> {skill_to_code} (вес: {weight})")
-                    else:
-                        updated_count += 1
-                        self.stdout.write(
-                            f"  Обновлена связь: {skill_from_code} -> {skill_to_code} (новый вес: {weight})")
+                        if created:
+                            created_count += 1
+                            self.stdout.write(
+                                f"  Создана связь: {skill_from_code} -> {skill_to_code} (вес: {weight})")
+                        else:
+                            updated_count += 1
+                            self.stdout.write(
+                                f"  Обновлена связь: {skill_from_code} -> {skill_to_code} (новый вес: {weight})")
 
-            self.stdout.write(f"  Создано {created_count} новых связей")
-            self.stdout.write(f"  Обновлено {updated_count} существующих связей")
-            self.stdout.write(self.style.SUCCESS("Загрузка связей между навыками завершена!"))
+                    except Exception as e:
+                        error_count += 1
+                        self.stdout.write(
+                            self.style.ERROR(f"  Ошибка создания связи {skill_from_code}->{skill_to_code}: {str(e)}"))
+
+        # Итоговая статистика
+        self.stdout.write("\nИтоги загрузки связей:")
+        self.stdout.write(f"  Успешно создано: {created_count}")
+        self.stdout.write(f"  Обновлено: {updated_count}")
+        self.stdout.write(f"  Ошибок: {error_count}")
+        self.stdout.write(self.style.SUCCESS("Загрузка связей завершена!"))
