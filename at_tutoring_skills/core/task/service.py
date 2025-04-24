@@ -680,7 +680,7 @@ class TaskService(KBTaskService, KBIMServise):
         tasks = await self.get_all_tasks(user.variant_id, task_object=task_object)
 
         if not await tasks.aexists():
-            return "### Для текущего этапа все задания выполнены"
+            return "### Для текущего этапа все задания выполнены \n\n"
 
         result = ""
         all_count = 0

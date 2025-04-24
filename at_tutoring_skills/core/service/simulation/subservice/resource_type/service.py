@@ -52,7 +52,7 @@ class ResourceTypeService:
                         tip=f"Синтаксическая ошибка при создании типа ресурса.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="resource_type",
-                        skills=[270],
+                        skills=[225],
                 )
                 errors_list.append(common_mistake)
                 await self.main_task_service.append_mistake(common_mistake)
@@ -293,7 +293,7 @@ class ResourceTypeService:
                     tip=f"Ошибка в имени атрибута: {attr.name} не найден, но {closest_match} является ближайшим.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="resource_type",
-                    skills=[270],
+                    skills=[226],
                 )
                 mistakes.append(mistake)
 

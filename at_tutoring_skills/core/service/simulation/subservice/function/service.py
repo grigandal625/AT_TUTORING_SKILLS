@@ -50,7 +50,7 @@ class FunctionService:
                         tip=f"Синтаксическая ошибка при создании функции.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="function",
-                        skills=[270],
+                        skills=[264],
                 )
                 errors_list.append(common_mistake)
                 await self.main_task_service.append_mistake(common_mistake)
@@ -274,7 +274,7 @@ class FunctionService:
                     tip=f"Ошибка в имени параметра: {param.name} не найден, но {closest_match} является ближайшим.",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="function",
-                    skills=[270],
+                    skills=[265],
                 )
                 mistakes.append(mistake)
                 print(f"Lexic mistake: Close match found for '{param.name}' -> '{closest_match}'")
@@ -285,7 +285,7 @@ class FunctionService:
                     tip=f"Неизвестный параметр: {param.name} не найден.",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="function",
-                    skills=[270],
+                    skills=[265],
                 )
                 mistakes.append(mistake)
                 print(f"Lexic mistake: Unknown parameter '{param.name}'")

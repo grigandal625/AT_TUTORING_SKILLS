@@ -43,6 +43,7 @@ class TemplateUsageService:
                         tip=f"Синтаксическая ошибка при создании операции.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="template_usage",
+                        skills=[253],
                 )
                 errors_list.append(common_mistake)
                 await self.main_task_service.append_mistake(common_mistake)

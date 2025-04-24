@@ -367,7 +367,42 @@ class SimulationService(ATComponent):
     @authorized_method
     async def handle_simulation_model_updated(self, event: str, data: dict, auth_token: str):
         user_id = await self.get_user_id_or_token(auth_token)
-        # self.init_cash(user_id)
+        user, _ = await self.task_service.create_user(user_id)
+        msg = await self.task_service.get_variant_tasks_description_sm(
+            user, skip_completed=False, task_object=SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES,
+        )
+
+        hint2 = await self.task_service.get_variant_tasks_description_sm(
+            user,
+            skip_completed=False,
+            task_object=[
+                SUBJECT_CHOICES.SIMULATION_RESOURCES,
+                SUBJECT_CHOICES.SIMULATION_TEMPLATES,
+                SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES,
+                SUBJECT_CHOICES.SIMULATION_FUNCS,
+            ],
+            base_header="",
+            completed_header="",
+        )
+
+        variant = await self.task_service.get_variant(user.user_id)
+
+        if event == "models/update":
+            return {
+                "msg": msg,
+                "hint": msg,
+                "sm_id": data["result"]["id"],
+                "hint": hint2,
+                "desc": variant.sm_description,
+            }
+        if event == "models/create":
+            return {
+                "msg": msg,
+                "hint": msg,
+                "sm_id": data["result"]["id"],
+                "hint2": hint2,
+                "desc": variant.sm_description,
+            }
 
 
     # ============================= Resource Types ====================================

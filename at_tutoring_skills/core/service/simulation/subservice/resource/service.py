@@ -56,7 +56,7 @@ class ResourceService:
                         tip=f"Синтаксическая ошибка при создании ресурса.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="resource_type",
-                        skills=[270],
+                        skills=[233],
                 )
                 errors_list.append(common_mistake)
                 await self.main_task_service.append_mistake(common_mistake)

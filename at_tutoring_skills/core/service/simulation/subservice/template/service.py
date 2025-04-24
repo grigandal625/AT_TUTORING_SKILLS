@@ -67,7 +67,7 @@ class TemplateService:
                         tip=f"Синтаксическая ошибка при создании образца операции.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="template",
-                        skills=[270],
+                        skills=[247],
 
                 )
                 errors_list.append(common_mistake)
@@ -455,7 +455,7 @@ class TemplateService:
                     tip=f"Ошибка в имени ресурса: '{resource_name}' не найден, но '{closest_match}' является ближайшим.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
-                    skills=[242],
+                    skills=[242, 248],
                 )
                 mistakes.append(mistake)
 
