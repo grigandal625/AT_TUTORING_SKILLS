@@ -92,7 +92,7 @@ class ATTutoringKBSkills(ATComponent):
         full_end_query.setlist("as_initial", [True])
 
         end_query = QueryDict(mutable=True)
-        full_end_query.setlist('task_objetc', [SUBJECT_CHOICES.KB_TYPE])
+        end_query.setlist('task_objetc', [SUBJECT_CHOICES.KB_TYPE])
         
         if event == "knowledgeBase/update":
             return {

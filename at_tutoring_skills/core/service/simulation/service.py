@@ -6,6 +6,8 @@ from typing import Optional
 
 from at_queue.core.at_component import ATComponent
 from at_queue.utils.decorators import authorized_method
+from django.http import QueryDict
+from django.urls import reverse
 from jsonschema import ValidationError
 from pydantic import BaseModel
 
@@ -206,6 +208,13 @@ class SimulationService(ATComponent):
         #     user, skip_completed=False, task_object=task_object
         # )
 
+        if not isinstance(task_object, list):
+            task_object = [task_object]
+
+        end_query = QueryDict(mutable=True)
+        end_query.setlist('task_object', task_object)
+
+
         return {
             "status": "error",
             "message": f"Обнаружены ошибки: {errors_message}",
@@ -213,6 +222,9 @@ class SimulationService(ATComponent):
             "url": errors_message,
             # "hint": tasks,
             "skills": skills,
+            "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+            "skills_url_end": '&' + end_query.urlencode(),
+            "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
         }
 
     def get_resource_names_from_cache(
@@ -346,6 +358,17 @@ class SimulationService(ATComponent):
 
         variant = await self.task_service.get_variant(user.user_id)
 
+        all_objects = [SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES, SUBJECT_CHOICES.SIMULATION_RESOURCES,
+                SUBJECT_CHOICES.SIMULATION_TEMPLATES,
+                SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES,
+                SUBJECT_CHOICES.SIMULATION_FUNCS]
+        
+        full_end_query = QueryDict(mutable=True)
+        full_end_query.setlist('task_object', all_objects)
+
+        end_query = QueryDict(mutable=True)
+        end_query.setlist('task_objetc', [SUBJECT_CHOICES.KB_TYPE])
+
         if event == "models/update":
             return {
                 "msg": msg,
@@ -353,6 +376,10 @@ class SimulationService(ATComponent):
                 "sm_id": data["result"]["id"],
                 "hint": hint2,
                 "desc": variant.sm_description,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "full_skills_url_end": '&' + full_end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
         if event == "models/create":
             return {
@@ -361,6 +388,10 @@ class SimulationService(ATComponent):
                 "sm_id": data["result"]["id"],
                 "hint2": hint2,
                 "desc": variant.sm_description,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "full_skills_url_end": '&' + full_end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
         
 
@@ -387,6 +418,17 @@ class SimulationService(ATComponent):
 
         variant = await self.task_service.get_variant(user.user_id)
 
+        all_objects = [SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES, SUBJECT_CHOICES.SIMULATION_RESOURCES,
+                SUBJECT_CHOICES.SIMULATION_TEMPLATES,
+                SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES,
+                SUBJECT_CHOICES.SIMULATION_FUNCS]
+        
+        full_end_query = QueryDict(mutable=True)
+        full_end_query.setlist('task_object', all_objects)
+
+        end_query = QueryDict(mutable=True)
+        end_query.setlist('task_objetc', [SUBJECT_CHOICES.KB_TYPE])
+
         if event == "models/update":
             return {
                 "msg": msg,
@@ -394,6 +436,10 @@ class SimulationService(ATComponent):
                 "sm_id": data["result"]["id"],
                 "hint": hint2,
                 "desc": variant.sm_description,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "full_skills_url_end": '&' + full_end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
         if event == "models/create":
             return {
@@ -402,6 +448,10 @@ class SimulationService(ATComponent):
                 "sm_id": data["result"]["id"],
                 "hint2": hint2,
                 "desc": variant.sm_description,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "full_skills_url_end": '&' + full_end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
 
 
@@ -440,10 +490,17 @@ class SimulationService(ATComponent):
                 user, skip_completed=False, task_object=task_object
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+            
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+            
             return {
                 "msg": "Задание не найдено,  продолжайте выполнение работы",
                 "stage_done": False,
-                "hint": tasks
+                "hint": tasks,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
 
         self.add_im_resource_type_to_cash(data, auth_token)
@@ -472,11 +529,17 @@ class SimulationService(ATComponent):
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
 
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+
             return {
                 "msg": "обучаемый успешно выполнил задание",
                 "stage_done": stage,
                 "hint": tasks,
                 "skills": skills,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
         if errors_list:
             return await self.get_errors_result(errors_list, user, task, task_object)
@@ -517,10 +580,17 @@ class SimulationService(ATComponent):
                 user, skip_completed=False, task_object=task_object
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+            
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+            
             return {
                 "msg": "Задание не найдено,  продолжайте выполнение работы",
                 "stage_done": False,
-                "hint": tasks
+                "hint": tasks,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
 
         self.add_im_resource_to_cash(data, auth_token)
@@ -549,11 +619,17 @@ class SimulationService(ATComponent):
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
 
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+
             return {
                 "msg": "обучаемый успешно выполнил задание",
                 "stage_done": stage,
                 "hint": tasks,
                 "skills": skills,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
             
         if errors_list:
@@ -594,11 +670,19 @@ class SimulationService(ATComponent):
             tasks = await self.task_service.get_variant_tasks_description_sm(
                 user, skip_completed=False, task_object=task_object
             )
+
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+
+
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
             return {
                 "msg": "Задание не найдено,  продолжайте выполнение работы",
                 "stage_done": False,
-                "hint": tasks
+                "hint": tasks,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
 
         self.add_im_template_to_cash(data, auth_token)
@@ -631,16 +715,21 @@ class SimulationService(ATComponent):
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
 
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+
             return {
                 "msg": "обучаемый успешно выполнил задание",
                 "stage_done": stage,
                 "hint": tasks,
                 "skills": skills,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
 
         if errors_list:
             return await self.get_errors_result(errors_list, user, task, task_object)
-
 
     #   ============================= Template Usage ================================
     @authorized_method
@@ -677,10 +766,17 @@ class SimulationService(ATComponent):
                 user, skip_completed=False, task_object=task_object
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
+            
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', [task_object])
+
             return {
                 "msg": "Задание не найдено,  продолжайте выполнение работы",
                 "stage_done": False,
-                "hint": tasks
+                "hint": tasks,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
         print(task.object_name, task.object_reference, template_usage)
 
@@ -701,18 +797,27 @@ class SimulationService(ATComponent):
             stage = await self.transition_service.check_stage_tasks_completed(user, task_object)
             if stage:
                 await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
-                task_object = SUBJECT_CHOICES.SIMULATION_FUNCS
+                task_object = [SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES, SUBJECT_CHOICES.SIMULATION_RESOURCES,
+                    SUBJECT_CHOICES.SIMULATION_TEMPLATES,
+                    SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES,
+                    SUBJECT_CHOICES.SIMULATION_FUNCS]
 
             tasks = await self.task_service.get_variant_tasks_description_sm(
                 user, skip_completed=False, task_object=task_object
             )
             skills = await self.skill_service.process_and_get_skills_string(user, task_object=task_object)
 
+            end_query = QueryDict(mutable=True)
+            end_query.setlist('task_object', task_object if isinstance(task_object, list) else [task_object])
+
             return {
                 "msg": "обучаемый успешно выполнил задание",
                 "stage_done": stage,
                 "hint": tasks,
                 "skills": skills,
+                "skills_url_start": reverse('users-skills-graph') + '?auth_token=',
+                "skills_url_end": '&' + end_query.urlencode(),
+                "legend_url_start": reverse('users-skills-graph-legend')+'?auth_token=',
             }
 
         if errors_list:
