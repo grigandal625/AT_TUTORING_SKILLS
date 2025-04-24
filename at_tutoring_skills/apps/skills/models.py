@@ -52,8 +52,8 @@ class Skill(models.Model):
         return self.name
 
 class SKillConnection(models.Model):
-    skill_from = models.ForeignKey(Skill, on_delete=models.CASCADE, null=True, default=None, related_name="skill_from")
-    skill_to = models.ForeignKey(Skill, on_delete=models.SET_NULL, null=True, default=None, related_name="skill_to")
+    skill_from = models.ForeignKey(Skill, on_delete=models.CASCADE, null=True, default=None, related_name="outputs")
+    skill_to = models.ForeignKey(Skill, on_delete=models.SET_NULL, null=True, default=None, related_name="inputs")
     weight = models.FloatField()
 
 

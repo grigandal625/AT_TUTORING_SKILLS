@@ -1,5 +1,5 @@
 from graphviz import Digraph
-from dto import Skill, SkillRelation, UserSkill
+from at_tutoring_skills.apps.skills.dto import Skill, SkillRelation, UserSkill
 
 def build_skill_graph(skills: list[Skill], 
                      relations: list[SkillRelation],
@@ -73,11 +73,11 @@ def build_skill_graph(skills: list[Skill],
         is_root = str(skill.pk) in root_nodes
         dot.node(
             str(skill.pk),
-            label=f"SK-{skill.pk}\nОЦЕНКА: {mark:.1f}",
+            label=f"SK-{skill.pk}\n*{mark:.1f}",
             shape='ellipse',
             style='filled',
             fillcolor='#a6d8ff' if is_root else 'lightgray',
-            fontsize='10',
+            fontsize='24',
             fontname='Arial',
             penwidth='2.0' if is_root else '1.0'
         )
@@ -133,6 +133,13 @@ def build_legend_graph(skills: list[Skill],
         3: ('Ассоциация', 'blue', 'dashed'),
         4: ('Слабая', 'green', 'dotted')
     }
+
+    actual_relation_types = {}
+    for relation in relations:
+        if relation.relation_type not in actual_relation_types:
+            actual_relation_types[relation.relation_type] = relation_types[relation.relation_type]
+
+    relation_types = actual_relation_types
     
     user_marks = {us.skill_id: us.mark for us in user_skills}
     legend_content = _generate_legend_content(skills, user_marks, relation_types, root_nodes)
@@ -156,33 +163,23 @@ def _generate_legend_content(skills: list[Skill],
     legend = '''<
     <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4">
         <TR><TD COLSPAN="3"><B>ЛЕГЕНДА</B></TD></TR>
-        
-        <!-- Секция корневых узлов -->
-        <TR><TD COLSPAN="3"><B>Корневые узлы</B></TD></TR>
-        <TR><TD><B>ID</B></TD><TD><B>Навык</B></TD><TD><B>Оценка</B></TD></TR>'''
+        <TR><TD><B>ID</B></TD><TD COLSPAN="2"><B>Навык</B></TD></TR>'''
     
     # Сначала выводим корневые узлы
     for skill in skills:
         if str(skill.pk) in root_nodes:
-            mark = user_marks.get(skill.pk, 0.0)
             legend += f'''
             <TR>
-                <TD BGCOLOR="#a6d8ff">SK-{skill.pk}</TD>
-                <TD BGCOLOR="#a6d8ff">{skill.name}</TD>
-                <TD BGCOLOR="#a6d8ff">{mark:.1f}</TD>
+                <TD BGCOLOR="#a6d8ff"><B>SK-{skill.pk}</B></TD>
+                <TD COLSPAN="2" BGCOLOR="#a6d8ff">{skill.name}</TD>
             </TR>'''
 
-    # Затем обычные узлы
-    legend += '''
-        <TR><TD COLSPAN="3"><B>Остальные узлы</B></TD></TR>'''
     for skill in skills:
         if str(skill.pk) not in root_nodes:
-            mark = user_marks.get(skill.pk, 0.0)
             legend += f'''
             <TR>
-                <TD>SK-{skill.pk}</TD>
-                <TD>{skill.name}</TD>
-                <TD>{mark:.1f}</TD>
+                <TD><B>SK-{skill.pk}</B></TD>
+                <TD COLSPAN="2">{skill.name}</TD>
             </TR>'''
 
     # Секция типов связей
@@ -192,8 +189,8 @@ def _generate_legend_content(skills: list[Skill],
     
     arrow_examples = {
         'solid': '─────▶',      # Сплошная линия
-        'dashed': '─ ─ ─▶',     # Пунктир из обычных чёрточек
-        'dotted': '·····▶',     # Точки
+        'dashed': '─ ─ ─ ─▶',     # Пунктир из обычных чёрточек
+        'dotted': '··········▶',     # Точки
         'bold': '━━━━━▶'        # Жирная линия
     }
 
