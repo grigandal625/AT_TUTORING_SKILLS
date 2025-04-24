@@ -59,10 +59,10 @@ class Command(BaseCommand):
                 # Загрузка заданий
                 for task_data in tasks_data.get("tasks", []):
                     task, created = Task.objects.get_or_create(
-                        task_name=task_data["task_name"],
+                        object_name=task_data["object_name"],
+                        task_object=task_data["task_object"],
                         defaults={
-                            "task_object": task_data["task_object"],
-                            "object_name": task_data["object_name"],
+                            "task_name": task_data["task_name"],
                             "description": task_data["description"],
                             "object_reference": task_data.get("object_reference"),
                         },

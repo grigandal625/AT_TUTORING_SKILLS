@@ -96,8 +96,6 @@ class Command(BaseCommand):
                         # Подготовка данных задачи
                         prepared_task_data = {
                             "task_name": f'Создать {task_name} "{task_data.get("object_name")}"',
-                            "task_object": task_data.get("task_object"),
-                            "object_name": task_data.get("object_name"),
                             "description": task_data.get("description"),
                             "object_reference": task_data.get("object_reference", {}),
                         }
@@ -105,6 +103,7 @@ class Command(BaseCommand):
                         # Создание или обновление задачи
                         task, created = Task.objects.update_or_create(
                             object_name=task_data["object_name"],
+                            task_object=task_data["task_object"],
                             defaults=prepared_task_data
                         )
 
