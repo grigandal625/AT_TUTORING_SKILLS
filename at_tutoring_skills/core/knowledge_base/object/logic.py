@@ -80,7 +80,7 @@ class KBObjectServiceLogicLexic:
                                 to_logic_mistake(
                                     user_id=user_id,
                                     task_id=task_id,
-                                    tip=f"Неверный тип атрибута '{property_et.id}'  \nОжидался атрибут: {property_et.type.id}  \Получено: {prop.type.id}\nрасположение: {place}",
+                                    tip=f"Неверный тип атрибута '{property_et.id}'  \nОжидался атрибут: {property_et.type.id}  \nПолучено: {prop.type.id}\nрасположение: {place}",
                                     # Ошибка в типе "{type.id}", ожидалось значение "{check_et[j]}",  \nЗначения, которые написаны некорректно или являются лишними: {" ".join(check_failed)}  \nРасположение: {place}\n\n',
                                     coefficients=KNOWLEDGE_COEFFICIENTS,
                                     entity_type="object",

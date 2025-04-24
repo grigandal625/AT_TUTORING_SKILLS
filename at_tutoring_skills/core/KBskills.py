@@ -687,8 +687,6 @@ class ATTutoringKBSkills(ATComponent):
             else:
                 await self.task_service.complete_task(task, user)
                 stage = await self.transition_service.check_stage_tasks_completed(user, task_object=task_object)
-                kb = ""
-
                 if stage:
                     await self.skill_service.complete_skills_stage_done(user, task_object=task_object)
                     task_object = [SUBJECT_CHOICES.KB_TYPE, SUBJECT_CHOICES.KB_OBJECT, SUBJECT_CHOICES.KB_EVENT, SUBJECT_CHOICES.KB_INTERVAL, SUBJECT_CHOICES.KB_RULE]

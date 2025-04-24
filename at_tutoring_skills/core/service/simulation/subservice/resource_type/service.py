@@ -3,7 +3,7 @@ from typing import List
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_lexic_mistake
+from at_tutoring_skills.core.errors.conversions import to_lexic_mistake, to_syntax_mistake
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import IMistakeService
@@ -36,6 +36,7 @@ class ResourceTypeService:
             pydantic_class=ResourceTypeRequest,
             pydantic_class_name="resource_type",
         )
+        errors_list = []
 
         print("Данные, полученные pydentic моделью: ", result)
 
@@ -43,12 +44,22 @@ class ResourceTypeService:
             return result
         elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
-                await self.main_task_service.append_mistake(mistake)
-                self._mistake_service.create_mistake(mistake, user_id, "syntax")
+                # await self.main_task_service.append_mistake(mistake)
+                # self._mistake_service.create_mistake(mistake, user_id, "syntax")
 
-            raise ValueError("Handle resource type: syntax mistakes")
+                common_mistake = to_syntax_mistake(
+                        user_id=user_id,
+                        tip=f"Синтаксическая ошибка при создании типа ресурса.\n\n",
+                        coefficients=SIMULATION_COEFFICIENTS,
+                        entity_type="resource_type",
+                        skills=[225],
+                )
+                errors_list.append(common_mistake)
+                await self.main_task_service.append_mistake(common_mistake)
 
-        raise TypeError("Handle resource type: unexpected result")
+            raise ValueError("Синтаксическая ошибка при создании типа ресурса")
+
+
 
     async def handle_logic_mistakes(
         self,
@@ -131,9 +142,10 @@ class ResourceTypeService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip="Указан неправильный тип типа ресурса.",
+                tip="Указан неправильный тип типа ресурса.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="resource_type",
+                skills=[221],
             )
             mistakes.append(mistake)
             return mistakes
@@ -143,9 +155,10 @@ class ResourceTypeService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip="Указано неправильное количество атрибутов.",
+                tip="Указано неправильное количество атрибутов.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="resource_type",
+                skills=[222, 223, 224],
             )
             mistakes.append(mistake)
 
@@ -170,9 +183,10 @@ class ResourceTypeService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Недопустимый тип атрибута {attr.name}.",
+                    tip=f"Недопустимый тип атрибута {attr.name}.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="resource_type",
+                    skills=[223, 224],
                 )
                 mistakes.append(mistake)
                 continue
@@ -181,13 +195,14 @@ class ResourceTypeService:
                 print(
                     f"Default value mismatch for attribute '{attr.name}': provided={attr.default_value}, reference={attr_reference.default_value}"
                 )
-                tip = f"Недопустимое значение атрибута по умолчанию '{attr.name}'."
+                tip = f"Недопустимое значение атрибута по умолчанию '{attr.name}'.\n\n"
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
                     tip=tip,
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="resource_type",
+                    skills=[224],
                 )
                 mistakes.append(mistake)
                 continue
@@ -201,9 +216,10 @@ class ResourceTypeService:
                     mistake = to_logic_mistake(
                         user_id=user_id,
                         task_id=task_id,
-                        tip=f"Некорректный формат enum_values_set для атрибута {attr.name}.",
+                        tip=f"Некорректный формат enum для атрибута {attr.name}.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="resource_type",
+                        skills=[223, 224],
                     )
                     mistakes.append(mistake)
                     continue
@@ -215,9 +231,10 @@ class ResourceTypeService:
                     mistake = to_logic_mistake(
                         user_id=user_id,
                         task_id=task_id,
-                        tip=f"Несовпадение значений enum_values_set для атрибута {attr.name}.",
+                        tip=f"Несовпадение значений enum для атрибута {attr.name}.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="resource_type",
+                        skills=[224],
                     )
                     mistakes.append(mistake)
                     continue
@@ -237,9 +254,10 @@ class ResourceTypeService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip=f"Отсутствует обязательный атрибут {attr_name}.",
+                tip=f"Отсутствует обязательный атрибут {attr_name}.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="resource_type",
+                skills=[222],
             )
             mistakes.append(mistake)
 
@@ -272,9 +290,10 @@ class ResourceTypeService:
                 mistake = to_lexic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Ошибка в имени атрибута: {attr.name} не найден, но {closest_match} является ближайшим.",
+                    tip=f"Ошибка в имени атрибута: {attr.name} не найден, но {closest_match} является ближайшим.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="resource_type",
+                    skills=[226],
                 )
                 mistakes.append(mistake)
 
@@ -282,9 +301,10 @@ class ResourceTypeService:
                 mistake = to_lexic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Неизвестный атрибут: {attr.name} не найдено.",
+                    tip=f"Неизвестный атрибут: {attr.name} не найдено.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="resource_type",
+                    skills=[222],
                 )
                 mistakes.append(mistake)
 

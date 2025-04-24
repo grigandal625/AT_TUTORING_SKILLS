@@ -5,7 +5,7 @@ from typing import Union
 from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_lexic_mistake
+from at_tutoring_skills.core.errors.conversions import to_lexic_mistake, to_syntax_mistake
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.dependencies import ITaskService
@@ -51,16 +51,30 @@ class TemplateService:
             pydantic_class=pydantic_class,
             pydantic_class_name="template",
         )
-        print("Данные, полученные pydantic моделью: ", result)
+        errors_list = []
+
+        print("Данные, полученные pydentic моделью: ", result)
 
         if isinstance(result, (IrregularEventRequest, RuleRequest, OperationRequest)):
             return result
         elif isinstance(result, list) and all(isinstance(err, CommonMistake) for err in result):
             for mistake in result:
-                await self.main_task_service.append_mistake(mistake)
-                self._mistake_service.create_mistake(mistake, user_id, "syntax")
-            raise ValueError("Handle template: syntax mistakes")
-        raise TypeError("Handle template: unexpected result")
+                # await self.main_task_service.append_mistake(mistake)
+                # self._mistake_service.create_mistake(mistake, user_id, "syntax")
+
+                common_mistake = to_syntax_mistake(
+                        user_id=user_id,
+                        tip=f"Синтаксическая ошибка при создании образца операции.\n\n",
+                        coefficients=SIMULATION_COEFFICIENTS,
+                        entity_type="template",
+                        skills=[247],
+
+                )
+                errors_list.append(common_mistake)
+                await self.main_task_service.append_mistake(common_mistake)
+
+            raise ValueError("Синтаксическая ошибка при создании образца операции")
+
 
     async def handle_logic_mistakes(
         self,
@@ -82,6 +96,21 @@ class TemplateService:
             return
 
         mistakes: List[CommonMistake] = []
+
+        if isinstance(template, (IrregularEventRequest, RuleRequest, OperationRequest)):
+            # Проверяем, что object_reference имеет тот же тип, что и template
+            if not isinstance(object_reference, type(template)):
+                mistake = to_logic_mistake(
+                    user_id=user_id,
+                    task_id=task_id,
+                    tip=f"Выбран неверный вид образца операции. Ожидался тип {type(template).__name__}, "
+                        f"но получен тип {type(object_reference).__name__}.\n\n",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="template",
+                    skills=[241],
+                )
+                mistakes.append(mistake)
+                return mistakes
 
         mistake = self._relevant_resources_logic_mistakes(
             resource_data,
@@ -143,7 +172,12 @@ class TemplateService:
         except ValueError:  # NotFoundError
             print("Создан образец операции, не касающийся задания")
             return
-
+        
+        if isinstance(template, (IrregularEventRequest, RuleRequest, OperationRequest)):
+            # Проверяем, что object_reference имеет тот же тип, что и template
+            if not isinstance(object_reference, type(template)):
+                return 
+        
         mistakes = self._relevant_resources_lexic_mistakes(
             resource_data,
             template,
@@ -181,9 +215,10 @@ class TemplateService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip="Данные релевантных ресурсов не были загружены.",
+                tip="Данные релевантных ресурсов не были загружены.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="template",
+                skills=[242],
             )
             mistakes.append(mistake)
             return mistakes
@@ -192,9 +227,10 @@ class TemplateService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip=f"Указано неправильное количество связанных ресурсов.",
+                tip=f"Указано неправильное количество связанных ресурсов.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="template",
+                skills=[242],
             )
             mistakes.append(mistake)
             return mistakes
@@ -212,9 +248,10 @@ class TemplateService:
                     mistake = to_logic_mistake(
                         user_id=user_id,
                         task_id=task_id,
-                        tip=f"Введено имя релевантного ресурса {resource_name} не касающийся данного образца операции.",
+                        tip=f"Введено имя релевантного ресурса {resource_name} не касающийся данного образца операции.\n\n",
                         coefficients=SIMULATION_COEFFICIENTS,
                         entity_type="template",
+                        skills=[242],
                     )
                     mistakes.append(mistake)
                     continue
@@ -225,9 +262,10 @@ class TemplateService:
                         mistake = to_logic_mistake(
                             user_id=user_id,
                             task_id=task_id,
-                            tip=f"Тип ресурса {resource_name} не совпадает с эталонным типом (ожидалось: {resource_type_reference}).",
+                            tip=f"Тип ресурса {resource_name} не совпадает с эталонным типом (ожидалось: {resource_type_reference}).\n\n",
                             coefficients=SIMULATION_COEFFICIENTS,
                             entity_type="template",
+                            skills=[242],
                         )
                         mistakes.append(mistake)
 
@@ -250,9 +288,10 @@ class TemplateService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip=f"Тип генератора {generator.type} не соответствует эталонному типу.",
+                tip=f"Тип генератора {generator.type} не соответствует эталонному типу.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="template",
+                skills=[243],
             )
             mistakes.append(mistake)
 
@@ -260,9 +299,10 @@ class TemplateService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip=f"Значение генератора {generator.value} не соответствует эталонному значению.",
+                tip=f"Значение генератора {generator.value} не соответствует эталонному значению.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="template",
+                skills=[243],
             )
             mistakes.append(mistake)
 
@@ -270,9 +310,10 @@ class TemplateService:
             mistake = to_logic_mistake(
                 user_id=user_id,
                 task_id=task_id,
-                tip=f"Дисперсия генератора {generator.dispersion} не соответствует эталонной дисперсии.",
+                tip=f"Дисперсия генератора {generator.dispersion} не соответствует эталонной дисперсии.\n\n",
                 coefficients=SIMULATION_COEFFICIENTS,
                 entity_type="template",
+                skills=[243],
             )
             mistakes.append(mistake)
 
@@ -297,9 +338,10 @@ class TemplateService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Тело в образце операций пустое.",
+                    tip="Тело в образце операций пустое.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
+                    skills=[243],
                 )
                 mistakes.append(mistake)
 
@@ -309,9 +351,10 @@ class TemplateService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Условие в образце операций пустое.",
+                    tip="Условие в образце операций пустое.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
+                    skills=[243, 245, 246],
                 )
                 mistakes.append(mistake)
 
@@ -319,9 +362,10 @@ class TemplateService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Тело в образце операций пустое.",
+                    tip="Тело в образце операций пустое.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
+                    skills=[243, 245, 246],
                 )
                 mistakes.append(mistake)
 
@@ -331,9 +375,10 @@ class TemplateService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Условие в образце операций пустое.",
+                    tip="Условие в образце операций пустое.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
+                    skills=[243, 245, 246],
                 )
                 mistakes.append(mistake)
 
@@ -341,9 +386,10 @@ class TemplateService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="неправильное указание длительности в образце перации.",
+                    tip="неправильное указание длительности в образце перации.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
+                    skills=[245],
                 )
                 mistakes.append(mistake)
 
@@ -351,9 +397,10 @@ class TemplateService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Тело body_before в образце операций пустое.",
+                    tip="Тело body_before в образце операций пустое.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
+                    skills=[245, 246],
                 )
                 mistakes.append(mistake)
 
@@ -361,9 +408,10 @@ class TemplateService:
                 mistake = to_logic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip="Тело body_after в образце операций пустое.",
+                    tip="Тело body_after в образце операций пустое.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
+                    skills=[245, 246],
                 )
                 mistakes.append(mistake)
 
@@ -404,9 +452,10 @@ class TemplateService:
                 mistake = to_lexic_mistake(
                     user_id=user_id,
                     task_id=task_id,
-                    tip=f"Ошибка в имени ресурса: '{resource_name}' не найден, но '{closest_match}' является ближайшим.",
+                    tip=f"Ошибка в имени ресурса: '{resource_name}' не найден, но '{closest_match}' является ближайшим.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
+                    skills=[242, 248],
                 )
                 mistakes.append(mistake)
 
