@@ -904,10 +904,10 @@ class SimulationService(ATComponent):
         print("Обучаемый запустил трансляцию ИМ: ", data)
 
         user_id = await self.get_user_id_or_token(auth_token)
-        user, created = await self.main_task_service.create_user(user_id)
-        await self.main_task_service.create_user_skill_connection(user)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.create_user_skill_connection(user)
 
-        await self.main_task_service.create_task_user_entries(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         if data['is_error']:
@@ -920,10 +920,10 @@ class SimulationService(ATComponent):
         print("Обучаемый запустил трансляцию ИМ: ", data)
 
         user_id = await self.get_user_id_or_token(auth_token)
-        user, created = await self.main_task_service.create_user(user_id)
-        await self.main_task_service.create_user_skill_connection(user)
+        user, created = await self.task_service.create_user(user_id)
+        await self.task_service.create_user_skill_connection(user)
 
-        await self.main_task_service.create_task_user_entries(user)
+        await self.task_service.create_task_user_entries(user)
         user_id = user.pk
 
         if data['is_error']:
