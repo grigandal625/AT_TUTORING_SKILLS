@@ -62,7 +62,7 @@ class Task(models.Model):
     task_object = models.IntegerField(choices=SUBJECT_CHOICES)
     object_name = models.CharField(max_length=255)  # заполняшка от параметров
     description = models.TextField()  # Описание задания
-    variant = models.ForeignKey("Variant", on_delete=models.CASCADE, null=True, blank=True, default=None)
+    variant = models.ForeignKey("Variant", on_delete=models.CASCADE, null=True, blank=True, default=None, related_name="task")
 
     object_reference = models.JSONField(null=True, blank=True)  # Параметры события (JSON или пустые)
 

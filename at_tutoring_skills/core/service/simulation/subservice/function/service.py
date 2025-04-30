@@ -62,17 +62,11 @@ class FunctionService:
         self,
         user_id: int,
         function: FunctionRequest,
+        task: Task
     ) -> None:
-        try:
-            task: Task = await self.main_task_service.get_task_by_name(function.name, SUBJECT_CHOICES.SIMULATION_FUNCS)
-            task_id = task.pk
-            object_reference = await self.main_task_service.get_function_reference(task)
-
-            print("Данные object reference, полученные для сравнения: ", object_reference)
-
-        except ValueError:  # NotFoundError
-            print("Создан тип ресурса, не касающийся задания")
-            return
+    
+        task_id = task.pk
+        object_reference = await self.main_task_service.get_function_reference(task)
 
         mistakes = self._params_logic_mistakes(
             function,
@@ -94,9 +88,9 @@ class FunctionService:
         self,
         user_id: int,
         function: FunctionRequest,
+        task: Task
     ) -> None:
         try:
-            task: Task = await self.main_task_service.get_task_by_name(function.name, SUBJECT_CHOICES.SIMULATION_FUNCS)
             task_id = task.pk
             object_reference = await self.main_task_service.get_function_reference(task)
 

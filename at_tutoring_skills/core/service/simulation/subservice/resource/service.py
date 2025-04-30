@@ -69,34 +69,29 @@ class ResourceService:
         user_id: int,
         resource: ResourceRequest,
         resource_type: str,
+        task: Task
     ) -> None:
+
         try:
-            try:
-                if isinstance(resource_type, str):
-                    # Если resource_type — строка, пытаемся разобрать её как JSON
-                    resource_type_data = json.loads(resource_type)
-                elif isinstance(resource_type, dict):
-                    # Если resource_type уже словарь, используем его напрямую
-                    resource_type_data = resource_type
-                else:
-                    raise ValueError("Некорректный тип данных для resource_type. Ожидалась строка или словарь.")
+            if isinstance(resource_type, str):
+                # Если resource_type — строка, пытаемся разобрать её как JSON
+                resource_type_data = json.loads(resource_type)
+            elif isinstance(resource_type, dict):
+                # Если resource_type уже словарь, используем его напрямую
+                resource_type_data = resource_type
+            else:
+                raise ValueError("Некорректный тип данных для resource_type. Ожидалась строка или словарь.")
 
-                # Создаем объект ResourceTypeRequest
-                resource_type_obj = ResourceTypeRequest(**resource_type_data)
-            except (json.JSONDecodeError, ValidationError) as e:
-                print(f"Ошибка при преобразовании resource_type: {e}")
-                return
-            task: Task = await self.main_task_service.get_task_by_name(
-                resource.name, SUBJECT_CHOICES.SIMULATION_RESOURCES
-            )
-            task_id = task.pk
-            object_reference = await self.main_task_service.get_resource_reference(task)
-
-            print("Данные object reference, полученные для сравнения: ", object_reference)
-
-        except ValueError:  # NotFoundError
-            print("Создан ресурс, не касающийся задания")
+            # Создаем объект ResourceTypeRequest
+            resource_type_obj = ResourceTypeRequest(**resource_type_data)
+        except (json.JSONDecodeError, ValidationError) as e:
+            print(f"Ошибка при преобразовании resource_type: {e}")
             return
+
+        task_id = task.pk
+        object_reference = await self.main_task_service.get_resource_reference(task)
+
+        print("Данные object reference, полученные для сравнения: ", object_reference)
 
         mistakes = self._attributes_logic_mistakes(
             resource_type_obj,
@@ -126,7 +121,7 @@ class ResourceService:
             )
 
         except ValueError:  # NotFoundError
-            return
+            return None
 
         mistakes = self._attributes_lexic_mistakes(
             resource.name,

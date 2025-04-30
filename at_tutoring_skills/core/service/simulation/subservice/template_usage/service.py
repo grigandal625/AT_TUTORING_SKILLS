@@ -1,6 +1,6 @@
 from typing import List
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES, Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake, to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
@@ -57,20 +57,14 @@ class TemplateUsageService:
         template_usage: TemplateUsageRequest,
         resource_reference: List[str],
         template_reference: str,
+        task: Task
     ) -> None:
         """
         Обрабатывает логические ошибки в данных шаблона.
         """
-        try:
-            task = await self.main_task_service.get_task_by_name(
-                template_usage.name, SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES
-            )
-            task_id = task.pk
-            object_reference = await self.main_task_service.get_template_usage_reference(task)
-            print("Данные object reference, полученные для сравнения: ", object_reference)
-        except ValueError:  # NotFoundError
-            print("Создан образец операции, не касающийся задания")
-            return
+
+        task_id = task.pk
+        object_reference = await self.main_task_service.get_template_usage_reference(task)
 
         mistakes: List[CommonMistake] = []
 

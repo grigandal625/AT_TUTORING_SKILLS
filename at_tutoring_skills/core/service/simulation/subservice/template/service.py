@@ -81,11 +81,9 @@ class TemplateService:
         user_id: int,
         template: Union[IrregularEventRequest, RuleRequest, OperationRequest],
         resource_data: List[Dict[str, str]],
+        task: Task
     ) -> None:
         try:
-            task: Task = await self.main_task_service.get_task_by_name(
-                template.meta.name, SUBJECT_CHOICES.SIMULATION_TEMPLATES
-            )
             task_id = task.pk
             object_reference = await self.main_task_service.get_template_reference(task)
 
@@ -156,23 +154,14 @@ class TemplateService:
         user_id: int,
         template: Union[IrregularEventRequest, RuleRequest, OperationRequest],
         resource_data: List[Dict[str, str]],
+        task: Task
     ) -> None:
         """
         Обработка лексических ошибок.
         """
-        try:
-            task: Task = await self.main_task_service.get_task_by_name(
-                template.meta.name, SUBJECT_CHOICES.SIMULATION_TEMPLATES
-            )
-            task_id = task.pk
-            object_reference = await self.main_task_service.get_template_reference(task)
+        task_id = task.pk
+        object_reference = await self.main_task_service.get_template_reference(task)
 
-            print("Данные object reference, полученные для сравнения: ", object_reference)
-
-        except ValueError:  # NotFoundError
-            print("Создан образец операции, не касающийся задания")
-            return
-        
         if isinstance(template, (IrregularEventRequest, RuleRequest, OperationRequest)):
             # Проверяем, что object_reference имеет тот же тип, что и template
             if not isinstance(object_reference, type(template)):

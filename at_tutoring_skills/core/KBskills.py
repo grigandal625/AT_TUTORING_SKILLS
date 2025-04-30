@@ -79,7 +79,7 @@ class ATTutoringKBSkills(ATComponent):
             completed_header="",
         )
 
-        variant = await self.task_service.get_variant(user.user_id)
+        variant = await self.task_service.get_user_variant(user)
 
         full_end_query = QueryDict(mutable=True)
         full_end_query.setlist('task_object', [
@@ -193,7 +193,8 @@ class ATTutoringKBSkills(ATComponent):
         if errors_list:
             return await self.get_errors_result(errors_list, user, None, task_object)
 
-        task: Task = await self.task_service.get_task_by_name(kb_type.id, task_object)
+        variant = await self.task_service.get_user_variant(user)
+        task: Task = await self.task_service.get_task_by_name(kb_type.id, variant, task_object)
 
         if task:
             et_type = await self.task_service.get_type_reference(task)
@@ -349,7 +350,8 @@ class ATTutoringKBSkills(ATComponent):
         if errors_list:
             return await self.get_errors_result(errors_list, user, None, task_object)
 
-        task: Task = await self.task_service.get_task_by_name(kb_object.id, 2)
+        variant = await self.task_service.get_user_variant(user)
+        task: Task = await self.task_service.get_task_by_name(kb_object.id, variant, task_object)
 
         if task:
             obj_et = await self.task_service.get_object_reference(task)
@@ -442,7 +444,8 @@ class ATTutoringKBSkills(ATComponent):
         if errors_list:
             return await self.get_errors_result(errors_list, user, None, task_object)
 
-        task: Task = await self.task_service.get_task_by_name(kb_event.id, 3)
+        variant = await self.task_service.get_user_variant(user)
+        task: Task = await self.task_service.get_task_by_name(kb_event.id, variant, task_object)
 
         if task:
             event_et = await self.task_service.get_event_reference(task)
@@ -552,7 +555,8 @@ class ATTutoringKBSkills(ATComponent):
         except exceptions.ValidationError as e:
             raise ValueError(f"Handle KB Interval Created: Syntax Mistakes: {e}") from e
 
-        task: Task = await self.task_service.get_task_by_name(kb_interval.id, 4)
+        variant = await self.task_service.get_user_variant(user)
+        task: Task = await self.task_service.get_task_by_name(kb_interval.id, variant, task_object)
 
         if task:
             interval_et = await self.task_service.get_interval_reference(task)
@@ -677,7 +681,8 @@ class ATTutoringKBSkills(ATComponent):
         if errors_list:
             return await self.get_errors_result(errors_list, user, None, task_object)
 
-        task: Task = await self.task_service.get_task_by_name(kb_rule.id, 5)
+        variant = await self.task_service.get_user_variant(user)
+        task: Task = await self.task_service.get_task_by_name(kb_rule.id, variant, task_object)
 
         if task:
             rule_et = await self.task_service.get_rule_reference(task)

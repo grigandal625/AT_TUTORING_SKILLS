@@ -291,13 +291,33 @@ class KBIMServise:
 
 
 class TaskService(KBTaskService, KBIMServise):
-    async def get_variant(self, user_id: int | str) -> Variant:
-        """
-        Получает вариант по id пользователя
-        """
-        user = await User.objects.select_related("variant").aget(user_id=user_id)
-        return user.variant
 
+
+    async def get_user_variant(self, user: User) -> Union[Variant, None]:
+        
+        if not isinstance(user, User):
+            logger.error("Invalid user object passed")
+            raise ValueError("Expected User instance")
+        
+        try:
+            # Если user уже имеет загруженный variant
+            if hasattr(user, '_variant_cache'):
+                return user.variant
+                
+            # Асинхронно загружаем вариант, если он не был загружен
+            get_variant = sync_to_async(lambda: user.variant)
+            variant = await get_variant()
+            
+            if variant is None:
+                logger.debug(f"User {user.user_id} has no variant assigned")
+                return None
+                
+            return variant
+            
+        except Exception as e:
+            logger.error(f"Error getting variant for user {user.user_id}: {str(e)}")
+            raise
+        
     async def get_all_tasks(
         self, variant_id: int = None, task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None
     ) -> models.QuerySet[Task]:
@@ -308,7 +328,7 @@ class TaskService(KBTaskService, KBIMServise):
             result = Task.objects.all()
         else:
             variant = await Variant.objects.aget(pk=variant_id)
-            result = variant.task.all()
+            result = Task.objects.filter(variant=variant) 
 
         if isinstance(task_object, list):
             result = result.filter(task_object__in=task_object)
@@ -511,7 +531,7 @@ class TaskService(KBTaskService, KBIMServise):
             logger.error(f"Error creating user {auth_token}: {str(e)}")
             raise
 
-    async def get_task_by_name(self, name: str, task_object: int = None) -> Task | None:
+    async def get_task_by_name(self, name: str, variant: Variant, task_object: int = None) -> Task | None:
         """
         Получает задание по имени и типу объекта
 
@@ -523,7 +543,7 @@ class TaskService(KBTaskService, KBIMServise):
             Task: Объект задания или None если не найдено
         """
         try:
-            query = Task.objects.filter(object_name=name)
+            query = Task.objects.filter(object_name=name, variant=variant)
             if task_object is not None:
                 query = query.filter(task_object=task_object)
 
@@ -534,13 +554,15 @@ class TaskService(KBTaskService, KBIMServise):
             return None
 
         except Task.MultipleObjectsReturned:
-            tasks = await Task.objects.filter(object_name=name).alist()
+            tasks = await Task.objects.filter(object_name=name).list()
             logger.error(
                 f"Multiple tasks found: name='{name}'"
                 + (f", type={task_object}" if task_object else "")
                 + f". Returning first of {len(tasks)}"
             )
             return tasks[0]
+
+
 
     async def create_user_skill_connection(self, user: User) -> tuple[int, int]:
         """

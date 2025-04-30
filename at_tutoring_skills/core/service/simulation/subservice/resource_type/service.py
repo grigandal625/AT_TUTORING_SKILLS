@@ -65,11 +65,9 @@ class ResourceTypeService:
         self,
         user_id: int,
         resource_type: ResourceTypeRequest,
+        task :Task
     ) -> None:
         try:
-            task: Task = await self.main_task_service.get_task_by_name(
-                resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES
-            )
             task_id = task.pk
             object_reference = await self.main_task_service.get_resource_type_reference(task)
 
@@ -99,11 +97,10 @@ class ResourceTypeService:
         self,
         user_id: int,
         resource_type: ResourceTypeRequest,
+        task: Task
     ) -> None:
         try:
-            task: Task = await self.main_task_service.get_task_by_name(
-                resource_type.name, SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES
-            )
+
             task_id = task.pk
             object_reference = await self.main_task_service.get_resource_type_reference(task)
 

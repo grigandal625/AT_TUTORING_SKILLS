@@ -416,7 +416,7 @@ class SimulationService(ATComponent):
             completed_header="",
         )
 
-        variant = await self.task_service.get_variant(user.user_id)
+        variant = await self.task_service.get_user_variant(user)
 
         all_objects = [SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES, SUBJECT_CHOICES.SIMULATION_RESOURCES,
                 SUBJECT_CHOICES.SIMULATION_TEMPLATES,
@@ -483,7 +483,8 @@ class SimulationService(ATComponent):
         if errors_list:
             return await self.get_errors_result(errors_list, user, None, task_object)
 
-        task: Task = await self.task_service.get_task_by_name(resource_type.name, task_object)
+        variant = await self.task_service.get_user_variant(user)
+        task: Task = await self.task_service.get_task_by_name(resource_type.name, variant, task_object)
 
         if not task:
             tasks = await self.task_service.get_variant_tasks_description_sm(
@@ -507,8 +508,8 @@ class SimulationService(ATComponent):
 
         print(task.object_name, task.object_reference, resource_type)
 
-        errors_list_logic = await self.resource_type_service.handle_logic_mistakes(user_id, resource_type)
-        errors_list_lexic = await self.resource_type_service.handle_lexic_mistakes(user_id, resource_type)
+        errors_list_logic = await self.resource_type_service.handle_logic_mistakes(user_id, resource_type, task)
+        errors_list_lexic = await self.resource_type_service.handle_lexic_mistakes(user_id, resource_type, task)
 
         if errors_list_logic:
             errors_list.extend(errors_list_logic)
@@ -573,7 +574,8 @@ class SimulationService(ATComponent):
         if errors_list:
             return await self.get_errors_result(errors_list, user, None, task_object)
 
-        task: Task = await self.task_service.get_task_by_name(resource.name, task_object)
+        variant = await self.task_service.get_user_variant(user)
+        task: Task = await self.task_service.get_task_by_name(resource.name, variant, task_object)
 
         if not task:
             tasks = await self.task_service.get_variant_tasks_description_sm(
@@ -601,7 +603,7 @@ class SimulationService(ATComponent):
         print(f"Строка, полученная для сравнения: {resource_type_name}")
 
         errors_list = []
-        errors_list_logic = await self.resource_service.handle_logic_mistakes(user_id, resource, resource_type_name)
+        errors_list_logic = await self.resource_service.handle_logic_mistakes(user_id, resource, resource_type_name, task)
         if errors_list_logic:
             errors_list.extend(errors_list_logic)
 
@@ -664,7 +666,8 @@ class SimulationService(ATComponent):
         if errors_list:
             return await self.get_errors_result(errors_list, user, None, task_object)
 
-        task: Task = await self.task_service.get_task_by_name(template.meta.name, task_object)
+        variant = await self.task_service.get_user_variant(user)
+        task: Task = await self.task_service.get_task_by_name(template.meta.name, variant, task_object)
 
         if not task:
             tasks = await self.task_service.get_variant_tasks_description_sm(
@@ -693,8 +696,8 @@ class SimulationService(ATComponent):
         resource_type_name = self.get_resource_type_names_from_cache(template.meta.rel_resources, auth_token)
 
         errors_list = []
-        errors_list_logic = await self.template_service.handle_logic_mistakes(user_id, template, resource_type_name)
-        errors_list_lexic = await self.template_service.handle_lexic_mistakes(user_id, template, resource_type_name)
+        errors_list_logic = await self.template_service.handle_logic_mistakes(user_id, template, resource_type_name, task)
+        errors_list_lexic = await self.template_service.handle_lexic_mistakes(user_id, template, resource_type_name, task)
 
         if errors_list_logic:
             errors_list.extend(errors_list_logic)
@@ -759,7 +762,8 @@ class SimulationService(ATComponent):
         if errors_list:
             return await self.get_errors_result(errors_list, user, None, task_object)
 
-        task: Task = await self.task_service.get_task_by_name(template_usage.name, task_object)
+        variant = await self.task_service.get_user_variant(user)
+        task: Task = await self.task_service.get_task_by_name(template_usage.name, variant, task_object)
 
         if not task:
             tasks = await self.task_service.get_variant_tasks_description_sm(
@@ -785,7 +789,7 @@ class SimulationService(ATComponent):
 
         errors_list = []
         errors_list_logic = await self.template_usage_service.handle_logic_mistakes(
-            user_id, template_usage, resource_type_name, template_name
+            user_id, template_usage, resource_type_name, template_name, task
         )
         if errors_list_logic:
             errors_list.extend(errors_list_logic)
@@ -851,7 +855,8 @@ class SimulationService(ATComponent):
         if errors_list:
             return await self.get_errors_result(errors_list, user, None, task_object)
         
-        task: Task = await self.task_service.get_task_by_name(function.name, task_object)
+        variant = await self.task_service.get_user_variant(user)
+        task: Task = await self.task_service.get_task_by_name(function.name, variant, task_object)
 
         if not task:
             tasks = await self.task_service.get_variant_tasks_description_sm(
@@ -868,8 +873,8 @@ class SimulationService(ATComponent):
         # await self.task_service.create_task_user_safe(task, user)
 
         errors_list = []
-        errors_list_logic = await self.function_service.handle_logic_mistakes(user_id, function)
-        errors_list_lexic = await self.function_service.handle_lexic_mistakes(user_id, function)
+        errors_list_logic = await self.function_service.handle_logic_mistakes(user_id, function, task)
+        errors_list_lexic = await self.function_service.handle_lexic_mistakes(user_id, function, task)
 
         if errors_list_logic:
             errors_list.extend(errors_list_logic)
