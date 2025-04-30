@@ -1,0 +1,454 @@
+[
+    {
+        "task_name": "Создать тип Координата",
+        "task_object": 1,
+        "object_name": "Координата",
+        "description": "",
+        "object_reference": {
+            "tag": "type",
+            "id": "Координата",
+            "desc": "Координата",
+            "meta": "number",
+            "from": -1000,
+            "to": 1000
+        }
+    },
+    {
+        "task_name": "Создать тип Тип_бригады",
+        "task_object": 1,
+        "object_name": "Тип_бригады",
+        "description": "",
+        "object_reference": {
+            "tag": "type",
+            "id": "Тип_бригады",
+            "desc": "Тип_бригады",
+            "meta": "string",
+            "values": [
+                "1",
+                "2",
+                "3"
+            ]
+        }
+    },
+    {
+        "task_name": "Создать тип Количество",
+        "task_object": 1,
+        "object_name": "Количество",
+        "description": "",
+        "object_reference": {
+            "tag": "type",
+            "id": "Количество",
+            "desc": "Количество",
+            "meta": "number",
+            "from": 0,
+            "to": 10000
+        }
+    },
+    {
+        "task_name": "Создать объект Машина_1",
+        "task_object": 2,
+        "object_name": "Машина_1",
+        "description": "",
+        "object_reference": {
+            "tag": "class",
+            "id": "Машина_1",
+            "group": "ГРУППА1",
+            "desc": "Класс для Машина_1",
+            "properties": [
+                {
+                    "tag": "property",
+                    "id": "Координата",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Координата",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Координата",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                },
+                {
+                    "tag": "property",
+                    "id": "Тип_бригады",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Тип_бригады",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Тип_бригады",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                },
+                {
+                    "tag": "property",
+                    "id": "Пассажиры",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Количество",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Пассажиры",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                }
+            ],
+            "rules": []
+        }
+    },
+    {
+        "task_name": "Создать объект ДТП_1",
+        "task_object": 2,
+        "object_name": "ДТП_1",
+        "description": "",
+        "object_reference": {
+            "tag": "class",
+            "id": "ДТП_1",
+            "group": "ГРУППА1",
+            "desc": "Класс для ДТП_1",
+            "properties": [
+                {
+                    "tag": "property",
+                    "id": "Количество_пострадавших",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Количество",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Количество_пострадавших",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                },
+                {
+                    "tag": "property",
+                    "id": "Координата",
+                    "type": {
+                        "tag": "ref",
+                        "id": "Координата",
+                        "ref": null,
+                        "meta": "type_or_class"
+                    },
+                    "desc": "Координата",
+                    "value": null,
+                    "source": "asked",
+                    "question": null,
+                    "query": null
+                }
+            ],
+            "rules": []
+        }
+    },
+    {
+        "task_name": "Создать интервал Машина1_в_пути",
+        "task_object": 4,
+        "object_name": "Машина1_в_пути",
+        "description": "",
+        "object_reference": {
+            "tag": "interval",
+            "id": "Машина1_в_пути",
+            "group": "ИНТЕРВАЛ",
+            "desc": "Машина1_в_пути",
+            "open": {
+                "tag": "ge",
+                "left": {
+                    "tag": "ref",
+                    "id": "ДТП_1",
+                    "ref": {
+                        "tag": "ref",
+                        "id": "Координата",
+                        "ref": null
+                    }
+                },
+                "right": {
+                    "tag": "add",
+                    "left": {
+                        "tag": "ref",
+                        "id": "Машина_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Координата",
+                            "ref": null
+                        }
+                    },
+                    "right": {
+                        "tag": "value",
+                        "content": 7
+                    }
+                }
+            },
+            "close": {
+                "tag": "lt",
+                "left": {
+                    "tag": "sub",
+                    "left": {
+                        "tag": "ref",
+                        "id": "ДТП_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Координата",
+                            "ref": null
+                        }
+                    },
+                    "right": {
+                        "tag": "ref",
+                        "id": "Машина_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Координата",
+                            "ref": null
+                        }
+                    }
+                },
+                "right": {
+                    "tag": "value",
+                    "content": 7
+                }
+            }
+        }
+    },
+    {
+        "task_name": "Создать интервал Устранение_последствий_ДТП",
+        "task_object": 4,
+        "object_name": "Устранение_последствий_ДТП",
+        "description": "",
+        "object_reference": {
+            "tag": "interval",
+            "id": "Устранение_последствий_ДТП",
+            "group": "ИНТЕРВАЛ",
+            "desc": "Устранение_последствий_ДТП",
+            "open": {
+                "tag": "ge",
+                "left": {
+                    "tag": "ref",
+                    "id": "ДТП_1",
+                    "ref": {
+                        "tag": "ref",
+                        "id": "Количество_пострадавших",
+                        "ref": null
+                    }
+                },
+                "right": {
+                    "tag": "value",
+                    "content": 1
+                }
+            },
+            "close": {
+                "tag": "eq",
+                "left": {
+                    "tag": "ref",
+                    "id": "ДТП_1",
+                    "ref": {
+                        "tag": "ref",
+                        "id": "Количество_пострадавших",
+                        "ref": null
+                    }
+                },
+                "right": {
+                    "tag": "value",
+                    "content": 0
+                }
+            }
+        }
+    },
+    {
+        "task_name": "Создать событие Машина1_прибыла_на_ДТП1",
+        "task_object": 3,
+        "object_name": "Машина1_прибыла_на_ДТП1",
+        "description": "",
+        "object_reference": {
+            "tag": "event",
+            "id": "Машина1_прибыла_на_ДТП1",
+            "group": "СОБЫТИЕ",
+            "desc": "Машина1_прибыла_на_ДТП1",
+            "occurance_condition": {
+                "tag": "lt",
+                "left": {
+                    "tag": "sub",
+                    "left": {
+                        "tag": "ref",
+                        "id": "ДТП_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Координата",
+                            "ref": null
+                        }
+                    },
+                    "right": {
+                        "tag": "ref",
+                        "id": "Машина_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Координата",
+                            "ref": null
+                        }
+                    }
+                },
+                "right": {
+                    "tag": "value",
+                    "content": 4
+                }
+            }
+        }
+    },
+    {
+        "task_name": "Создать правило Добавление_пассажиров",
+        "task_object": 5,
+        "object_name": "Добавление_пассажиров",
+        "description": "",
+        "object_reference": {
+            "tag": "rule",
+            "id": "Добавление_пассажиров",
+            "condition": {
+                "tag": "and",
+                "left": {
+                    "tag": "a",
+                    "left": {
+                        "tag": "ref",
+                        "id": "Машина1_прибыла_на_ДТП1",
+                        "index": null,
+                        "meta": "allen_reference"
+                    },
+                    "right": {
+                        "tag": "ref",
+                        "id": "Машина1_в_пути",
+                        "index": null,
+                        "meta": "allen_reference"
+                    }
+                },
+                "right": {
+                    "tag": "gt",
+                    "left": {
+                        "tag": "ref",
+                        "id": "Машина_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Тип_бригады",
+                            "ref": null,
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "right": {
+                        "tag": "value",
+                        "content": 1,
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "non_factor": {
+                        "tag": "with",
+                        "belief": 50,
+                        "probability": 100,
+                        "accuracy": 0
+                    }
+                },
+                "non_factor": {
+                    "tag": "with",
+                    "belief": 50,
+                    "probability": 100,
+                    "accuracy": 0
+                }
+            },
+            "instructions": [
+                {
+                    "tag": "assign",
+                    "non_factor": {
+                        "tag": "with",
+                        "belief": 50,
+                        "probability": 100,
+                        "accuracy": 0
+                    },
+                    "ref": {
+                        "tag": "ref",
+                        "id": "Машина_1",
+                        "ref": {
+                            "tag": "ref",
+                            "id": "Пассажиры",
+                            "ref": null,
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    },
+                    "value": {
+                        "tag": "add",
+                        "left": {
+                            "tag": "ref",
+                            "id": "Машина_1",
+                            "ref": {
+                                "tag": "ref",
+                                "id": "Пассажиры",
+                                "ref": null,
+                                "non_factor": {
+                                    "tag": "with",
+                                    "belief": 50,
+                                    "probability": 100,
+                                    "accuracy": 0
+                                }
+                            },
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "right": {
+                            "tag": "value",
+                            "content": 1,
+                            "non_factor": {
+                                "tag": "with",
+                                "belief": 50,
+                                "probability": 100,
+                                "accuracy": 0
+                            }
+                        },
+                        "non_factor": {
+                            "tag": "with",
+                            "belief": 50,
+                            "probability": 100,
+                            "accuracy": 0
+                        }
+                    }
+                }
+            ],
+            "else_instructions": null,
+            "meta": "simple",
+            "period": null,
+            "desc": "Добавление_пассажиров"
+        }
+    }
+]
