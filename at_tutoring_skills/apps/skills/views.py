@@ -1,5 +1,5 @@
 from adrf import viewsets
-from at_tutoring_skills.apps.skills.models import User, UserSkill, SKillConnection
+from at_tutoring_skills.apps.skills.models import Task, User, UserSkill, SKillConnection
 from at_tutoring_skills.apps.skills.filters import ByAuthTokenFilter
 from at_tutoring_skills.apps.skills.serializers import QueryParamSerializer
 from at_tutoring_skills.core.KBskills import ATTutoringKBSkills
@@ -114,6 +114,10 @@ class UserViewSet(viewsets.GenericViewSet):
         response['Content-Disposition'] = 'inline; filename="graph.png"'
         return response
         
+
+class TaskViewSet(viewsets.GenericViewSet):
+    queryset = Task.objects.all()
+
 
 
         
