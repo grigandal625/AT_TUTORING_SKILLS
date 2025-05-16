@@ -1,8 +1,9 @@
 from typing import List
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
+from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_logic_mistake, to_syntax_mistake
+from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.template_usage.models.models import (
     TemplateUsageArgumentRequest,
@@ -39,17 +40,16 @@ class TemplateUsageService:
                 # self._mistake_service.create_mistake(mistake, user_id, "syntax")
 
                 common_mistake = to_syntax_mistake(
-                        user_id=user_id,
-                        tip=f"Синтаксическая ошибка при создании операции.\n\n",
-                        coefficients=SIMULATION_COEFFICIENTS,
-                        entity_type="template_usage",
-                        skills=[253],
+                    user_id=user_id,
+                    tip=f"Синтаксическая ошибка при создании операции.\n\n",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="template_usage",
+                    skills=[253],
                 )
                 errors_list.append(common_mistake)
                 await self.main_task_service.append_mistake(common_mistake)
 
             raise ValueError("Синтаксическая ошибка при создании операции")
-
 
     async def handle_logic_mistakes(
         self,
@@ -57,20 +57,14 @@ class TemplateUsageService:
         template_usage: TemplateUsageRequest,
         resource_reference: List[str],
         template_reference: str,
+        task: Task,
     ) -> None:
         """
         Обрабатывает логические ошибки в данных шаблона.
         """
-        try:
-            task = await self.main_task_service.get_task_by_name(
-                template_usage.name, SUBJECT_CHOICES.SIMULATION_TEMPLATE_USAGES
-            )
-            task_id = task.pk
-            object_reference = await self.main_task_service.get_template_usage_reference(task)
-            print("Данные object reference, полученные для сравнения: ", object_reference)
-        except ValueError:  # NotFoundError
-            print("Создан образец операции, не касающийся задания")
-            return
+
+        task_id = task.pk
+        object_reference = await self.main_task_service.get_template_usage_reference(task)
 
         mistakes: List[CommonMistake] = []
 

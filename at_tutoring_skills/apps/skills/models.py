@@ -51,6 +51,7 @@ class Skill(models.Model):
     def __str__(self):
         return self.name
 
+
 class SKillConnection(models.Model):
     skill_from = models.ForeignKey(Skill, on_delete=models.CASCADE, null=True, default=None, related_name="outputs")
     skill_to = models.ForeignKey(Skill, on_delete=models.SET_NULL, null=True, default=None, related_name="inputs")
@@ -62,6 +63,9 @@ class Task(models.Model):
     task_object = models.IntegerField(choices=SUBJECT_CHOICES)
     object_name = models.CharField(max_length=255)  # заполняшка от параметров
     description = models.TextField()  # Описание задания
+    variant = models.ForeignKey(
+        "Variant", on_delete=models.CASCADE, null=True, blank=True, default=None, related_name="task"
+    )
 
     object_reference = models.JSONField(null=True, blank=True)  # Параметры события (JSON или пустые)
 
@@ -75,7 +79,7 @@ class Task(models.Model):
 
 class Variant(models.Model):
     name = models.CharField(max_length=255, default=None)  # проблемная область/название
-    task = models.ManyToManyField(Task)
+    # task = models.ManyToManyField(Task)
     kb_description = models.TextField(null=True, blank=True, default=None)  # Описание задач/подзадач
     sm_description = models.TextField(null=True, blank=True, default=None)  # Описание внешней среды
 

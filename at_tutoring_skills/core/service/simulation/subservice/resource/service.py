@@ -3,10 +3,10 @@ from typing import List
 
 from jsonschema import ValidationError
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_logic_mistake, to_syntax_mistake
+from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import ITaskService
@@ -52,51 +52,40 @@ class ResourceService:
                 # self._mistake_service.create_mistake(mistake, user_id)
 
                 common_mistake = to_syntax_mistake(
-                        user_id=user_id,
-                        tip=f"Синтаксическая ошибка при создании ресурса.\n\n",
-                        coefficients=SIMULATION_COEFFICIENTS,
-                        entity_type="resource_type",
-                        skills=[233],
+                    user_id=user_id,
+                    tip=f"Синтаксическая ошибка при создании ресурса.\n\n",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="resource_type",
+                    skills=[233],
                 )
                 errors_list.append(common_mistake)
                 await self.main_task_service.append_mistake(common_mistake)
 
             raise ValueError("Синтаксическая ошибка при создании ресурса")
 
-
     async def handle_logic_mistakes(
-        self,
-        user_id: int,
-        resource: ResourceRequest,
-        resource_type: str,
+        self, user_id: int, resource: ResourceRequest, resource_type: str, task: Task
     ) -> None:
         try:
-            try:
-                if isinstance(resource_type, str):
-                    # Если resource_type — строка, пытаемся разобрать её как JSON
-                    resource_type_data = json.loads(resource_type)
-                elif isinstance(resource_type, dict):
-                    # Если resource_type уже словарь, используем его напрямую
-                    resource_type_data = resource_type
-                else:
-                    raise ValueError("Некорректный тип данных для resource_type. Ожидалась строка или словарь.")
+            if isinstance(resource_type, str):
+                # Если resource_type — строка, пытаемся разобрать её как JSON
+                resource_type_data = json.loads(resource_type)
+            elif isinstance(resource_type, dict):
+                # Если resource_type уже словарь, используем его напрямую
+                resource_type_data = resource_type
+            else:
+                raise ValueError("Некорректный тип данных для resource_type. Ожидалась строка или словарь.")
 
-                # Создаем объект ResourceTypeRequest
-                resource_type_obj = ResourceTypeRequest(**resource_type_data)
-            except (json.JSONDecodeError, ValidationError) as e:
-                print(f"Ошибка при преобразовании resource_type: {e}")
-                return
-            task: Task = await self.main_task_service.get_task_by_name(
-                resource.name, SUBJECT_CHOICES.SIMULATION_RESOURCES
-            )
-            task_id = task.pk
-            object_reference = await self.main_task_service.get_resource_reference(task)
-
-            print("Данные object reference, полученные для сравнения: ", object_reference)
-
-        except ValueError:  # NotFoundError
-            print("Создан ресурс, не касающийся задания")
+            # Создаем объект ResourceTypeRequest
+            resource_type_obj = ResourceTypeRequest(**resource_type_data)
+        except (json.JSONDecodeError, ValidationError) as e:
+            print(f"Ошибка при преобразовании resource_type: {e}")
             return
+
+        task_id = task.pk
+        object_reference = await self.main_task_service.get_resource_reference(task)
+
+        print("Данные object reference, полученные для сравнения: ", object_reference)
 
         mistakes = self._attributes_logic_mistakes(
             resource_type_obj,
@@ -126,7 +115,7 @@ class ResourceService:
             )
 
         except ValueError:  # NotFoundError
-            return
+            return None
 
         mistakes = self._attributes_lexic_mistakes(
             resource.name,

@@ -4,7 +4,8 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from at_tutoring_skills.apps.skills.models import SKillConnection, Skill
+from at_tutoring_skills.apps.skills.models import Skill
+from at_tutoring_skills.apps.skills.models import SKillConnection
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import Variant
 
@@ -58,8 +59,10 @@ class Command(BaseCommand):
 
                 # Загрузка заданий
                 for task_data in tasks_data.get("tasks", []):
+                    # Ищем задание с таким именем И вариантом
                     task, created = Task.objects.get_or_create(
                         object_name=task_data["object_name"],
+                        variant=variant,  # Добавляем вариант в условия поиска
                         task_object=task_data["task_object"],
                         defaults={
                             "task_name": task_data["task_name"],
@@ -68,10 +71,25 @@ class Command(BaseCommand):
                         },
                     )
 
-                    # Связывание с вариантом
-                    variant.task.add(task)
+                    # Если задание уже существовало, но параметры изменились - обновляем
+                    if not created:
+                        updated = False
+                        if task.task_name != task_data["task_name"]:
+                            task.task_name = task_data["task_name"]
+                            updated = True
+                        if task.description != task_data["description"]:
+                            task.description = task_data["description"]
+                            updated = True
+                        if task.object_reference != task_data.get("object_reference"):
+                            task.object_reference = task_data.get("object_reference")
+                            updated = True
 
-                    # Связывание с навыками
+                        if updated:
+                            task.save()
+                            self.stdout.write(f"  Обновлено задание: {task.task_name}")
+
+                    # Связывание с навыками (очищаем старые связи и добавляем новые)
+                    task.skills.clear()
                     for code in task_data.get("skill_codes", []):
                         if code in skills_map:
                             task.skills.add(skills_map[code])
@@ -81,8 +99,8 @@ class Command(BaseCommand):
                                 self.style.WARNING(f"  Навык с кодом {code} не найден для задания {task.task_name}")
                             )
 
-                    action = "Создано" if created else "Обновлено"
-                    self.stdout.write(f"  {action} задание: {task.task_name}")
+                    action = "Создано" if created else "Обновлено" if updated else "Без изменений"
+                    self.stdout.write(f"  {action} задание: {task.task_name} (вариант: {variant_name})")
 
             # 3. Загрузка связей между навыками (без удаления существующих)
             connections_file = data_dir / "kb_skills_connections.json"
@@ -99,7 +117,8 @@ class Command(BaseCommand):
 
                     if not skill_to:
                         self.stdout.write(
-                            self.style.WARNING(f"  Навык с кодом {skill_to_code} не найден (пропускаем связи)"))
+                            self.style.WARNING(f"  Навык с кодом {skill_to_code} не найден (пропускаем связи)")
+                        )
                         continue
 
                     for skill_from_code, weight in zip(connection_item["in_skill"], connection_item["weights"]):
@@ -107,24 +126,25 @@ class Command(BaseCommand):
 
                         if not skill_from:
                             self.stdout.write(
-                                self.style.WARNING(f"  Навык с кодом {skill_from_code} не найден (связь с {skill_to_code})"))
+                                self.style.WARNING(
+                                    f"  Навык с кодом {skill_from_code} не найден (связь с {skill_to_code})"
+                                )
+                            )
                             continue
 
                         # Создаем или обновляем связь
                         connection, created = SKillConnection.objects.update_or_create(
-                            skill_from=skill_from,
-                            skill_to=skill_to,
-                            defaults={'weight': weight}
+                            skill_from=skill_from, skill_to=skill_to, defaults={"weight": weight}
                         )
 
                         if created:
                             created_count += 1
-                            self.stdout.write(
-                                f"  Создана связь: {skill_from_code} -> {skill_to_code} (вес: {weight})")
+                            self.stdout.write(f"  Создана связь: {skill_from_code} -> {skill_to_code} (вес: {weight})")
                         else:
                             updated_count += 1
                             self.stdout.write(
-                                f"  Обновлена связь: {skill_from_code} -> {skill_to_code} (новый вес: {weight})")
+                                f"  Обновлена связь: {skill_from_code} -> {skill_to_code} (новый вес: {weight})"
+                            )
 
                 self.stdout.write(f"  Создано {created_count} новых связей")
                 self.stdout.write(f"  Обновлено {updated_count} существующих связей")

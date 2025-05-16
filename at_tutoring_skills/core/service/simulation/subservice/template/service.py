@@ -2,11 +2,11 @@ from typing import Dict
 from typing import List
 from typing import Union
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_lexic_mistake, to_syntax_mistake
+from at_tutoring_skills.core.errors.conversions import to_lexic_mistake
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.dependencies import ITaskService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import IMistakeService
@@ -63,29 +63,25 @@ class TemplateService:
                 # self._mistake_service.create_mistake(mistake, user_id, "syntax")
 
                 common_mistake = to_syntax_mistake(
-                        user_id=user_id,
-                        tip=f"Синтаксическая ошибка при создании образца операции.\n\n",
-                        coefficients=SIMULATION_COEFFICIENTS,
-                        entity_type="template",
-                        skills=[247],
-
+                    user_id=user_id,
+                    tip=f"Синтаксическая ошибка при создании образца операции.\n\n",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="template",
+                    skills=[247],
                 )
                 errors_list.append(common_mistake)
                 await self.main_task_service.append_mistake(common_mistake)
 
             raise ValueError("Синтаксическая ошибка при создании образца операции")
 
-
     async def handle_logic_mistakes(
         self,
         user_id: int,
         template: Union[IrregularEventRequest, RuleRequest, OperationRequest],
         resource_data: List[Dict[str, str]],
+        task: Task,
     ) -> None:
         try:
-            task: Task = await self.main_task_service.get_task_by_name(
-                template.meta.name, SUBJECT_CHOICES.SIMULATION_TEMPLATES
-            )
             task_id = task.pk
             object_reference = await self.main_task_service.get_template_reference(task)
 
@@ -104,7 +100,7 @@ class TemplateService:
                     user_id=user_id,
                     task_id=task_id,
                     tip=f"Выбран неверный вид образца операции. Ожидался тип {type(template).__name__}, "
-                        f"но получен тип {type(object_reference).__name__}.\n\n",
+                    f"но получен тип {type(object_reference).__name__}.\n\n",
                     coefficients=SIMULATION_COEFFICIENTS,
                     entity_type="template",
                     skills=[241],
@@ -156,28 +152,19 @@ class TemplateService:
         user_id: int,
         template: Union[IrregularEventRequest, RuleRequest, OperationRequest],
         resource_data: List[Dict[str, str]],
+        task: Task,
     ) -> None:
         """
         Обработка лексических ошибок.
         """
-        try:
-            task: Task = await self.main_task_service.get_task_by_name(
-                template.meta.name, SUBJECT_CHOICES.SIMULATION_TEMPLATES
-            )
-            task_id = task.pk
-            object_reference = await self.main_task_service.get_template_reference(task)
+        task_id = task.pk
+        object_reference = await self.main_task_service.get_template_reference(task)
 
-            print("Данные object reference, полученные для сравнения: ", object_reference)
-
-        except ValueError:  # NotFoundError
-            print("Создан образец операции, не касающийся задания")
-            return
-        
         if isinstance(template, (IrregularEventRequest, RuleRequest, OperationRequest)):
             # Проверяем, что object_reference имеет тот же тип, что и template
             if not isinstance(object_reference, type(template)):
-                return 
-        
+                return
+
         mistakes = self._relevant_resources_lexic_mistakes(
             resource_data,
             template,

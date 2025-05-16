@@ -1,10 +1,11 @@
 from typing import List
 from typing import Sequence
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_lexic_mistake, to_logic_mistake, to_syntax_mistake
+from at_tutoring_skills.core.errors.conversions import to_lexic_mistake
+from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionParameterRequest
 from at_tutoring_skills.core.service.simulation.subservice.function.models.models import FunctionRequest
@@ -46,33 +47,20 @@ class FunctionService:
                 # self._mistake_service.create_mistake(mistake, user_id, "syntax")
 
                 common_mistake = to_syntax_mistake(
-                        user_id=user_id,
-                        tip=f"Синтаксическая ошибка при создании функции.\n\n",
-                        coefficients=SIMULATION_COEFFICIENTS,
-                        entity_type="function",
-                        skills=[264],
+                    user_id=user_id,
+                    tip=f"Синтаксическая ошибка при создании функции.\n\n",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="function",
+                    skills=[264],
                 )
                 errors_list.append(common_mistake)
                 await self.main_task_service.append_mistake(common_mistake)
 
             raise ValueError("Синтаксическая ошибка при создании функции.")
 
-
-    async def handle_logic_mistakes(
-        self,
-        user_id: int,
-        function: FunctionRequest,
-    ) -> None:
-        try:
-            task: Task = await self.main_task_service.get_task_by_name(function.name, SUBJECT_CHOICES.SIMULATION_FUNCS)
-            task_id = task.pk
-            object_reference = await self.main_task_service.get_function_reference(task)
-
-            print("Данные object reference, полученные для сравнения: ", object_reference)
-
-        except ValueError:  # NotFoundError
-            print("Создан тип ресурса, не касающийся задания")
-            return
+    async def handle_logic_mistakes(self, user_id: int, function: FunctionRequest, task: Task) -> None:
+        task_id = task.pk
+        object_reference = await self.main_task_service.get_function_reference(task)
 
         mistakes = self._params_logic_mistakes(
             function,
@@ -90,13 +78,8 @@ class FunctionService:
 
             return mistakes  # raise ValueError("Handle function: logic mistakes")
 
-    async def handle_lexic_mistakes(
-        self,
-        user_id: int,
-        function: FunctionRequest,
-    ) -> None:
+    async def handle_lexic_mistakes(self, user_id: int, function: FunctionRequest, task: Task) -> None:
         try:
-            task: Task = await self.main_task_service.get_task_by_name(function.name, SUBJECT_CHOICES.SIMULATION_FUNCS)
             task_id = task.pk
             object_reference = await self.main_task_service.get_function_reference(task)
 
@@ -195,9 +178,7 @@ class FunctionService:
                 continue
 
             param_reference = params_reference_dict[param.name]
-            print(
-                f"Found reference parameter: name={param_reference.name}, type={param_reference.type}"
-            )
+            print(f"Found reference parameter: name={param_reference.name}, type={param_reference.type}")
 
             # Проверка типа параметра
             if param.type != param_reference.type:

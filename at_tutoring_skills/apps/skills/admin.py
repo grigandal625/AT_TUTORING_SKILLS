@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 
-from .models import SKillConnection, Skill
+from .models import Skill
+from .models import SKillConnection
 from .models import Task
 from .models import TaskUser
 from .models import User
@@ -11,14 +12,16 @@ from .models import Variant
 
 @admin.register(Skill)
 class SkillAdmin(ModelAdmin):
-    list_display = ("id", "name", "get_group_display")
+    list_display = ("id", "name", "get_group_display", "code")
     list_filter = ("group",)
     search_fields = ("name",)
+    list_select_related = ("variant",)
 
     def get_group_display(self, obj):
         return obj.get_group_display()
 
     get_group_display.short_description = "Group"
+
 
 @admin.register(SKillConnection)
 class SKillConnectionAdmin(ModelAdmin):
@@ -43,7 +46,7 @@ class TaskAdmin(ModelAdmin):
 class VariantAdmin(ModelAdmin):
     list_display = ("id", "name", "display_tasks")
     search_fields = ("name",)
-    filter_horizontal = ("task",)
+    # filter_horizontal = ("task",)
 
     def display_tasks(self, obj):
         return ", ".join([task.task_name for task in obj.task.all()])
