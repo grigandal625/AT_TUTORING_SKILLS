@@ -1,10 +1,10 @@
 from typing import List
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_lexic_mistake, to_syntax_mistake
+from at_tutoring_skills.core.errors.conversions import to_lexic_mistake
 from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.dependencies import ITaskService
@@ -48,25 +48,18 @@ class ResourceTypeService:
                 # self._mistake_service.create_mistake(mistake, user_id, "syntax")
 
                 common_mistake = to_syntax_mistake(
-                        user_id=user_id,
-                        tip=f"Синтаксическая ошибка при создании типа ресурса.\n\n",
-                        coefficients=SIMULATION_COEFFICIENTS,
-                        entity_type="resource_type",
-                        skills=[225],
+                    user_id=user_id,
+                    tip=f"Синтаксическая ошибка при создании типа ресурса.\n\n",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="resource_type",
+                    skills=[225],
                 )
                 errors_list.append(common_mistake)
                 await self.main_task_service.append_mistake(common_mistake)
 
             raise ValueError("Синтаксическая ошибка при создании типа ресурса")
 
-
-
-    async def handle_logic_mistakes(
-        self,
-        user_id: int,
-        resource_type: ResourceTypeRequest,
-        task :Task
-    ) -> None:
+    async def handle_logic_mistakes(self, user_id: int, resource_type: ResourceTypeRequest, task: Task) -> None:
         try:
             task_id = task.pk
             object_reference = await self.main_task_service.get_resource_type_reference(task)
@@ -93,14 +86,8 @@ class ResourceTypeService:
 
             return mistakes  # raise ValueError("Handle resource type: logic mistakes")
 
-    async def handle_lexic_mistakes(
-        self,
-        user_id: int,
-        resource_type: ResourceTypeRequest,
-        task: Task
-    ) -> None:
+    async def handle_lexic_mistakes(self, user_id: int, resource_type: ResourceTypeRequest, task: Task) -> None:
         try:
-
             task_id = task.pk
             object_reference = await self.main_task_service.get_resource_type_reference(task)
 

@@ -32,7 +32,7 @@ class KBIntervalServiceLogicLexic:
             interval.close, var_close, {"structure": 0.3, "variables": 0.6, "constants": 0.5}
         )
 
-        errors_list=[]
+        errors_list = []
         context = Context(parent=None, name=f"Объект {interval.id}")
 
         errors_list_open = await cond.compare_conditions_deep(

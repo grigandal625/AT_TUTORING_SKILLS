@@ -4,7 +4,8 @@ from pathlib import Path
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from at_tutoring_skills.apps.skills.models import SKillConnection, Skill
+from at_tutoring_skills.apps.skills.models import Skill
+from at_tutoring_skills.apps.skills.models import SKillConnection
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import Variant
 
@@ -82,7 +83,7 @@ class Command(BaseCommand):
                         if task.object_reference != task_data.get("object_reference"):
                             task.object_reference = task_data.get("object_reference")
                             updated = True
-                        
+
                         if updated:
                             task.save()
                             self.stdout.write(f"  Обновлено задание: {task.task_name}")
@@ -116,7 +117,8 @@ class Command(BaseCommand):
 
                     if not skill_to:
                         self.stdout.write(
-                            self.style.WARNING(f"  Навык с кодом {skill_to_code} не найден (пропускаем связи)"))
+                            self.style.WARNING(f"  Навык с кодом {skill_to_code} не найден (пропускаем связи)")
+                        )
                         continue
 
                     for skill_from_code, weight in zip(connection_item["in_skill"], connection_item["weights"]):
@@ -124,24 +126,25 @@ class Command(BaseCommand):
 
                         if not skill_from:
                             self.stdout.write(
-                                self.style.WARNING(f"  Навык с кодом {skill_from_code} не найден (связь с {skill_to_code})"))
+                                self.style.WARNING(
+                                    f"  Навык с кодом {skill_from_code} не найден (связь с {skill_to_code})"
+                                )
+                            )
                             continue
 
                         # Создаем или обновляем связь
                         connection, created = SKillConnection.objects.update_or_create(
-                            skill_from=skill_from,
-                            skill_to=skill_to,
-                            defaults={'weight': weight}
+                            skill_from=skill_from, skill_to=skill_to, defaults={"weight": weight}
                         )
 
                         if created:
                             created_count += 1
-                            self.stdout.write(
-                                f"  Создана связь: {skill_from_code} -> {skill_to_code} (вес: {weight})")
+                            self.stdout.write(f"  Создана связь: {skill_from_code} -> {skill_to_code} (вес: {weight})")
                         else:
                             updated_count += 1
                             self.stdout.write(
-                                f"  Обновлена связь: {skill_from_code} -> {skill_to_code} (новый вес: {weight})")
+                                f"  Обновлена связь: {skill_from_code} -> {skill_to_code} (новый вес: {weight})"
+                            )
 
                 self.stdout.write(f"  Создано {created_count} новых связей")
                 self.stdout.write(f"  Обновлено {updated_count} существующих связей")

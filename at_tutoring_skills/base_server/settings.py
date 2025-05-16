@@ -44,12 +44,15 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "adrf",
+    "drf_spectacular",
+    "corsheaders",
     "at_tutoring_skills.apps.skills",
     "at_tutoring_skills.apps.mistakes",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -92,6 +95,11 @@ sqlite_db_name = Path(sqlite_db_name_str)
 if not sqlite_db_name.is_absolute():
     sqlite_db_name = CWD / sqlite_db_name
 
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_EXPOSE_HEADERS = ['*']
+
+
 SQLITE_CONFIG = {
     "ENGINE": "django.db.backends.sqlite3",
     "NAME": sqlite_db_name,
@@ -111,6 +119,21 @@ db_engine = os.getenv("DB_ENGINE")
 default_db = {"postgres": POSTGRES_CONFIG, "sqlite": SQLITE_CONFIG}[db_engine]
 
 DATABASES = {"default": default_db}
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "at_tutoring_skills.base_server.autoschema.AutoSchema",
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "AT_TUTORING_SKILLS",
+    "DESCRIPTION": "API for dynamic ies practics skills server",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SCHEMA_PATH_PREFIX": r'/api/',
+}
 
 
 # Password validation

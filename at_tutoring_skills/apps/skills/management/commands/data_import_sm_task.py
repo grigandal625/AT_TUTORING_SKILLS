@@ -1,26 +1,29 @@
 import json
 import logging
+from pathlib import Path
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import Count
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES, SKillConnection, Skill
+from at_tutoring_skills.apps.skills.models import Skill
+from at_tutoring_skills.apps.skills.models import SKillConnection
+from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.apps.skills.models import Variant
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 commands_dir = Path(__file__).resolve().parent
 data_dir = commands_dir / "data_sm"
 
+
 class Command(BaseCommand):
     help = "Импортирует задачи из JSON-файла в базу данных"
 
     def handle(self, *args, **options):
         """Основной обработчик команды"""
-        
+
         try:
             self.create_skills()
             # Импорт задач из JSON-файла в базу данных
@@ -108,7 +111,7 @@ class Command(BaseCommand):
                             object_name=task_data["object_name"],
                             variant=variant,
                             task_object=task_data["task_object"],
-                            defaults=prepared_task_data
+                            defaults=prepared_task_data,
                         )
 
                         # Обновляем связи с навыками (очищаем старые и добавляем новые)
@@ -147,9 +150,7 @@ class Command(BaseCommand):
         """
         try:
             # Найти все дубликаты по object_name и variant
-            duplicates = Task.objects.values("object_name", "variant").annotate(
-                count=Count("id")
-            ).filter(count__gt=1)
+            duplicates = Task.objects.values("object_name", "variant").annotate(count=Count("id")).filter(count__gt=1)
 
             for duplicate in duplicates:
                 object_name = duplicate["object_name"]
@@ -169,13 +170,15 @@ class Command(BaseCommand):
         """
         Выводит все задачи из базы данных в читаемом формате
         """
-        for task in Task.objects.select_related('variant').all():
+        for task in Task.objects.select_related("variant").all():
             try:
                 # Преобразуем JSON-строку обратно в словарь
                 object_reference = task.object_reference
             except (json.JSONDecodeError, TypeError):
                 object_reference = task.object_reference  # Если данные уже словарь
-            print(f"ID: {task.id}, Name: {task.task_name}, Variant: {task.variant.name}, Object Reference: {object_reference}")
+            print(
+                f"ID: {task.id}, Name: {task.task_name}, Variant: {task.variant.name}, Object Reference: {object_reference}"
+            )
 
     def create_skills(self, skills_file: str = data_dir / "sm_skills.json"):
         skills_map = {}  # Для хранения соответствия code -> skill
@@ -186,8 +189,7 @@ class Command(BaseCommand):
 
             for skill_data in skills_data.get("skills", []):
                 skill, created = Skill.objects.get_or_create(
-                    code=skill_data["code"], 
-                    defaults={"name": skill_data["name"], "group": skill_data["group"]}
+                    code=skill_data["code"], defaults={"name": skill_data["name"], "group": skill_data["group"]}
                 )
                 skills_map[skill.code] = skill
                 action = "Создан" if created else "Обновлен"
@@ -201,9 +203,9 @@ class Command(BaseCommand):
 
         # Создаем mapping code -> skill для быстрого доступа
         skills_map = {skill.code: skill for skill in Skill.objects.all()}
-        
+
         self.stdout.write("\nЗагрузка связей между навыками...")
-        
+
         created_count = 0
         updated_count = 0
         error_count = 0
@@ -218,7 +220,8 @@ class Command(BaseCommand):
 
                 if not skill_to:
                     self.stdout.write(
-                        self.style.WARNING(f"  Навык с кодом {skill_to_code} не найден (пропускаем связи)"))
+                        self.style.WARNING(f"  Навык с кодом {skill_to_code} не найден (пропускаем связи)")
+                    )
                     error_count += 1
                     continue
 
@@ -227,31 +230,31 @@ class Command(BaseCommand):
 
                     if not skill_from:
                         self.stdout.write(
-                            self.style.WARNING(f"  Навык с кодом {skill_from_code} не найден (связь с {skill_to_code})"))
+                            self.style.WARNING(f"  Навык с кодом {skill_from_code} не найден (связь с {skill_to_code})")
+                        )
                         error_count += 1
                         continue
 
                     try:
                         # Создаем или обновляем связь
                         connection, created = SKillConnection.objects.update_or_create(
-                            skill_from=skill_from,
-                            skill_to=skill_to,
-                            defaults={'weight': weight}
+                            skill_from=skill_from, skill_to=skill_to, defaults={"weight": weight}
                         )
 
                         if created:
                             created_count += 1
-                            self.stdout.write(
-                                f"  Создана связь: {skill_from_code} -> {skill_to_code} (вес: {weight})")
+                            self.stdout.write(f"  Создана связь: {skill_from_code} -> {skill_to_code} (вес: {weight})")
                         else:
                             updated_count += 1
                             self.stdout.write(
-                                f"  Обновлена связь: {skill_from_code} -> {skill_to_code} (новый вес: {weight})")
+                                f"  Обновлена связь: {skill_from_code} -> {skill_to_code} (новый вес: {weight})"
+                            )
 
                     except Exception as e:
                         error_count += 1
                         self.stdout.write(
-                            self.style.ERROR(f"  Ошибка создания связи {skill_from_code}->{skill_to_code}: {str(e)}"))
+                            self.style.ERROR(f"  Ошибка создания связи {skill_from_code}->{skill_to_code}: {str(e)}")
+                        )
 
         # Итоговая статистика
         self.stdout.write("\nИтоги загрузки связей:")

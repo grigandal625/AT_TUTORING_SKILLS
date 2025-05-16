@@ -3,10 +3,10 @@ from typing import List
 
 from jsonschema import ValidationError
 
-from at_tutoring_skills.apps.skills.models import SUBJECT_CHOICES
 from at_tutoring_skills.apps.skills.models import Task
 from at_tutoring_skills.core.errors.consts import SIMULATION_COEFFICIENTS
-from at_tutoring_skills.core.errors.conversions import to_logic_mistake, to_syntax_mistake
+from at_tutoring_skills.core.errors.conversions import to_logic_mistake
+from at_tutoring_skills.core.errors.conversions import to_syntax_mistake
 from at_tutoring_skills.core.errors.models import CommonMistake
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import IMistakeService
 from at_tutoring_skills.core.service.simulation.subservice.resource.dependencies import ITaskService
@@ -52,26 +52,20 @@ class ResourceService:
                 # self._mistake_service.create_mistake(mistake, user_id)
 
                 common_mistake = to_syntax_mistake(
-                        user_id=user_id,
-                        tip=f"Синтаксическая ошибка при создании ресурса.\n\n",
-                        coefficients=SIMULATION_COEFFICIENTS,
-                        entity_type="resource_type",
-                        skills=[233],
+                    user_id=user_id,
+                    tip=f"Синтаксическая ошибка при создании ресурса.\n\n",
+                    coefficients=SIMULATION_COEFFICIENTS,
+                    entity_type="resource_type",
+                    skills=[233],
                 )
                 errors_list.append(common_mistake)
                 await self.main_task_service.append_mistake(common_mistake)
 
             raise ValueError("Синтаксическая ошибка при создании ресурса")
 
-
     async def handle_logic_mistakes(
-        self,
-        user_id: int,
-        resource: ResourceRequest,
-        resource_type: str,
-        task: Task
+        self, user_id: int, resource: ResourceRequest, resource_type: str, task: Task
     ) -> None:
-
         try:
             if isinstance(resource_type, str):
                 # Если resource_type — строка, пытаемся разобрать её как JSON

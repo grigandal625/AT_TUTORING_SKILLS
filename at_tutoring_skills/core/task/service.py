@@ -36,7 +36,7 @@ from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.
     ResourceTypeAttributeRequest,
 )
 from at_tutoring_skills.core.service.simulation.subservice.resource_type.models.models import ResourceTypeRequest
-from at_tutoring_skills.core.service.simulation.subservice.template.models.models import GeneratorTypeEnum, TemplateTypeEnum
+from at_tutoring_skills.core.service.simulation.subservice.template.models.models import GeneratorTypeEnum
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventBody
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventGenerator
 from at_tutoring_skills.core.service.simulation.subservice.template.models.models import IrregularEventRequest
@@ -291,33 +291,30 @@ class KBIMServise:
 
 
 class TaskService(KBTaskService, KBIMServise):
-
-
     async def get_user_variant(self, user: User) -> Union[Variant, None]:
-        
         if not isinstance(user, User):
             logger.error("Invalid user object passed")
             raise ValueError("Expected User instance")
-        
+
         try:
             # Если user уже имеет загруженный variant
-            if hasattr(user, '_variant_cache'):
+            if hasattr(user, "_variant_cache"):
                 return user.variant
-                
+
             # Асинхронно загружаем вариант, если он не был загружен
             get_variant = sync_to_async(lambda: user.variant)
             variant = await get_variant()
-            
+
             if variant is None:
                 logger.debug(f"User {user.user_id} has no variant assigned")
                 return None
-                
+
             return variant
-            
+
         except Exception as e:
             logger.error(f"Error getting variant for user {user.user_id}: {str(e)}")
             raise
-        
+
     async def get_all_tasks(
         self, variant_id: int = None, task_object: int | SUBJECT_CHOICES | List[int | SUBJECT_CHOICES] = None
     ) -> models.QuerySet[Task]:
@@ -328,7 +325,7 @@ class TaskService(KBTaskService, KBIMServise):
             result = Task.objects.all()
         else:
             variant = await Variant.objects.aget(pk=variant_id)
-            result = Task.objects.filter(variant=variant) 
+            result = Task.objects.filter(variant=variant)
 
         if isinstance(task_object, list):
             result = result.filter(task_object__in=task_object)
@@ -348,7 +345,11 @@ class TaskService(KBTaskService, KBIMServise):
         Возвращает описание заданий для указанного пользователя.
         """
 
-        base_header = base_header if base_header is not None else "### На текущий момент необходимо выполнить следующие задания: \n\n"
+        base_header = (
+            base_header
+            if base_header is not None
+            else "### На текущий момент необходимо выполнить следующие задания: \n\n"
+        )
         completed_header = completed_header if completed_header is not None else "### Все задания выполнены \n\n"
 
         tasks = await self.get_all_tasks(user.variant_id, task_object=task_object)
@@ -562,8 +563,6 @@ class TaskService(KBTaskService, KBIMServise):
             )
             return tasks[0]
 
-
-
     async def create_user_skill_connection(self, user: User) -> tuple[int, int]:
         """
         Асинхронно создает связи UserSkill для всех навыков (совместимость с Django <5.0)
@@ -682,7 +681,6 @@ class TaskService(KBTaskService, KBIMServise):
         except Exception as e:
             logger.error(f"Error creating TaskUser entries for user {user.user_id}: {str(e)}")
             raise
-
 
     async def get_variant_tasks_description_sm(
         self,

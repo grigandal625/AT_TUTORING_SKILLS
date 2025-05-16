@@ -30,7 +30,7 @@ class KBRuleServiceLogicLexic:
         errors_list = await cond.compare_conditions_deep(
             user_id, task_id, rule.condition, most_common, "rule", context, None
         )
-        if errors_list: 
+        if errors_list:
             for e in errors_list:
                 e.skills.append(1610)
 
