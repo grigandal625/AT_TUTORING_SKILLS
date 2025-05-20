@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 
 from at_tutoring_skills.apps.skills import dto
 from at_tutoring_skills.apps.skills import graph
-from at_tutoring_skills.apps.skills.filters import ByAuthTokenFilter
+from at_tutoring_skills.apps.skills.filters import ByAuthTokenFilter, TaskUserFilter
 from at_tutoring_skills.apps.skills.models import SKillConnection
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
@@ -19,6 +19,7 @@ from at_tutoring_skills.apps.skills.serializers import QueryParamSerializer
 from at_tutoring_skills.apps.skills.serializers import TaskUserSerializer
 from at_tutoring_skills.core.KBskills import ATTutoringKBSkills
 from at_tutoring_skills.core.task.skill_service import SkillService
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class UserViewSet(viewsets.GenericViewSet):
@@ -128,7 +129,8 @@ class UserViewSet(viewsets.GenericViewSet):
 class TaskUserViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
     queryset = TaskUser.objects.all()
     serializer_class = TaskUserSerializer
-    filter_backends = [ByAuthTokenFilter]
+    filter_backends = [ByAuthTokenFilter, DjangoFilterBackend]
+    filterset_class = TaskUserFilter
 
     async def get_user(self) -> User:
         """Получение пользователя по auth-токену"""

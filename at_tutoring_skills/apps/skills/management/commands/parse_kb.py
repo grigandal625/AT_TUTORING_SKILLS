@@ -74,7 +74,7 @@ class Command(BaseCommand):
                     "task_name": f"Создать {name} {item.id}",
                     "task_object": task_object,
                     "object_name": item.id,
-                    "description": "",
+                    "description": item.desc or item.id,
                     "object_reference": repr,
                 }
             )

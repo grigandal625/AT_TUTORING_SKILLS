@@ -14,7 +14,7 @@ class MISTAKE_TYPE_CHOICES(models.IntegerChoices):
 
 
 class Mistake(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, to_field="user_id", on_delete=models.CASCADE)
     mistake_type = models.IntegerField(choices=MISTAKE_TYPE_CHOICES)
     task = models.ForeignKey(Task, null=True, on_delete=models.CASCADE)
     skills = models.ManyToManyField(Skill, blank=True)

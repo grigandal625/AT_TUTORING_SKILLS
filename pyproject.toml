@@ -19,6 +19,7 @@ python-dotenv = "^1.1.0"
 drf-spectacular = "^0.28.0"
 django-cors-headers = "^4.7.0"
 at-queue = {git = "https://github.com/grigandal625/AT_QUEUE.git", rev = "master"}
+django-filter = "^25.1"
 
 
 [tool.poetry.group.dev.dependencies]

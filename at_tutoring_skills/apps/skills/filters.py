@@ -4,10 +4,12 @@ from typing import Union
 from django.db.models import QuerySet
 from rest_framework.filters import BaseFilterBackend
 from drf_spectacular.extensions import OpenApiFilterExtension
+from django_filters.filterset import FilterSet
+from at_tutoring_skills.apps.skills.models import TaskUser
 
 if TYPE_CHECKING:
     from at_tutoring_skills.apps.skills.views import UserViewSet, TaskUserViewSet
-    from at_tutoring_skills.apps.skills.models import User, TaskUser
+    from at_tutoring_skills.apps.skills.models import User
 
 
 class ByAuthTokenFilter(BaseFilterBackend):
@@ -41,3 +43,12 @@ class ByAuthTokenFilterExtension(OpenApiFilterExtension):
                 "explode": False
             }
         ]
+    
+
+class TaskUserFilter(FilterSet):
+
+    class Meta:
+        model = TaskUser
+        fields = {
+            'task__task_object': ['in']
+        }
