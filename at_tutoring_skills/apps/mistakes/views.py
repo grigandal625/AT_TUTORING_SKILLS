@@ -13,7 +13,7 @@ from at_queue.core.exceptions import ExternalMethodException
 from rest_framework import exceptions
 
 
-class MistakeViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class MistakeViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.UpdateModelMixin):
     queryset = Mistake.objects.all()
     serializer_class = MistakeSerializer
     filter_backends = [ByAuthTokenFilter]
@@ -33,7 +33,13 @@ class MistakeViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
                 raise exceptions.AuthenticationFailed()
             raise e
 
+    async def aupdate(self, *args, **kwargs):
+        user = await self.get_user()
+        self.user_id = user.user_id
+        return await super().aupdate(*args, **kwargs)
+
     async def alist(self, *args, **kwargs):
         user = await self.get_user()
         self.user_id = user.user_id
         return await super().alist(*args, **kwargs)
+
