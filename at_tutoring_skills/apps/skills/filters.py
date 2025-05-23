@@ -5,6 +5,7 @@ from django.db.models import QuerySet
 from rest_framework.filters import BaseFilterBackend
 from drf_spectacular.extensions import OpenApiFilterExtension
 from django_filters.filterset import FilterSet
+from at_tutoring_skills.apps.mistakes.models import Mistake
 from at_tutoring_skills.apps.skills.models import TaskUser
 
 if TYPE_CHECKING:
@@ -51,4 +52,12 @@ class TaskUserFilter(FilterSet):
         model = TaskUser
         fields = {
             'task__task_object': ['in']
+        }
+    
+class MistakeFilter(FilterSet):
+
+    class Meta:
+        model = Mistake
+        fields = {
+            'task_id': ['in']
         }

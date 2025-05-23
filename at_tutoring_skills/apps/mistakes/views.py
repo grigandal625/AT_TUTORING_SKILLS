@@ -5,18 +5,20 @@ from adrf import mixins
 from adrf import viewsets
 
 from at_tutoring_skills.apps.mistakes.serializers import MistakeSerializer
-from at_tutoring_skills.apps.skills.filters import ByAuthTokenFilter
+from at_tutoring_skills.apps.skills.filters import ByAuthTokenFilter, MistakeFilter
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.apps.skills.serializers import QueryParamSerializer
 from at_tutoring_skills.core.KBskills import ATTutoringKBSkills
 from at_queue.core.exceptions import ExternalMethodException
 from rest_framework import exceptions
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class MistakeViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.UpdateModelMixin):
     queryset = Mistake.objects.all()
     serializer_class = MistakeSerializer
-    filter_backends = [ByAuthTokenFilter]
+    filter_backends = [ByAuthTokenFilter, DjangoFilterBackend]
+    filterset_class = MistakeFilter
 
     async def get_user(self) -> User:
         """Получение пользователя по auth-токену"""
