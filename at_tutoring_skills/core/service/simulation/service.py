@@ -339,6 +339,8 @@ class SimulationService(ATComponent):
             skip_completed=False,
             task_object=SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES,
         )
+        await self.task_service.create_user_skill_connection(user)
+        await self.task_service.create_task_user_entries(user)
 
         hint2 = await self.task_service.get_variant_tasks_description_sm(
             user,
@@ -353,7 +355,7 @@ class SimulationService(ATComponent):
             completed_header="",
         )
 
-        variant = await self.task_service.get_variant(user.user_id)
+        variant = await self.task_service.get_user_variant(user)
 
         all_objects = [
             SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES,
@@ -541,6 +543,7 @@ class SimulationService(ATComponent):
                 "stage_done": stage,
                 "hint": tasks,
                 "skills": skills,
+                "task": task.pk,
                 "skills_url_start": reverse("users-skills-graph") + "?auth_token=",
                 "skills_url_end": "&" + end_query.urlencode(),
                 "legend_url_start": reverse("users-skills-graph-legend") + "?auth_token=",
@@ -633,6 +636,7 @@ class SimulationService(ATComponent):
                 "stage_done": stage,
                 "hint": tasks,
                 "skills": skills,
+                "task": task.pk,
                 "skills_url_start": reverse("users-skills-graph") + "?auth_token=",
                 "skills_url_end": "&" + end_query.urlencode(),
                 "legend_url_start": reverse("users-skills-graph-legend") + "?auth_token=",
@@ -732,6 +736,7 @@ class SimulationService(ATComponent):
                 "stage_done": stage,
                 "hint": tasks,
                 "skills": skills,
+                "task": task.pk,
                 "skills_url_start": reverse("users-skills-graph") + "?auth_token=",
                 "skills_url_end": "&" + end_query.urlencode(),
                 "legend_url_start": reverse("users-skills-graph-legend") + "?auth_token=",
@@ -828,6 +833,7 @@ class SimulationService(ATComponent):
                 "stage_done": stage,
                 "hint": tasks,
                 "skills": skills,
+                "task": task.pk,
                 "skills_url_start": reverse("users-skills-graph") + "?auth_token=",
                 "skills_url_end": "&" + end_query.urlencode(),
                 "legend_url_start": reverse("users-skills-graph-legend") + "?auth_token=",
@@ -904,6 +910,7 @@ class SimulationService(ATComponent):
                 "stage_done": stage,
                 "hint": tasks,
                 "skills": skills,
+                "task": task.pk,
             }
 
         if errors_list:
