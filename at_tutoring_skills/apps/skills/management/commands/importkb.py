@@ -60,12 +60,13 @@ class Command(BaseCommand):
                 # Загрузка заданий
                 for task_data in tasks_data.get("tasks", []):
                     # Ищем задание с таким именем И вариантом
+                    name = task_data["task_name"].replace("'", '"')
                     task, created = Task.objects.get_or_create(
                         object_name=task_data["object_name"],
                         variant=variant,  # Добавляем вариант в условия поиска
                         task_object=task_data["task_object"],
                         defaults={
-                            "task_name": task_data["task_name"],
+                            "task_name": name,
                             "description": task_data["description"],
                             "object_reference": task_data.get("object_reference"),
                         },

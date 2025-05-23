@@ -15,7 +15,7 @@ from at_tutoring_skills.apps.skills.models import SKillConnection
 from at_tutoring_skills.apps.skills.models import TaskUser
 from at_tutoring_skills.apps.skills.models import User
 from at_tutoring_skills.apps.skills.models import UserSkill
-from at_tutoring_skills.apps.skills.serializers import QueryParamSerializer
+from at_tutoring_skills.apps.skills.serializers import QueryParamSerializer, UserSerializer
 from at_tutoring_skills.apps.skills.serializers import TaskUserSerializer
 from at_tutoring_skills.core.KBskills import ATTutoringKBSkills
 from at_tutoring_skills.core.task.skill_service import SkillService
@@ -131,6 +131,33 @@ class TaskUserViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.Ret
     serializer_class = TaskUserSerializer
     filter_backends = [ByAuthTokenFilter, DjangoFilterBackend]
     filterset_class = TaskUserFilter
+
+    async def get_user(self) -> User:
+        """Получение пользователя по auth-токену"""
+        serializer = QueryParamSerializer(data=self.request.query_params)
+        await serializer.ais_valid(raise_exception=True)
+        auth_token = serializer.data.get("auth_token")
+
+        kb_skills: ATTutoringKBSkills = self.request.scope["kb_skills"]
+        try:
+            user_id = await kb_skills.get_user_id_or_token(auth_token=auth_token)
+            return await User.objects.aget(user_id=str(user_id))
+        except ExternalMethodException as e:
+            if "Invalid token" in e.args[-1].get("errors", [""])[-1]:
+                raise exceptions.AuthenticationFailed()
+            raise e
+
+    async def alist(self, *args, **kwargs):
+        user = await self.get_user()
+        self.user_id = user.user_id
+        return await super().alist(*args, **kwargs)
+
+
+class UsersViewSet(viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    filter_backends = [ByAuthTokenFilter, DjangoFilterBackend]
+    # filterset_class = TaskUserFilter
 
     async def get_user(self) -> User:
         """Получение пользователя по auth-токену"""

@@ -1,7 +1,7 @@
 from adrf import serializers
 from rest_framework.fields import empty
 
-from at_tutoring_skills.apps.skills.models import Task
+from at_tutoring_skills.apps.skills.models import Task, User, Variant
 from at_tutoring_skills.apps.skills.models import TaskUser
 
 
@@ -29,4 +29,15 @@ class TaskUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TaskUser
+        fields = "__all__"
+
+class VariantSerializer(serializers.ModelSerializer):   
+    class Meta:
+        model = Variant
+        fields = "__all__"
+
+class UserSerializer(serializers.ModelSerializer):
+    variant = VariantSerializer(read_only=True)
+    class Meta:
+        model = User
         fields = "__all__"
