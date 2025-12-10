@@ -353,7 +353,7 @@ class SimulationService(ATComponent):
             completed_header="",
         )
 
-        variant = await self.task_service.get_variant(user.user_id)
+        variant = await self.task_service.get_user_variant(user)
 
         all_objects = [
             SUBJECT_CHOICES.SIMULATION_RESOURCE_TYPES,
