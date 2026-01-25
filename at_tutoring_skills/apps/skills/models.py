@@ -104,3 +104,14 @@ class UserSkill(models.Model):
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
     mark = models.FloatField(default=100)
     is_completed = models.BooleanField(default=False)
+
+class Competence(models.Model):
+    code = models.CharField(max_length=255)  # Код компетенции
+    name = models.TextField()  # Название/описание компетенции
+
+class SkillCompetence(models.Model):
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE) # Умение/навык
+    competence = models.ForeignKey(Competence, on_delete=models.CASCADE) # Компетенция
+    weight = models.FloatField() # Вес связи от 0 до 100
+
+    
