@@ -176,19 +176,3 @@ class SkillService:
 
         updated_skills = await self.get_user_task_skills_for_first_codes(user, list(codes))
         return "\n\n".join(f"{us.skill.name} : {us.mark}" for us in updated_skills)
-
-    # Вспомогательные методы
-    @sync_to_async
-    def _get_uncalculated_skills(self, user):
-        target_skills = Skill.objects.filter(skill_to__isnull=False)
-        return [skill for skill in target_skills if not self._can_calculate_skill(user, skill)]
-
-    async def get_uncalculated_skills(self, user: User) -> List[Skill]:
-        return await self._get_uncalculated_skills(user)
-
-    @sync_to_async
-    def _get_skill_dependencies(self, skill):
-        return list(Skill.objects.filter(id__in=SKillConnection.objects.filter(skill_to=skill).values("skill_from")))
-
-    async def get_skill_dependencies(self, skill: Skill) -> List[Skill]:
-        return await self._get_skill_dependencies(skill)

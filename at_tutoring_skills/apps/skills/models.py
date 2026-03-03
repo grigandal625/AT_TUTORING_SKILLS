@@ -114,4 +114,7 @@ class SkillCompetence(models.Model):
     competence = models.ForeignKey(Competence, on_delete=models.CASCADE) # Компетенция
     weight = models.FloatField() # Вес связи от 0 до 100
 
-    
+class UserCompetence(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    competence = models.ForeignKey(Competence, on_delete=models.CASCADE)
+    mark = models.FloatField(default=100)

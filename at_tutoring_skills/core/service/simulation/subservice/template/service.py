@@ -25,10 +25,8 @@ class TemplateService:
     def __init__(
         self,
         mistake_service: IMistakeService,
-        task_service: ITaskService,
     ):
         self._mistake_service = mistake_service
-        self._task_service = task_service
         self.main_task_service = TaskService()
 
     def _get_template_class(self, template_type: str):
